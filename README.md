@@ -1,1 +1,31 @@
 # BlindRirEstimation
+
+## 环境
+
+我们在 Linux 上使用 Anaconda 进行环境管理。 CUDA 版本为 12.4 。
+
+```shell
+conda create -n BlindRirEstimation python=3.12.5
+conda activate BlindRirEstimation
+pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cu124
+pip install -r other_requirements.txt
+```
+
+## 项目结构
+
+所有代码均放在 `src` 文件夹下，但执行时一般把工作目录设置在 `BlindRirEstimation` 处，默认配置都是按照这个工作目录设置的。
+
+在 `src` 文件夹下包含 `*_exe.py` 形式的文件，表示此文件是设计为直接执行的，可以这样执行脚本：
+
+```shell
+python src/xxxxx_exe.py
+```
+
+同时，我们直接使用 python 文件来保存配置， `*_exe.py` 会有与其对应的 `*_config.py` 。
+
+## Datasets and Preprocessing
+
+Rir 数据集： Bird https://github.com/FrancoisGrondin/BIRD
+语音数据集： Ears https://github.com/facebookresearch/ears_dataset
+
+
