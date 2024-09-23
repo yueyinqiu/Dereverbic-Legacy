@@ -37,3 +37,8 @@ Bird： https://github.com/FrancoisGrondin/BIRD
 Ears： https://github.com/facebookresearch/ears_dataset
 
 可以使用 `download_ears_exe.py` 下载：
+
+### 预处理
+
+1、 `convert_rir_to_tensor_exe.py`
+2、 `convert_speech_to_tensor_exe.py`
