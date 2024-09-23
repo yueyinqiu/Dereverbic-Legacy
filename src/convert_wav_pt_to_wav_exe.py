@@ -3,5 +3,10 @@ import soundfile
 import torch
 
 for input, output in config.files:
-    tensor: torch.Tensor = torch.load(input)
+    input = input.absolute()
+    output = output.absolute()
+    print(f"Dealing with {input} (-> {output} )...")
+    tensor: torch.Tensor = torch.load(input, weights_only=True)
     soundfile.write(output, tensor.numpy(), config.sample_rate)
+
+print("Completed.")

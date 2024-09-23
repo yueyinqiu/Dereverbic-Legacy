@@ -30,4 +30,4 @@ save_wav: bool = \
     False
 
 random_seed: int = \
-    3407
+    3408

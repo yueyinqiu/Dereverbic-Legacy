@@ -63,10 +63,10 @@ def main():
                                config.mutichannel_behavior)
             for i in range(audio.shape[0]):
                 channel = audio[i, :]
-                channel = librosa.effects.trim(channel,
-                                               top_db=config.trim_top_db, 
-                                               frame_length=config.trim_frame_length, 
-                                               hop_length=config.trim_hop_length)
+                channel, _ = librosa.effects.trim(channel,
+                                                  top_db=config.trim_top_db, 
+                                                  frame_length=config.trim_frame_length, 
+                                                  hop_length=config.trim_hop_length)
 
                 tensor_file, audio_file = save_audio(torch.tensor(channel, dtype=torch.float), 
                                                      config.sample_rate, 
@@ -75,6 +75,7 @@ def main():
                                                      config.save_wav)
                 contents_writer.writerow([
                     str(tensor_file), str(audio_file), str(path), str(i)])
+                contents_file.flush()
                 
     print(f"Completed.")
     
