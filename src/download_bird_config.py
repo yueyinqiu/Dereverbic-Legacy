@@ -1,7 +1,11 @@
-import pathlib
+import pathlib as _pathlib
+import csdir as _csdir
 
-url_pattern: str = "https://zenodo.org/records/4139416/files/fold{:02d}.zip?download=1"
+url_pattern: str = \
+    "https://zenodo.org/records/4139416/files/fold{:02d}.zip?download=1"
 
-destination: pathlib.Path = pathlib.Path("./data/raw/bird/")
+destination: _pathlib.Path = \
+    _csdir.create_directory("./data/raw/bird/")
 
-start_index: int = 1
+start_index: int = \
+    1

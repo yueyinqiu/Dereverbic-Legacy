@@ -1,7 +1,15 @@
 {
-	"folders": [
+	"folders": 
+	[
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": 
+	{
+		"python.analysis.exclude": 
+		[
+			"data"
+		]
+	}
 }

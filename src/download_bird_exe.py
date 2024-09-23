@@ -1,8 +1,6 @@
 import download_bird_config as config
-import csdir
 
 directory_compressed = config.destination.joinpath("compressed")
-csdir.create_directory(directory_compressed)
 
 for i in range(config.start_index, 10 + 1):
     source = config.url_pattern.format(i)

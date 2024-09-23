@@ -7,6 +7,7 @@
 ```shell
 conda create -n BlindRirEstimation python=3.12.5
 conda activate BlindRirEstimation
+conda install ffmpeg=6.1.1
 pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cu124
 pip install -r other_requirements.txt
 ```
@@ -23,9 +24,16 @@ python src/xxxxx_exe.py
 
 同时，我们直接使用 python 文件来保存配置， `*_exe.py` 会有与其对应的 `*_config.py` 。
 
-## Datasets and Preprocessing
+## 数据集和预处理
 
-Rir 数据集： Bird https://github.com/FrancoisGrondin/BIRD
-语音数据集： Ears https://github.com/facebookresearch/ears_dataset
+### Rir 数据集
 
+Bird： https://github.com/FrancoisGrondin/BIRD
 
+可以使用 `download_bird_exe.py` 下载。
+
+### 语音数据集
+
+Ears： https://github.com/facebookresearch/ears_dataset
+
+可以使用 `download_ears_exe.py` 下载：
