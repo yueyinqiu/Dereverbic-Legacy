@@ -4,6 +4,8 @@ import csfile
 
 import split_bird_rir_dataset_config as config
 
+# All the channels of the same original audio will be always put in the same dataset.
+
 print("Loading...")
 with open(config.contents_file, newline="") as csv_file:
     csv_reader = csv.reader(csv_file)

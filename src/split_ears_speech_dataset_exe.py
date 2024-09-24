@@ -5,6 +5,11 @@ import pathlib
 
 import split_ears_speech_dataset_config as config
 
+# All the channels of the same original audio will be always put in the same dataset.
+
+# The train dataset only contains part of the speakers and also part of the contents,
+# while the validation dataset and the test dataset randomly select from the rest.
+
 print("Loading...")
 with open(config.contents_file, newline="") as csv_file:
     csv_reader = csv.reader(csv_file)
