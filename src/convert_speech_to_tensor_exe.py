@@ -2,7 +2,7 @@ import typing
 import pathlib
 import random
 import torch
-import utilities.string_random
+import shared.string_random
 import csv
 import csdir
 import librosa
@@ -46,7 +46,7 @@ def main():
     import convert_speech_to_tensor_config as config
     
     rand = random.Random(config.random_seed)
-    string_random = utilities.string_random.StringRandom(rand, 16)
+    string_random = shared.string_random.StringRandom(rand, 16)
 
     with open(config.output_directory.joinpath("contents.csv").absolute(),
               "w", newline="") as contents_file:
