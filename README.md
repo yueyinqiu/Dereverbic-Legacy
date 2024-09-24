@@ -42,9 +42,9 @@ Ears： https://github.com/facebookresearch/ears_dataset
 
 #### 生成 wav.pt 文件
 
-可以使用 `convert_rir_to_tensor_exe` 和 `convert_speech_to_tensor_exe` 生成 `wav.pt` 文件。
+可以使用 `convert_rir_to_tensor_exe` 和 `convert_speech_to_tensor_exe` 生成 `.wav.pt` 文件。
 
-其中 rir 会同时生成一份 `wav` 文件。但发现生成 `wav` 的速度较慢，因此 speech 默认不进行生成。如果想要生成，可以在配置中打开，或者在之后使用 `convert_wav_pt_to_wav_exe` 将 `wav.pt` 转换为 `wav` 文件。
+在配置中启用 `save_wav` 可以同时保存对应的 `.wav` 音频。但保存 `.wav` 文件的速度较慢，如果只需要个别音频，建议在之后使用 `convert_wav_pt_to_wav_exe` 进行转换。
 
 #### 切割数据集
 

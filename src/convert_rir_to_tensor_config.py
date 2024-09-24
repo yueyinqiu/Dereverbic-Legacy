@@ -19,5 +19,8 @@ mutichannel_behavior: _typing.Literal["first_only", "as_mono", "as_many"] = \
 slice: int = \
     16000
 
+save_wav: bool = \
+    False
+
 random_seed: int = \
     3407

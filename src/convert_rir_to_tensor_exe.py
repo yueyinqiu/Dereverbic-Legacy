@@ -5,6 +5,7 @@ import torch
 import shared.string_random
 import csv
 import csdir
+import soundfile
 
 def load_audio(path: pathlib.Path,
                sample_rate: int,
@@ -25,16 +26,19 @@ def load_audio(path: pathlib.Path,
 def save_audio(audio: torch.Tensor,
                sample_rate: int,
                file_name_without_suffix: str,
-               directory: pathlib.Path):
+               directory: pathlib.Path,
+               save_wav: bool):
     directory = directory / file_name_without_suffix[0] / file_name_without_suffix[1]
     directory = csdir.create_directory(directory.absolute())
 
     tensor_file = directory / f"{file_name_without_suffix}.wav.pt"
     torch.save(audio, tensor_file)
 
-    audio_file = directory / f"{file_name_without_suffix}.wav"
-    import soundfile
-    soundfile.write(audio_file, audio.numpy(), sample_rate)
+    if save_wav:
+        audio_file = directory / f"{file_name_without_suffix}.wav"
+        soundfile.write(audio_file, audio.numpy(), sample_rate)
+    else:
+        audio_file = ""
 
     return (tensor_file, audio_file)
 
@@ -62,7 +66,8 @@ def main():
                 tensor_file, audio_file = save_audio(audio[i, :config.slice], 
                                                      config.sample_rate, 
                                                      file_name, 
-                                                     config.output_directory)
+                                                     config.output_directory,
+                                                     config.save_wav)
                 contents_writer.writerow([
                     str(tensor_file), str(audio_file), str(path), str(i)])
                 
