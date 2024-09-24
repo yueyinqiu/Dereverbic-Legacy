@@ -1,12 +1,12 @@
-# BlindRirEstimation
+# Ricbe
 
 ## 环境
 
 我们在 Linux 上使用 Anaconda 进行环境管理。 CUDA 版本为 12.4 。
 
 ```shell
-conda create -n BlindRirEstimation python=3.12.5
-conda activate BlindRirEstimation
+conda create -n Ricbe python=3.12.5
+conda activate Ricbe
 conda install ffmpeg=6.1.1
 pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cu124
 pip install -r other_requirements.txt
@@ -14,15 +14,15 @@ pip install -r other_requirements.txt
 
 ## 项目结构
 
-所有代码均放在 `src` 文件夹下，但执行时一般把工作目录设置在 `BlindRirEstimation` 处，默认配置都是按照这个工作目录设置的。
+所有代码均放在 `src` 文件夹下，但执行时一般把工作目录设置在 `Ricbe--RirBlindEstimation` 处，默认配置都是按照这个工作目录设置的。
 
-在 `src` 文件夹下包含 `*_exe.py` 形式的文件，表示此文件是设计为直接执行的，可以这样执行脚本：
+其中以 `_exe.py` 结尾的文件是设计为可以直接执行的：
 
 ```shell
 python src/xxxxx_exe.py
 ```
 
-同时，我们直接使用 python 文件来保存配置， `*_exe.py` 会有与其对应的 `*_config.py` 。
+而 `_exe.py` 会有与其对应的 `_config.py` 来储存配置。是的，我们直接使用 python 脚本来保存配置。这允许我们设置一些更加复杂的配置项，也能方便地复用之前的配置，并在代码中定位其配置项的使用位置。
 
 ## 数据集和预处理
 
