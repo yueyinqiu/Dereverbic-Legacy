@@ -30,16 +30,25 @@ python src/xxxxx_exe.py
 
 Bird： https://github.com/FrancoisGrondin/BIRD
 
-可以使用 `download_bird_exe.py` 下载。
+可以使用 `download_bird_exe` 下载。
 
 ### 语音数据集
 
 Ears： https://github.com/facebookresearch/ears_dataset
 
-可以使用 `download_ears_exe.py` 下载：
+可以使用 `download_ears_exe` 下载：
 
 ### 预处理
 
-1、 `convert_rir_to_tensor_exe.py`
-2、 `convert_speech_to_tensor_exe.py` （由于生成 `wav` 文件的速度很慢，而 speech 特别多，因此默认不进行生成，如果想要生成，可以在配置中打开，或者在之后使用 `convert_wav_pt_to_wav_exe.py` 。）
+#### 生成 wav.pt 文件
+
+可以使用 `convert_rir_to_tensor_exe` 和 `convert_speech_to_tensor_exe` 生成 `wav.pt` 文件。
+
+其中 rir 会同时生成一份 `wav` 文件。但发现生成 `wav` 的速度较慢，因此 speech 默认不进行生成。如果想要生成，可以在配置中打开，或者在之后使用 `convert_wav_pt_to_wav_exe` 将 `wav.pt` 转换为 `wav` 文件。
+
+#### 切割数据集
+
+使用 `split_bird_rir_dataset_exe` 和 `split_ears_speech_dataset_exe` 进行数据集切割。
+
+由于这一步骤和数据集本身的结构密切相关，这里的两个脚本基本只适用于 Bird 和 Ears 数据集。如果要使用其他数据集可能需要自己相应编写。
 
