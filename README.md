@@ -41,4 +41,5 @@ Ears： https://github.com/facebookresearch/ears_dataset
 ### 预处理
 
 1、 `convert_rir_to_tensor_exe.py`
-2、 `convert_speech_to_tensor_exe.py`
+2、 `convert_speech_to_tensor_exe.py` （由于生成 `wav` 文件的速度很慢，而 speech 特别多，因此默认不进行生成，如果想要生成，可以在配置中打开，或者在之后使用 `convert_wav_pt_to_wav_exe.py` 。）
+
