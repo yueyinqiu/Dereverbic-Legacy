@@ -1,15 +1,17 @@
 import download_ears_config as config
 import csdir
+import pathlib
 
-directory_compressed = config.destination.joinpath("compressed")
+directory_compressed: pathlib.Path = config.destination.joinpath("compressed")
 csdir.create_directory(directory_compressed)
 
+i: int
 for i in range(config.start_index, 107 + 1):
-    file_name = f"p{i:03d}.zip"
+    file_name: str = f"p{i:03d}.zip"
     
     import urllib.parse
-    source = urllib.parse.urljoin(config.base_url, file_name)
-    destination = directory_compressed.joinpath(file_name)
+    source: str = urllib.parse.urljoin(config.base_url, file_name)
+    destination: pathlib.Path = directory_compressed.joinpath(file_name)
     
     print(f"Downloading {source}...")
     import urllib.request
@@ -17,6 +19,7 @@ for i in range(config.start_index, 107 + 1):
 
     print(f"Extracting {source}...")
     import zipfile
+    zip: zipfile.ZipFile
     with zipfile.ZipFile(destination) as zip:
         zip.extractall(config.destination)
 

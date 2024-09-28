@@ -1,7 +1,10 @@
 import convert_wav_pt_to_wav_config as config
 import soundfile
 import torch
+import pathlib
 
+input: pathlib.Path
+output: pathlib.Path
 for input, output in config.files:
     input = input.absolute()
     output = output.absolute()

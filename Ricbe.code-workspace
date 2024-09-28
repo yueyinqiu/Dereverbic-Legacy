@@ -17,6 +17,13 @@
 			"**/node_modules/*/**": true,
 			"**/.hg/store/**": true,
 			"/data": true
-		}
+		},
+		"pylint.importStrategy": "fromEnvironment",
+		"pylint.args": [
+			"--load-plugins=variable_declaration_checker",
+			"--disable=all",
+			"--enable=un-declared-variable",
+			"--enable=re-declared-variable"
+		]
 	}
 }

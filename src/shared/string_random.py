@@ -1,4 +1,5 @@
 import random as _random
+import typing as _typing
 
 class StringRandom:
     def __init__(self, 
@@ -20,8 +21,8 @@ class StringRandom:
             yield self._random.choice(self._characters)
 
     def next(self) -> str:
-        result_list = self._next_character_list()
-        result = "".join(result_list)
+        result_list: _typing.Iterable[str] = self._next_character_list()
+        result: str = "".join(result_list)
 
         if self._history is None:
             return result

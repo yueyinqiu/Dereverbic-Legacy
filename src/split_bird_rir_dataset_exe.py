@@ -1,17 +1,21 @@
 import csv
 import random
 import csfile
+import io
+import _csv
 
 import split_bird_rir_dataset_config as config
 
 # All the channels of the same original audio will be always put in the same dataset.
 
 print("Loading...")
+csv_file: io.TextIOWrapper[io._WrappedBuffer]
 with open(config.contents_file, newline="") as csv_file:
-    csv_reader = csv.reader(csv_file)
+    csv_reader: _csv._reader = csv.reader(csv_file)
 
-    for row in csv_reader:
-        assert tuple(row) == ("Tensor", "Audio", "Original Audio", "Original Channel")
+    row_str: list[str]
+    for row_str in csv_reader:
+        assert tuple(row_str) == ("Tensor", "Audio", "Original Audio", "Original Channel")
         break
     
     class CsvRow:
@@ -23,23 +27,25 @@ with open(config.contents_file, newline="") as csv_file:
 
     rows: dict[str, list[CsvRow]] = {}
     for row_str in csv_reader:
-        row = CsvRow(row_str)
+        row: CsvRow = CsvRow(row_str)
         if row.origianl_audio_file not in rows:
             rows[row.origianl_audio_file] = []
         rows[row.origianl_audio_file].append(row)
 
 print("Shuffling...")
-keys = list(rows.keys())
-rand = random.Random(config.random_seed)
+keys: list[str] = list(rows.keys())
+rand: random.Random = random.Random(config.random_seed)
 rand.shuffle(keys)
 
-train_count = int(config.train_ratio * len(keys))
-validation_count = int(config.validation_ratio * (len(keys) - train_count))
+train_count: int = int(config.train_ratio * len(keys))
+validation_count: int = int(config.validation_ratio * (len(keys) - train_count))
 
 def save_to_file(file_name: str, keys: list[str]):
     assert len(keys) > 0
     tensor_file_list: list[str] = []
+    key: str
     for key in keys:
+        row: CsvRow
         for row in rows[key]:
             tensor_file_list.append(row.tensor_file)
     rand.shuffle(tensor_file_list)
