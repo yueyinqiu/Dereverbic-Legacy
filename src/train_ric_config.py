@@ -10,10 +10,12 @@ device: _torch.device = \
     _torch.device("cuda")
 
 checkpoint_interval: int = \
-    200
+    5
+#    200
 
 validation_interval: int = \
-    100
+    2
+#    100
 
 checkpoints_directory: _pathlib.Path = \
     _common_config.checkpoints_directory / "ric/"

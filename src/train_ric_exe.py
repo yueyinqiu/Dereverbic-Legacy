@@ -48,7 +48,7 @@ def train(checkpoints: CheckpointsDirectory,
         speech_batch: Tensor = speech_train_data.next_batch()
         reverb_batch: Tensor = rir_convolve.get_reverb(speech_batch, rir_batch)
 
-        predicted: Tensor = model(speech_batch, reverb_batch)[..., :rir_batch.shape[-1]]
+        predicted: Tensor = model(speech_batch, reverb_batch)
         loss: Tensor = torch.nn.functional.mse_loss(rir_batch, predicted)
         loss.backward()
         optimizer.step()
@@ -61,14 +61,18 @@ def train(checkpoints: CheckpointsDirectory,
         if epoch % validation_interval == 0:
             with torch.no_grad():
                 model.eval()
-                rir_batch = rir_validation_data.next_batch()
-                speech_batch = speech_validation_data.next_batch()
-                reverb_batch = rir_convolve.get_reverb(speech_batch, rir_batch)
-
-                predicted = model(speech_batch, reverb_batch)[..., :rir_batch.shape[-1]]
-                loss = torch.nn.functional.mse_loss(rir_batch, predicted)
+                losses: list[Tensor] = []
+                validation_epoch: int = 0
+                for rir_batch, speech_batch in zip(rir_validation_data.iterate_all_no_random(), 
+                                                   speech_validation_data.iterate_all_no_random()):
+                    reverb_batch = rir_convolve.get_reverb(speech_batch, rir_batch)
+                    predicted = model(speech_batch, reverb_batch)
+                    loss = torch.nn.functional.mse_loss(rir_batch, predicted)
+                    losses.append(loss)
+                    print(f"Validation {validation_epoch} at {epoch}: {loss:.5e}")
+                    validation_epoch += 1
                 model.train()
-            print(f"Validation at {epoch}: {loss:.5e}")
+            print(f"Validation at {epoch}: {torch.stack(losses).mean():.5e}")
 
 
 def main():
@@ -114,9 +118,7 @@ def main():
                                                              config.device,
                                                              random.randint(0, 1000))
     
-    model: RicModule = RicModule(config.speech_length, 
-                                 config.speech_length, 
-                                 config.rir_length).to(config.device)
+    model: RicModule = RicModule(config.rir_length).to(config.device)
 
     train(checkpoints, 
           rir_train, 
