@@ -1,8 +1,10 @@
 import pathlib as _pathlib
-import csdir as _csdir
+
+import shared.common_configurations as _common_config
+import convert_speech_to_tensor_config as _convert_speech_to_tensor_config
 
 contents_file: _pathlib.Path = \
-    _pathlib.Path("./data/speech/contents.csv")
+    _convert_speech_to_tensor_config.output_directory / "contents.csv"
 
 output_directory: _pathlib.Path = \
-    _csdir.create_directory("./data/speech/statistic")
+    _common_config.data_directory / "speech/statistic/"

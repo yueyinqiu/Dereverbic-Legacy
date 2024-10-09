@@ -5,7 +5,6 @@ import matplotlib.pyplot
 import torch
 import matplotlib
 import csfile
-import csdir
 
 import statistically_analyze_speech_config as config
 
@@ -26,7 +25,6 @@ with open(config.contents_file, newline="") as csv_file:
         tensor = torch.load(tensor_path, weights_only=True)
         lengths.append(tensor.shape[0])
 
-csdir.create_directory(config.output_directory)
 csfile.write_all_lines(config.output_directory / "lengths.txt", (str(x) for x in lengths))
 matplotlib.pyplot.hist(lengths, bins=[0, 0.5e5, 1e5, 1.5e5, 2e5, 2.5e5, 3e5, 3.5e5, 4e5, 4.5e5, 5e5])
 matplotlib.pyplot.savefig(config.output_directory / "lengths.png")

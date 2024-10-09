@@ -2,17 +2,17 @@ import pathlib as _pathlib
 import typing as _typing
 import csdir as _csdir
 
+import shared.common_configurations as _common_config
 import download_ears_config as _download_ears_config
-import convert_rir_to_tensor_config as _convert_rir_to_tensor_config
 
 inputs: _typing.Iterable[_pathlib.Path] = \
     _download_ears_config.destination.glob("**/*.wav")
 
 output_directory: _pathlib.Path = \
-    _csdir.create_directory("./data/speech/")
+    _common_config.data_directory / "speech/"
 
 sample_rate: int = \
-    _convert_rir_to_tensor_config.sample_rate
+    _common_config.sample_rate
 
 mutichannel_behavior: _typing.Literal["first_only", "as_mono", "as_many"] = \
     "as_mono"

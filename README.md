@@ -24,6 +24,39 @@ python src/xxxxx_exe.py
 
 而 `_exe.py` 会有与其对应的 `_config.py` 来储存配置。是的，我们直接使用 python 脚本来保存配置。这允许我们设置一些更加复杂的配置项，也能方便地复用之前的配置，并在代码中定位其配置项的使用位置。
 
+为了更好地维护相互间的执行顺序和依赖关系，这里列出一张顺序表：
+
+```mermaid
+flowchart TB
+
+subgraph Rir Dataset Preparation
+    download_bird
+    
+    download_bird ==> convert_rir_to_tensor
+    
+    convert_rir_to_tensor ==> split_bird_rir_dataset
+end
+
+subgraph Speech Dataset Preparation
+    download_ears
+
+    download_ears ==> convert_speech_to_tensor
+
+    convert_speech_to_tensor ==> split_ears_speech_dataset
+
+    convert_speech_to_tensor --> statistically_analyze_speech
+end
+
+    convert_rir_to_tensor --> convert_wav_pt_to_wav
+    convert_speech_to_tensor --> convert_wav_pt_to_wav
+
+subgraph Ric Module
+    split_bird_rir_dataset ==> train_ric
+    split_ears_speech_dataset ==> train_ric
+end
+```
+
+
 ## 数据集和预处理
 
 ### Rir 数据集
@@ -46,9 +79,12 @@ Ears： https://github.com/facebookresearch/ears_dataset
 
 在配置中启用 `save_wav` 可以同时保存对应的 `.wav` 音频。但保存 `.wav` 文件的速度较慢，如果只需要个别音频，建议在之后使用 `convert_wav_pt_to_wav_exe` 进行转换。
 
+#### 分析数据集
+
+我们使用 `statistically_analyze_speech_exe` 对音频数据集的音频长度进行了统计分析，并在之后的训练中选取了合适的长度。在使用其他数据集可能需要自己进行相应分析。
+
 #### 切割数据集
 
 使用 `split_bird_rir_dataset_exe` 和 `split_ears_speech_dataset_exe` 进行数据集切割。
 
 由于这一步骤和数据集本身的结构密切相关，这里的两个脚本基本只适用于 Bird 和 Ears 数据集。如果要使用其他数据集可能需要自己相应编写。
-
