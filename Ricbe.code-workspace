@@ -10,13 +10,17 @@
 			"**/__pycache__",
 			".git",
 			".vscode",
-			"data"
+			"data",
+			"checkpoints",
+			"local_test/non_src"
 		],
 		"files.exclude": {
 			"**/__pycache__": true
 		},
 		"files.watcherExclude": {
-			"data": true
+			"data": true,
+			"checkpoints": true,
+			"local_test/non_src": true
 		},
 		"pylint.importStrategy": "fromEnvironment",
 		"pylint.args": [
