@@ -51,10 +51,10 @@ def main():
     rand: random.Random = random.Random(config.random_seed)
     string_random: shared.string_random.StringRandom = shared.string_random.StringRandom(rand, 16)
 
-    contents_file: io.TextIOWrapper[io._WrappedBuffer]
+    contents_file: 'io.TextIOWrapper[io._WrappedBuffer]'
     with open(config.output_directory.joinpath("contents.csv").absolute(),
               "w", newline="") as contents_file:
-        contents_writer: _csv._writer = csv.writer(contents_file)
+        contents_writer: '_csv._writer' = csv.writer(contents_file)
         contents_writer.writerow([
             "Tensor", "Audio", "Original Audio", "Original Channel"])
 

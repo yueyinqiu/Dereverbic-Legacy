@@ -261,7 +261,7 @@ class FilteredNoiseShaper(torch.nn.Module):
             self.max_snr: int = 50
             self.num_filters = 10
             self.filter_order = 1023
-            self.sr: int = 16000
+            self.sr: int = 48000
             self.rir_duration: float = 1
             self.input_length: int = 131072
             self.early_length: int = 2400

@@ -9,9 +9,9 @@ import split_bird_rir_dataset_config as config
 # All the channels of the same original audio will be always put in the same dataset.
 
 print("Loading...")
-csv_file: io.TextIOWrapper[io._WrappedBuffer]
+csv_file: 'io.TextIOWrapper[io._WrappedBuffer]'
 with open(config.contents_file, newline="") as csv_file:
-    csv_reader: _csv._reader = csv.reader(csv_file)
+    csv_reader: '_csv._reader' = csv.reader(csv_file)
 
     row_str: list[str]
     for row_str in csv_reader:
