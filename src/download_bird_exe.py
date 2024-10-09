@@ -1,7 +1,9 @@
 import download_bird_config as config
 import pathlib
+import csdir
 
 directory_compressed: pathlib.Path = config.destination.joinpath("compressed")
+csdir.create_directory(directory_compressed)
 
 i: int
 for i in range(config.start_index, 10 + 1):
