@@ -5,7 +5,11 @@
 		}
 	],
 	"settings": {
+		"files.autoSave": "afterDelay",
 		"python.analysis.exclude": [
+			"**/__pycache__",
+			".git",
+			".vscode",
 			"data"
 		],
 		"files.exclude": {
