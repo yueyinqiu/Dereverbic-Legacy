@@ -1,20 +1,20 @@
-from pathlib import Path
-import typing
+from pathlib import Path as _Path
+from typing import Iterator as _Iterator
 
 class CheckpointsDirectory:
     def __init__(self,
-                 path: Path, 
+                 path: _Path, 
                  prefix: str = "epoch", 
                  suffix: str = ".pt") -> None:
         self._path = path.absolute()
         self._prefix = prefix
         self._suffix = suffix
 
-    def get_path(self, epoch: int) -> Path:
+    def get_path(self, epoch: int) -> _Path:
         return self._path / f"{self._prefix}{epoch}{self._suffix}"
     
-    def get_all(self) -> typing.Iterator[tuple[int, Path]]:
-        file: Path
+    def get_all(self) -> _Iterator[tuple[int, _Path]]:
+        file: _Path
         for file in self._path.iterdir():
             if not file.is_file():
                 continue
@@ -32,5 +32,8 @@ class CheckpointsDirectory:
                 continue
             yield (epoch, file)
     
-    def get_latest(self) -> tuple[int, Path]:
-        return max(self.get_all(), key=lambda x: x[0])
+    def get_latest(self) -> tuple[int, _Path] | None:
+        try:
+            return max(self.get_all(), key=lambda x: x[0])
+        except ValueError:
+            return None

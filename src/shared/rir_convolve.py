@@ -1,21 +1,22 @@
-import torch
-import torch.nn.functional
-import numpy
-import typing
+import torch as _torch
+from torch import Tensor as _Tensor
+import numpy as _numpy
+from typing import Literal as _Literal
+from numpy import ndarray as _ndarray
 
-def convolve(a: torch.Tensor, 
-             v: torch.Tensor,
-             mode: typing.Literal["same", "valid", "full"] = "same") -> torch.Tensor:
+def convolve(a: _Tensor, 
+             v: _Tensor,
+             mode: _Literal["same", "valid", "full"] = "same") -> _Tensor:
     # v -> rir
     # a -> speech
 
     n_fft: int = a.shape[-1] + v.shape[-1] - 1
 
-    rir_fft: torch.Tensor = torch.fft.fft(v, n=n_fft)
-    speech_fft: torch.Tensor = torch.fft.fft(a, n=n_fft)
+    rir_fft: _Tensor = _torch.fft.fft(v, n=n_fft)
+    speech_fft: _Tensor = _torch.fft.fft(a, n=n_fft)
 
-    reverb_fft: torch.Tensor = rir_fft * speech_fft
-    reverb_fft_ifft: torch.Tensor = torch.fft.ifft(reverb_fft)
+    reverb_fft: _Tensor = rir_fft * speech_fft
+    reverb_fft_ifft: _Tensor = _torch.fft.ifft(reverb_fft)
 
     center_index: int = n_fft // 2
     if mode == "same":
@@ -31,32 +32,30 @@ def convolve(a: torch.Tensor,
     else:
         left = center_index - length // 2 - length % 2
         right = center_index + length // 2
-    return reverb_fft_ifft[left:right].real
+    return reverb_fft_ifft[..., left:right].real
 
-def inverse_convolve_full(a_star_v: torch.Tensor,
-                          a_or_v: torch.Tensor):
+def inverse_convolve_full(a_star_v: _Tensor,
+                          a_or_v: _Tensor):
     # a_star_v -> reverb
     # a_or_v -> speech
 
     n_fft: int = a_star_v.shape[-1]
 
-    reverb_fft: torch.Tensor = torch.fft.fft(a_star_v, n=n_fft)
-    speech_fft: torch.Tensor = torch.fft.fft(a_or_v, n=n_fft)
+    reverb_fft: _Tensor = _torch.fft.fft(a_star_v, n=n_fft)
+    speech_fft: _Tensor = _torch.fft.fft(a_or_v, n=n_fft)
 
-    rir_fft: torch.Tensor = reverb_fft / speech_fft
-    rir_fft_ifft: torch.Tensor = torch.fft.ifft(rir_fft)
+    rir_fft: _Tensor = reverb_fft / speech_fft
+    rir_fft_ifft: _Tensor = _torch.fft.ifft(rir_fft)
 
     return rir_fft_ifft[0:a_star_v.shape[-1] - a_or_v.shape[-1] + 1].real
 
 
-def get_reverb(speech_1d: torch.Tensor, 
-               rir_1d: torch.Tensor,
+def get_reverb(speech: _Tensor, 
+               rir: _Tensor,
                cut: bool = True):
-    assert speech_1d.shape.__len__() == 1
-    assert rir_1d.shape.__len__() == 1
-    reverb: torch.Tensor = convolve(speech_1d, rir_1d, "full")
+    reverb: _Tensor = convolve(speech, rir, "full")
     if cut:
-        reverb = reverb[:len(speech_1d)]
+        reverb = reverb[..., :speech.shape[-1]]
     return reverb
 
 
@@ -69,18 +68,18 @@ def _test_convolve():
 
     def test_on(speech_length: int,
                 rir_length: int, 
-                mode: typing.Literal["same", "valid", "full"]):
-        speech_numpy: numpy.ndarray = numpy.array(speech_list[:speech_length])
-        rir_numpy: numpy.ndarray = numpy.array(rir_list[:rir_length])
-        result_numpy: numpy.ndarray = numpy.convolve(speech_numpy, rir_numpy, mode)
+                mode: _Literal["same", "valid", "full"]):
+        speech_numpy: _ndarray = _numpy.array(speech_list[:speech_length])
+        rir_numpy: _ndarray = _numpy.array(rir_list[:rir_length])
+        result_numpy: _ndarray = _numpy.convolve(speech_numpy, rir_numpy, mode)
 
-        speech_torch: torch.Tensor = torch.tensor(speech_numpy)
-        rir_torch: torch.Tensor = torch.tensor(rir_numpy)
-        result_torch: torch.Tensor = convolve(speech_torch, rir_torch, mode)
+        speech_torch: _Tensor = _torch.tensor(speech_numpy)
+        rir_torch: _Tensor = _torch.tensor(rir_numpy)
+        result_torch: _Tensor = convolve(speech_torch, rir_torch, mode)
         print(f"Speech: {speech_length}    Rir: {rir_length}    Mode: {mode}")
 
-        difference: numpy.ndarray = (result_torch.numpy() - result_numpy)
-        argmax: numpy.intp = difference.__abs__().argmax()
+        difference: _ndarray = (result_torch.numpy() - result_numpy)
+        argmax: _numpy.intp = difference.__abs__().argmax()
         print(f"Difference:", end=" ")
         print(f"{result_torch.numpy()[argmax]:.3e} - {result_numpy[argmax]:.3e} =", end=" ")
         print(f"{difference[argmax]:.3e}", end=" ")
@@ -113,15 +112,15 @@ def _test_inverse_convolve():
 
     def test_on(speech_length: int,
                 rir_length: int):
-        speech: torch.Tensor = torch.tensor(speech_list[:speech_length])
-        rir: torch.Tensor = torch.tensor(rir_list[:rir_length])
-        reverb: torch.Tensor = convolve(speech, rir, "full")
+        speech: _Tensor = _torch.tensor(speech_list[:speech_length])
+        rir: _Tensor = _torch.tensor(rir_list[:rir_length])
+        reverb: _Tensor = convolve(speech, rir, "full")
         
-        rir_: torch.Tensor = inverse_convolve_full(reverb, speech)
+        rir_: _Tensor = inverse_convolve_full(reverb, speech)
         rir_ = rir_[:rir_length]
 
-        difference: torch.Tensor = rir_ - rir
-        argmax: torch.Tensor = torch.argmax(difference.abs())
+        difference: _Tensor = rir_ - rir
+        argmax: _Tensor = _torch.argmax(difference.abs())
         print(f"Speech: {speech_length}    Rir: {rir_length}")
         print(f"Difference:", end=" ")
         print(f"{rir_.numpy()[argmax]:.3e} - {rir[argmax]:.3e} =", end=" ")
