@@ -7,7 +7,8 @@
 			".vscode",
 			"data",
 			"checkpoints",
-			"local_test/non_src"
+			"local_test/non_src",
+			".slurm"
 		],
 		"files.exclude": {
 			"**/__pycache__": true
@@ -15,7 +16,8 @@
 		"files.watcherExclude": {
 			"data": true,
 			"checkpoints": true,
-			"local_test/non_src": true
+			"local_test/non_src": true,
+			".slurm": true
 		},
 		"pylint.importStrategy": "fromEnvironment",
 		"pylint.args": [
