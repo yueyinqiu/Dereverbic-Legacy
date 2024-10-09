@@ -1,22 +1,18 @@
 {
-	"folders": 
-	[
+	"folders": [
 		{
 			"path": "."
 		}
 	],
-	"settings": 
-	{
-		"python.analysis.exclude": 
-		[
+	"settings": {
+		"python.analysis.exclude": [
 			"data"
 		],
+		"files.exclude": {
+			"**/__pycache__": true
+		},
 		"files.watcherExclude": {
-			"**/.git/objects/**": true,
-			"**/.git/subtree-cache/**": true,
-			"**/node_modules/*/**": true,
-			"**/.hg/store/**": true,
-			"/data": true
+			"data": true
 		},
 		"pylint.importStrategy": "fromEnvironment",
 		"pylint.args": [
