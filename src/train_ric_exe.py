@@ -80,13 +80,17 @@ def main():
     def rir_filter(x: Tensor, _):
         return x
 
-    def speech_filter(x: Tensor, random: torch.Generator):
+    def speech_filter(x: Tensor, random: torch.Generator | None):
         difference: int = len(x) - config.speech_length
         if difference < 0:
             return None
         if difference == 0:
             return x
-        start: Tensor = torch.randint(0, difference, tuple(), generator=random)
+        
+        if random is not None:
+            start: Tensor | int = torch.randint(0, difference, tuple(), generator=random)
+        else:
+            start = difference // 2
         return x[start:(start + config.speech_length)]
 
     rir_train: WavPtDataProvider = WavPtDataProvider(config.rir_train_contents, 

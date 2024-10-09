@@ -13,7 +13,7 @@ class RicModule(_torch.nn.Module):
             _torch.nn.ReLU(),
             _torch.nn.Conv1d(16, 8, 5, padding=2), 
             _torch.nn.ReLU(),
-            _torch.nn.Conv1d(8, 1, 5, padding=2), 
+            _torch.nn.Conv1d(8, 2, 5, padding=2), 
             _torch.nn.ReLU())
 
     def forward(self, clean_batch: _torch.Tensor, reverb_batch: _torch.Tensor):
@@ -29,6 +29,7 @@ class RicModule(_torch.nn.Module):
             [clean_batch, clean_batch_fft_real, clean_batch_fft_imag,
              reverb_batch, reverberant_batch_fft_real, reverberant_batch_fft_imag], dim=1)
 
-        result: _torch.Tensor = self.network(network_input)
-        return result.squeeze(1)
-        
+        network_output: _torch.Tensor = self.network(network_input)
+        network_output_complex: _torch.Tensor = network_output[:, 0, :] + 1j * network_output[:, 1, :]
+        network_output_ifft: _torch.Tensor = _torch.fft.ifft(network_output_complex)
+        return network_output_ifft.real
