@@ -34,7 +34,7 @@ def save_to_file(file_name: str, tensor_files: list[str]):
     assert len(tensor_files) > 0
     csfile.write_all_lines(config.output_directory / file_name, tensor_files)
 
-save_to_file("rir_train.txt", tensor_files[:train_count])
-save_to_file("rir_test.txt", tensor_files[train_count:])
+save_to_file("speech_train.txt", tensor_files[:train_count])
+save_to_file("speech_test.txt", tensor_files[train_count:])
 
 print("Completed.")
