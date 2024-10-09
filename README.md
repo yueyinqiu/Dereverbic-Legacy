@@ -34,7 +34,7 @@ subgraph Rir Dataset Preparation
     
     download_bird ==> convert_rir_to_tensor
     
-    convert_rir_to_tensor ==> split_bird_rir_dataset
+    convert_rir_to_tensor ==> globally_split_bird_rir_dataset
 end
 
 subgraph Speech Dataset Preparation
@@ -42,7 +42,7 @@ subgraph Speech Dataset Preparation
 
     download_ears ==> convert_speech_to_tensor
 
-    convert_speech_to_tensor ==> split_ears_speech_dataset
+    convert_speech_to_tensor ==> globally_split_ears_speech_dataset
 
     convert_speech_to_tensor --> statistically_analyze_speech
 end
@@ -51,8 +51,8 @@ end
     convert_speech_to_tensor --> convert_wav_pt_to_wav
 
 subgraph Ric Module
-    split_bird_rir_dataset ==> train_ric
-    split_ears_speech_dataset ==> train_ric
+    globally_split_bird_rir_dataset ==> train_ric
+    globally_split_ears_speech_dataset ==> train_ric
 end
 ```
 
@@ -83,8 +83,10 @@ Ears： https://github.com/facebookresearch/ears_dataset
 
 我们使用 `statistically_analyze_speech_exe` 对音频数据集的音频长度进行了统计分析，并在之后的训练中选取了合适的长度。在使用其他数据集可能需要自己进行相应分析。
 
-#### 切割数据集
+#### 全局数据集切割
 
-使用 `split_bird_rir_dataset_exe` 和 `split_ears_speech_dataset_exe` 进行数据集切割。
+使用 `globally_split_bird_rir_dataset_exe` 和 `globally_split_ears_speech_dataset_exe` 进行全局数据集切割。
+
+在之后对任何模型的训练可能都需要重新处理数据，它们不一定会完整地使用训练集，也可能再在训练集中拆分验证集，但总是不会使用测试集中的数据。
 
 由于这一步骤和数据集本身的结构密切相关，这里的两个脚本基本只适用于 Bird 和 Ears 数据集。如果要使用其他数据集可能需要自己相应编写。

@@ -9,12 +9,8 @@ contents_file: _pathlib.Path = \
 output_directory: _pathlib.Path = \
     _common_config.data_directory
 
-# per axies
 train_ratio: float = \
-    0.7 ** 0.5
+    0.8
 
-validation_ratio: float = \
-    0.5
-
-random_seed: int = \
-    3050
+random_seed: str = \
+    "3050B442-4DDC-434A-909D-B3B7981C0ACE"

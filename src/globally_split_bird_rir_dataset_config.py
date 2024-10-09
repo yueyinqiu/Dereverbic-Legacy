@@ -9,13 +9,8 @@ contents_file: _pathlib.Path = \
 output_directory: _pathlib.Path = \
     _common_config.data_directory
 
-# train over (train + validation + test)
 train_ratio: float = \
-    0.7
+    0.8
 
-# validation over (validation + test)
-validation_ratio: float = \
-    0.5
-
-random_seed: int = \
-    3049
+random_seed: str = \
+    "1E94E8A3-DB8A-4576-9453-3ED4A2CBC065"

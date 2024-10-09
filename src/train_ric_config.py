@@ -3,8 +3,8 @@ import torch as _torch
 
 import shared.common_configurations as _common_config
 import convert_rir_to_tensor_config as _convert_rir_to_tensor_config
-import split_bird_rir_dataset_config as _split_bird_rir_dataset_config
-import split_ears_speech_dataset_config as _split_ears_speech_dataset_config
+import globally_split_bird_rir_dataset_config as _split_bird_rir_dataset_config
+import globally_split_ears_speech_dataset_config as _split_ears_speech_dataset_config
 
 device: _torch.device = \
     _torch.device("cuda")
