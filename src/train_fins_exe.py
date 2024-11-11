@@ -46,7 +46,7 @@ def train(checkpoints: CheckpointsDirectory,
 
         rir_batch: Tensor = rir_train_data.next_batch()
         speech_batch: Tensor = speech_train_data.next_batch()
-        reverb_batch: Tensor = rir_convolve.get_reverb(speech_batch, rir_batch)
+        reverb_batch: Tensor = rir_convolve_fft.get_reverb(speech_batch, rir_batch)
 
         predicted: Tensor = model(speech_batch, reverb_batch)
         loss: Tensor = torch.nn.functional.mse_loss(rir_batch, predicted)
@@ -65,7 +65,7 @@ def train(checkpoints: CheckpointsDirectory,
                 validation_epoch: int = 0
                 for rir_batch, speech_batch in zip(rir_validation_data.iterate_all_no_random(), 
                                                    speech_validation_data.iterate_all_no_random()):
-                    reverb_batch = rir_convolve.get_reverb(speech_batch, rir_batch)
+                    reverb_batch = rir_convolve_fft.get_reverb(speech_batch, rir_batch)
                     predicted = model(speech_batch, reverb_batch)
                     loss = torch.nn.functional.mse_loss(rir_batch, predicted)
                     losses.append(loss)
@@ -76,7 +76,7 @@ def train(checkpoints: CheckpointsDirectory,
 
 
 def main():
-    import train_ric_config as config
+    import train_fins_config as config
 
     random: Random = Random(config.random_seed)
     checkpoints: CheckpointsDirectory = CheckpointsDirectory(config.checkpoints_directory)

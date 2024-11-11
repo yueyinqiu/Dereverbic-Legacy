@@ -7,4 +7,4 @@ checkpoints_directory: _pathlib.Path = \
     _pathlib.Path("./checkpoints/")
 
 sample_rate: int = \
-    160000
+    16000

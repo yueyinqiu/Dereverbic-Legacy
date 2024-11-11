@@ -18,7 +18,7 @@ validation_interval: int = \
 #    100
 
 checkpoints_directory: _pathlib.Path = \
-    _common_config.checkpoints_directory / "ric/"
+    _common_config.checkpoints_directory / "fins/"
 
 rir_train_contents: _pathlib.Path = \
     _split_bird_rir_dataset_config.output_directory / "rir_train.txt"

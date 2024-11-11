@@ -50,9 +50,9 @@ end
     convert_rir_to_tensor --> convert_wav_pt_to_wav
     convert_speech_to_tensor --> convert_wav_pt_to_wav
 
-subgraph Ric Module
-    globally_split_bird_rir_dataset ==> train_ric
-    globally_split_ears_speech_dataset ==> train_ric
+subgraph Fins
+    globally_split_bird_rir_dataset ==> train_fins
+    globally_split_ears_speech_dataset ==> train_fins
 end
 ```
 
@@ -87,6 +87,6 @@ Ears： https://github.com/facebookresearch/ears_dataset
 
 使用 `globally_split_bird_rir_dataset_exe` 和 `globally_split_ears_speech_dataset_exe` 进行全局数据集切割。
 
-在之后对任何模型的训练可能都需要重新处理数据，它们不一定会完整地使用训练集，也可能再在训练集中拆分验证集，但总是不会使用测试集中的数据。
+在之后对任何模型的训练可能都需要重新处理数据，它们不一定会完整地使用训练集，也可能再在训练集中拆分验证集，但总是不会使用测试集中的数据。当然，这里分出的测试数据数量可能也非常庞大，并不是所有组合都会被用以测试。
 
 由于这一步骤和数据集本身的结构密切相关，这里的两个脚本基本只适用于 Bird 和 Ears 数据集。如果要使用其他数据集可能需要自己相应编写。
