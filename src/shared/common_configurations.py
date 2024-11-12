@@ -5,6 +5,3 @@ data_directory: _pathlib.Path = \
 
 checkpoints_directory: _pathlib.Path = \
     _pathlib.Path("./checkpoints/")
-
-sample_rate: int = \
-    16000

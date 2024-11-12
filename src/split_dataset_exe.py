@@ -27,7 +27,7 @@ def save_reverb(rir_path: str,
                 directory: Path):
     rir: Tensor = torch.load(rir_path, weights_only=True)
     speech: Tensor = torch.load(speech_path, weights_only=True)
-    reverb: Tensor = rir_convolve.get_reverb(speech, rir)
+    reverb: Tensor = rir_convolve_fft.get_reverb(speech, rir)
 
     file_name: str = name_generator.next()
 
@@ -59,8 +59,10 @@ def main():
 
     validation_files: list[str] = []
     test_files: list[str] = []
+
     reverb_name_generator: StringRandom = StringRandom(random, 16)
     reverb_contents_file: io.TextIOWrapper
+    csdir.create_directory(config.reverb_directory)
     with open(config.reverb_directory.joinpath("contents.csv").absolute(),
               "w", newline="") as reverb_contents_file:
         reverb_contents_writer: '_csv._writer' = csv.writer(reverb_contents_file)
@@ -72,7 +74,7 @@ def main():
         for rir_path, speech_path in zip(rirs[-20000:-10000], 
                                          speeches[-20000:-10000], 
                                          strict=True):
-            print(f"Genrating for {rir_path} + {speech_path}...")
+            print(f"    for {rir_path} + {speech_path}...")
             reverb_path: Path = save_reverb(rir_path, 
                                             speech_path, 
                                             reverb_name_generator, 
@@ -85,7 +87,7 @@ def main():
         for rir_path, speech_path in zip(rirs[-10000:], 
                                          speeches[-10000:], 
                                          strict=True):
-            print(f"Genrating for {rir_path} + {speech_path}...")
+            print(f"    for {rir_path} + {speech_path}...")
             reverb_path = save_reverb(rir_path, 
                                       speech_path, 
                                       reverb_name_generator, 
@@ -99,6 +101,8 @@ def main():
 
     print("Saving test lists...")
     csfile.write_all_lines(config.test_list, test_files)
+
+    print("Completed.")
 
 
 main()
