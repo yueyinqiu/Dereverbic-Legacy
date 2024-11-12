@@ -4,7 +4,7 @@ import numpy
 from torch.nn.utils import spectral_norm
 import typing
 
-def get_octave_filters():
+def _get_octave_filters(sample_rate: int):
     """10 octave bandpass filters, each with order 1023
     Return
         firs : shape = (10, 1, 1023)
@@ -30,7 +30,7 @@ def get_octave_filters():
             numpy.array([low, high]),
             pass_zero="bandpass", # type: ignore
             window='hamming',
-            fs=48000
+            fs=sample_rate
         )
         firs.append(fir)
 
@@ -295,7 +295,7 @@ class FilteredNoiseShaper(torch.nn.Module):
         )
 
         # Octave band pass initialization
-        octave_filters: numpy.ndarray = get_octave_filters()
+        octave_filters: numpy.ndarray = _get_octave_filters(config.sr)
         self.filter.weight.data = torch.FloatTensor(octave_filters)
 
         # self.filter.bias.data.zero_()
