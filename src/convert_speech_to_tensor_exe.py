@@ -41,14 +41,19 @@ def main():
             audio: Tensor = tensor_audio.load_audio(path, 16000, "as_mono")
             channel: numpy.ndarray = audio[0, :].numpy()
             channel, _ = librosa.effects.trim(channel,
-                                                top_db=60, 
-                                                frame_length=2048, 
-                                                hop_length=512)
-            tensor_file: Path = _save_tensor(torch.tensor(channel, dtype=torch.float), 
-                                             string_random.next(), 
-                                             config.output_directory)
-            contents_writer.writerow([str(tensor_file), str(path)])
-            contents_file.flush()
+                                              top_db=60, 
+                                              frame_length=2048, 
+                                              hop_length=512)
+            
+            tensor: Tensor = torch.tensor(channel, dtype=torch.float)
+            start: int = 16000 // 5
+            while start + 5 * 16000 < tensor.__len__() - 16000 // 5:
+                tensor_file: Path = _save_tensor(tensor[start:(start + 5 * 16000)], 
+                                                 string_random.next(), 
+                                                 config.output_directory)
+                contents_writer.writerow([str(tensor_file), str(path)])
+                contents_file.flush()
+                start += 5 * 16000
                 
     print(f"Completed.")
     

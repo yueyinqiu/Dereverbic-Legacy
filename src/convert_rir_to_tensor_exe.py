@@ -44,6 +44,7 @@ def main():
                                                  string_random.next(), 
                                                  config.output_directory)
                 contents_writer.writerow([str(tensor_file), str(path), str(i)])
+                contents_file.flush()
                 
     print(f"Completed.")
     
