@@ -1,5 +1,4 @@
-from shared.imports import *
-import csv
+from shared import *
 import _csv
 
 def load_and_sort(contents: Path):

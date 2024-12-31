@@ -4,6 +4,7 @@ import torch as _torch
 import shared.common_configurations as _common_config
 import split_dataset_config as _split_dataset_config
 
+
 device: _torch.device = \
     _torch.device("cuda")
 

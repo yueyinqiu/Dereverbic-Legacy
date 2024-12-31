@@ -1,11 +1,9 @@
-from pathlib import Path as _Path
-from typing import Literal as _Literal
-from torch import Tensor as _Tensor
+from .imports import *
 
 
-def load_audio(path: _Path,
+def load_audio(path: Path,
                sample_rate: int,
-               mutichannel_behavior: _Literal["first_only", "as_mono", "as_many"]) -> _Tensor:
+               mutichannel_behavior: Literal["first_only", "as_mono", "as_many"]) -> Tensor:
     """
     Always return a 2d tensor.
     """
@@ -27,6 +25,6 @@ def load_audio(path: _Path,
     return result
 
 
-def save_audio(audio: _Tensor, path: _Path, sample_rate: int) -> None:
+def save_audio(audio: Tensor, path: Path, sample_rate: int) -> None:
     import soundfile
     soundfile.write(path, audio.numpy(), sample_rate)

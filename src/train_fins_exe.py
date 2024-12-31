@@ -1,4 +1,4 @@
-from shared.imports import *
+from shared import *
 
 
 def train(checkpoints: CheckpointsDirectory, 

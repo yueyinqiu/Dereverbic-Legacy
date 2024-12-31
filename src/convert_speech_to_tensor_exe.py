@@ -1,9 +1,5 @@
-from shared.imports import *
-import io
-import csv
-import _csv
-import numpy
-import librosa
+from shared import *
+import _csv as _csv
 
 
 def _save_tensor(audio: torch.Tensor,

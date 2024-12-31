@@ -1,6 +1,8 @@
 import pathlib as _pathlib
 import typing as _typing
 
+import shared.common_configurations as _common_config
+
 
 # Each element means a file to convert: (input wav pt file, output wav file).
 files: _typing.Iterable[tuple[_pathlib.Path,_pathlib.Path]] = \

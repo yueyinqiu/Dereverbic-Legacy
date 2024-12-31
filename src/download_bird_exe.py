@@ -1,14 +1,13 @@
 import download_bird_config as config
-import pathlib
-import csdir
+from shared import *
 
-directory_compressed: pathlib.Path = config.destination.joinpath("compressed")
+directory_compressed: Path = config.destination.joinpath("compressed")
 csdir.create_directory(directory_compressed)
 
 i: int
 for i in range(config.start_index, 10 + 1):
     source: str = config.url_pattern.format(i)
-    destination: pathlib.Path = directory_compressed.joinpath(f"fold{i:02d}.zip")
+    destination: Path = directory_compressed.joinpath(f"fold{i:02d}.zip")
     
     print(f"Downloading {source}...")
     import urllib.request

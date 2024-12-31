@@ -1,8 +1,7 @@
 import download_ears_config as config
-import csdir
-import pathlib
+from shared import *
 
-directory_compressed: pathlib.Path = config.destination.joinpath("compressed")
+directory_compressed: Path = config.destination.joinpath("compressed")
 csdir.create_directory(directory_compressed)
 
 i: int
@@ -11,7 +10,7 @@ for i in range(config.start_index, 107 + 1):
     
     import urllib.parse
     source: str = urllib.parse.urljoin(config.base_url, file_name)
-    destination: pathlib.Path = directory_compressed.joinpath(file_name)
+    destination: Path = directory_compressed.joinpath(file_name)
     
     print(f"Downloading {source}...")
     import urllib.request

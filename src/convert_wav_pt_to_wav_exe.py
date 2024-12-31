@@ -1,5 +1,5 @@
 import convert_wav_pt_to_wav_config as config
-from shared.imports import *
+from shared import *
 
 input: Path
 output: Path

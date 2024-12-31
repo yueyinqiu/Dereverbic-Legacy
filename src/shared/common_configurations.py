@@ -1,5 +1,6 @@
 import pathlib as _pathlib
 
+
 data_directory: _pathlib.Path = \
     _pathlib.Path("./data/")
 

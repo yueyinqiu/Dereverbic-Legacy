@@ -1,8 +1,8 @@
-from torch import Tensor as _Tensor
+from .imports import *
 
 
-def get_reverb(speech: _Tensor, 
-               rir: _Tensor,
+def get_reverb(speech: Tensor, 
+               rir: Tensor,
                cut: bool = True):
     import torch
 
@@ -12,7 +12,7 @@ def get_reverb(speech: _Tensor,
     speech = speech.unsqueeze(0).unsqueeze_(0)
     rir = rir.flip(0).unsqueeze_(0).unsqueeze_(0)
 
-    reverb: _Tensor = torch.conv1d(speech, rir, padding=(rir.shape[-1] - 1))
+    reverb: Tensor = torch.conv1d(speech, rir, padding=(rir.shape[-1] - 1))
     reverb.squeeze_()
     if cut:
         reverb = reverb[:speech.shape[-1]]
@@ -27,9 +27,9 @@ def _test():
     rir: numpy.ndarray = numpy.array([3, 2, 1])
     expected: numpy.ndarray = numpy.convolve(speech, rir, "full")
     
-    actual: _Tensor = get_reverb(torch.tensor(speech),
-                                 torch.tensor(rir),
-                                 False)
+    actual: Tensor = get_reverb(torch.tensor(speech),
+                                torch.tensor(rir),
+                                False)
     print((expected - actual.numpy()).max())
     print((expected - actual.numpy()).argmax())
 

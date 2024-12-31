@@ -1,13 +1,13 @@
-import random as _random
-import typing as _typing
+from .imports import *
+
 
 class StringRandom:
     def __init__(self, 
-                 generator: _random.Random,
+                 generator: Random,
                  length: int,
                  allow_duplicate: bool = False,
                  characters: str = "abcdefghijklmnopqrstuvwxyz") -> None:
-        self._random: _random.Random = generator
+        self._random: Random = generator
 
         self._history: set[str] | None = set()
         if allow_duplicate:
@@ -21,7 +21,7 @@ class StringRandom:
             yield self._random.choice(self._characters)
 
     def next(self) -> str:
-        result_list: _typing.Iterable[str] = self._next_character_list()
+        result_list: Iterable[str] = self._next_character_list()
         result: str = "".join(result_list)
 
         if self._history is None:

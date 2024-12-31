@@ -1,47 +1,41 @@
-import torch
-import scipy.signal
-import numpy
-from torch.nn.utils import spectral_norm
-import typing
+from .imports import *
 
-def _get_octave_filters(sample_rate: int):
-    """10 octave bandpass filters, each with order 1023
-    Return
-        firs : shape = (10, 1, 1023)
-    """
-    f_bounds: list[list[float]] = []
-    f_bounds.append([22.3, 44.5])
-    f_bounds.append([44.5, 88.4])
-    f_bounds.append([88.4, 176.8])
-    f_bounds.append([176.8, 353.6])
-    f_bounds.append([353.6, 707.1])
-    f_bounds.append([707.1, 1414.2])
-    f_bounds.append([1414.2, 2828.4])
-    f_bounds.append([2828.4, 5656.8])
-    f_bounds.append([5656.8, 11313.6])
-    f_bounds.append([11313.6, 22627.2])
 
+def _get_octave_filters():
+    f_bounds: list[tuple[float, float]] = []
+    f_bounds.append((22.3, 44.5))
+    f_bounds.append((44.5, 88.4))
+    f_bounds.append((88.4, 176.8))
+    f_bounds.append((176.8, 353.6))
+    f_bounds.append((353.6, 707.1))
+    f_bounds.append((707.1, 1414.2))
+    f_bounds.append((1414.2, 2828.4))
+    f_bounds.append((2828.4, 5656.8))
+    f_bounds.append((5656.8, 11313.6))
+    f_bounds.append((11313.6, 22627.2))
+
+    # TODO: 这个是否要随着 sr 修改？它好像只涉及到参数的初始化，作为滤波器的初始值
     firs: list = []
     low: float
     high: float
     for low, high in f_bounds:
-        fir: typing.Any = scipy.signal.firwin(
+        fir: numpy.ndarray = scipy.signal.firwin(
             1023,
             numpy.array([low, high]),
-            pass_zero="bandpass", # type: ignore
+            pass_zero='bandpass',  # type: ignore
             window='hamming',
-            fs=sample_rate
+            fs=48000,
         )
         firs.append(fir)
 
-    firs_numpy: numpy.ndarray = numpy.array(firs)
-    firs_numpy = numpy.expand_dims(firs, 1)
-    return firs_numpy
+    firs_np: numpy.ndarray = numpy.array(firs)
+    firs_np = numpy.expand_dims(firs_np, 1)
+    return firs_np
 
 
-class EncoderBlock(torch.nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, use_batchnorm: bool):
-        super(EncoderBlock, self).__init__()
+class _EncoderBlock(torch.nn.Module):
+    def __init__(self, in_channels, out_channels, use_batchnorm=True):
+        super(_EncoderBlock, self).__init__()
         if use_batchnorm:
             self.conv = torch.nn.Sequential(
                 torch.nn.Conv1d(in_channels, out_channels, kernel_size=15, stride=2, padding=7),
@@ -61,17 +55,17 @@ class EncoderBlock(torch.nn.Module):
                 torch.nn.Conv1d(in_channels, out_channels, kernel_size=1, stride=2, padding=0),
             )
 
-    def forward(self, x: torch.Tensor):
-        out: torch.Tensor = self.conv(x)
-        skip_out: torch.Tensor = self.skip_conv(x)
+    def forward(self, x: Tensor):
+        out: Tensor = self.conv(x)
+        skip_out: Tensor = self.skip_conv(x)
         skip_out = out + skip_out
         return skip_out
 
 
-class Encoder(torch.nn.Module):
+class _Encoder(torch.nn.Module):
     def __init__(self):
-        super(Encoder, self).__init__()
-        block_list: list[EncoderBlock] = []
+        super(_Encoder, self).__init__()
+        block_list: list[_EncoderBlock] = []
         channels: list[int] = [1, 32, 32, 64, 64, 64, 128, 128, 128, 256, 256, 256, 512, 512]
 
         i: int
@@ -82,29 +76,25 @@ class Encoder(torch.nn.Module):
                 use_batchnorm = False
             in_channels: int = channels[i]
             out_channels: int = channels[i + 1]
-            curr_block: EncoderBlock = EncoderBlock(in_channels, out_channels, use_batchnorm)
+            curr_block: _EncoderBlock = _EncoderBlock(in_channels, out_channels, use_batchnorm)
             block_list.append(curr_block)
 
         self.encode = torch.nn.Sequential(*block_list)
         self.pooling = torch.nn.AdaptiveAvgPool1d(1)
         self.fc = torch.nn.Linear(512, 128)
 
-    def forward(self, x: torch.Tensor):
-        b: int
-        c: int
-        l: int
-        b, c, l = x.size()
-
-        out: torch.Tensor = self.encode(x)
+    def forward(self, x: Tensor):
+        b: int = x.size()[0]
+        out: Tensor = self.encode(x)
         out = self.pooling(out)
         out = out.view(b, -1)
         out = self.fc(out)
         return out
 
 
-class UpsampleNet(torch.nn.Module):
+class _UpsampleNet(torch.nn.Module):
     def __init__(self, input_size, output_size, upsample_factor):
-        super(UpsampleNet, self).__init__()
+        super(_UpsampleNet, self).__init__()
         self.input_size = input_size
         self.output_size = output_size
         self.upsample_factor = upsample_factor
@@ -117,16 +107,15 @@ class UpsampleNet(torch.nn.Module):
             padding=upsample_factor // 2,
         )
         torch.nn.init.orthogonal_(layer.weight)
-        self.layer = spectral_norm(layer)
+        self.layer = torch.nn.utils.spectral_norm(layer)
 
-    def forward(self, inputs: torch.Tensor):
-        outputs: torch.Tensor = self.layer(inputs)
+    def forward(self, inputs: Tensor):
+        outputs: Tensor = self.layer(inputs)
         outputs = outputs[:, :, : inputs.size(-1) * self.upsample_factor]
         return outputs
 
 
-class ConditionalBatchNorm1d(torch.nn.Module):
-    """Conditional Batch Normalization"""
+class _ConditionalBatchNorm1d(torch.nn.Module):
     def __init__(self, num_features, condition_length):
         super().__init__()
 
@@ -134,15 +123,14 @@ class ConditionalBatchNorm1d(torch.nn.Module):
         self.condition_length = condition_length
         self.norm = torch.nn.BatchNorm1d(num_features, affine=True, track_running_stats=True)
 
-        self.layer = spectral_norm(torch.nn.Linear(condition_length, num_features * 2))
-        self.layer.weight.data.normal_(1, 0.02)  # Initialise scale at N(1, 0.02)
-        self.layer.bias.data.zero_()  # Initialise bias at 0
+        self.layer = torch.nn.utils.spectral_norm(torch.nn.Linear(condition_length, num_features * 2))
+        self.layer.weight.data.normal_(1, 0.02)
+        self.layer.bias.data.zero_()
 
-    def forward(self, inputs: torch.Tensor, noise: torch.Tensor):
-        outputs: torch.Tensor = self.norm(inputs)
-        
-        gamma: torch.Tensor
-        beta: torch.Tensor
+    def forward(self, inputs: Tensor, noise: Tensor):
+        outputs: Tensor = self.norm(inputs)
+        gamma: Tensor
+        beta: Tensor
         gamma, beta = self.layer(noise).chunk(2, 1)
         gamma = gamma.view(-1, self.num_features, 1)
         beta = beta.view(-1, self.num_features, 1)
@@ -152,24 +140,24 @@ class ConditionalBatchNorm1d(torch.nn.Module):
         return outputs
 
 
-class DecoderBlock(torch.nn.Module):
+class _DecoderBlock(torch.nn.Module):
     def __init__(self, in_channels, out_channels, upsample_factor, condition_length):
-        super(DecoderBlock, self).__init__()
+        super(_DecoderBlock, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.condition_length = condition_length
         self.upsample_factor = upsample_factor
 
         # Block A
-        self.condition_batchnorm1 = ConditionalBatchNorm1d(in_channels, condition_length)
+        self.condition_batchnorm1 = _ConditionalBatchNorm1d(in_channels, condition_length)
 
         self.first_stack = torch.nn.Sequential(
             torch.nn.PReLU(),
-            UpsampleNet(in_channels, in_channels, upsample_factor),
+            _UpsampleNet(in_channels, in_channels, upsample_factor),
             torch.nn.Conv1d(in_channels, out_channels, kernel_size=15, dilation=1, padding=7),
         )
 
-        self.condition_batchnorm2 = ConditionalBatchNorm1d(out_channels, condition_length)
+        self.condition_batchnorm2 = _ConditionalBatchNorm1d(out_channels, condition_length)
 
         self.second_stack = torch.nn.Sequential(
             torch.nn.PReLU(),
@@ -177,33 +165,33 @@ class DecoderBlock(torch.nn.Module):
         )
 
         self.residual1 = torch.nn.Sequential(
-            UpsampleNet(in_channels, in_channels, upsample_factor),
+            _UpsampleNet(in_channels, in_channels, upsample_factor),
             torch.nn.Conv1d(in_channels, out_channels, kernel_size=1, padding=0),
         )
         # Block B
-        self.condition_batchnorm3 = ConditionalBatchNorm1d(out_channels, condition_length)
+        self.condition_batchnorm3 = _ConditionalBatchNorm1d(out_channels, condition_length)
 
         self.third_stack = torch.nn.Sequential(
             torch.nn.PReLU(),
             torch.nn.Conv1d(out_channels, out_channels, kernel_size=15, dilation=4, padding=28),
         )
 
-        self.condition_batchnorm4 = ConditionalBatchNorm1d(out_channels, condition_length)
+        self.condition_batchnorm4 = _ConditionalBatchNorm1d(out_channels, condition_length)
 
         self.fourth_stack = torch.nn.Sequential(
             torch.nn.PReLU(),
             torch.nn.Conv1d(out_channels, out_channels, kernel_size=15, dilation=8, padding=56),
         )
 
-    def forward(self, enc_out: torch.Tensor, condition: torch.Tensor):
-        inputs: torch.Tensor = enc_out
+    def forward(self, enc_out: Tensor, condition: Tensor):
+        inputs: Tensor = enc_out
 
-        outputs: torch.Tensor = self.condition_batchnorm1(inputs, condition)
+        outputs: Tensor = self.condition_batchnorm1(inputs, condition)
         outputs = self.first_stack(outputs)
         outputs = self.condition_batchnorm2(outputs, condition)
         outputs = self.second_stack(outputs)
 
-        residual_outputs: torch.Tensor = self.residual1(inputs) + outputs
+        residual_outputs: Tensor = self.residual1(inputs) + outputs
 
         outputs = self.condition_batchnorm3(residual_outputs, condition)
         outputs = self.third_stack(outputs)
@@ -220,66 +208,54 @@ class Decoder(torch.nn.Module):
         super(Decoder, self).__init__()
 
         self.preprocess = torch.nn.Conv1d(1, 512, kernel_size=15, padding=7)
+
+        # TODO: 这玩意要根据 sr 和长度变化的
         self.blocks = torch.nn.ModuleList(
             [
-                DecoderBlock(512, 512, 1, cond_length),
-                DecoderBlock(512, 512, 1, cond_length),
-                DecoderBlock(512, 256, 2, cond_length),
-                DecoderBlock(256, 256, 2, cond_length),
-                DecoderBlock(256, 256, 2, cond_length),
-                DecoderBlock(256, 128, 3, cond_length),
-                DecoderBlock(128, 64, 5, cond_length),
+                _DecoderBlock(512, 512, 1, cond_length),
+                _DecoderBlock(512, 512, 1, cond_length),
+
+                _DecoderBlock(512, 256, 1, cond_length),
+
+                _DecoderBlock(256, 256, 2, cond_length),
+                _DecoderBlock(256, 256, 2, cond_length),
+
+                _DecoderBlock(256, 128, 2, cond_length),
+
+                _DecoderBlock(128, 64, 5, cond_length),
             ]
         )
 
-        self.postprocess = torch.nn.Sequential(
-            torch.nn.Conv1d(64, num_filters + 1, kernel_size=15, padding=7))
+        self.postprocess = torch.nn.Sequential(torch.nn.Conv1d(64, num_filters + 1, kernel_size=15, padding=7))
 
         self.sigmoid = torch.nn.Sigmoid()
 
-    def forward(self, v: torch.Tensor, condition: torch.Tensor):
-        inputs: torch.Tensor = self.preprocess(v)
-        outputs: torch.Tensor = inputs
-
-        i: int
-        layer: torch.nn.Module
+    def forward(self, v, condition):
+        inputs = self.preprocess(v)
+        outputs = inputs
         for i, layer in enumerate(self.blocks):
             outputs = layer(outputs, condition)
         outputs = self.postprocess(outputs)
 
-        direct_early: torch.Tensor = outputs[:, 0:1]
-        late: torch.Tensor = outputs[:, 1:]
+        direct_early = outputs[:, 0:1]
+        late = outputs[:, 1:]
         late = self.sigmoid(late)
 
         return direct_early, late
 
 
 class FilteredNoiseShaper(torch.nn.Module):
-    class FilteredNoiseShaperConfig:
-        def __init__(self):
-            self.min_snr: int = 15
-            self.max_snr: int = 50
-            self.num_filters = 10
-            self.filter_order = 1023
-            self.sr: int = 48000
-            self.rir_duration: float = 1
-            self.input_length: int = 131072
-            self.early_length: int = 2400
-            self.decoder_input_length: int = 400
-            self.noise_condition_length: int = 16
-            self.z_size: int = 128
-            self.min_snr: int = 15
-            self.max_snr: int = 50
-
-    def __init__(self, config: FilteredNoiseShaperConfig):
+    def __init__(self, config):
         super(FilteredNoiseShaper, self).__init__()
 
-        self.rir_length = int(config.rir_duration * config.sr)
+        self.config = config
+
+        self.rir_length = int(self.config.rir_duration * self.config.sr)
         self.min_snr, self.max_snr = config.min_snr, config.max_snr
 
         # Learned decoder input
         self.decoder_input = torch.nn.Parameter(torch.randn((1, 1, config.decoder_input_length)))  # 1,1,400
-        self.encoder = Encoder()
+        self.encoder = _Encoder()
 
         self.decoder = Decoder(config.num_filters, config.noise_condition_length + config.z_size)
 
@@ -295,14 +271,14 @@ class FilteredNoiseShaper(torch.nn.Module):
         )
 
         # Octave band pass initialization
-        octave_filters: numpy.ndarray = _get_octave_filters(config.sr)
+        octave_filters = _get_octave_filters()
         self.filter.weight.data = torch.FloatTensor(octave_filters)
 
         # self.filter.bias.data.zero_()
 
         # Mask for direct and early part
-        mask: torch.Tensor = torch.zeros((1, 1, self.rir_length))
-        mask[:, :, : config.early_length] = 1.0
+        mask = torch.zeros((1, 1, self.rir_length))
+        mask[:, :, : self.config.early_length] = 1.0
         self.register_buffer("mask", mask)
         self.output_conv = torch.nn.Conv1d(config.num_filters + 1, 1, kernel_size=1, stride=1)
 
@@ -315,7 +291,6 @@ class FilteredNoiseShaper(torch.nn.Module):
         return
             rir: shape=(batch_size, 1, rir_samples)
         """
-        b: int
         b, _, _ = x.size()
 
         # Filter random noise signal
@@ -337,6 +312,7 @@ class FilteredNoiseShaper(torch.nn.Module):
         late_part = filtered_noise * late_mask
 
         # Zero out sample beyond 2400 for direct early part
+        self.mask: torch.Tensor
         direct_early = torch.mul(direct_early, self.mask)
         # Concat direct,early with late and perform convolution
         rir = torch.cat((direct_early, late_part), 1)
@@ -345,3 +321,29 @@ class FilteredNoiseShaper(torch.nn.Module):
         rir = self.output_conv(rir)
 
         return rir
+
+    if __name__ == "__main__":
+        from utils.utils import load_config
+        from model import FilteredNoiseShaper
+
+        # TODO: should load from config
+        batch_size = 1
+        input_size = 131072
+        noise_size = 16
+        target_size = 48000
+
+        device = 'cpu'
+
+        # load config
+        config_path = "config.yaml"
+        config = load_config(config_path)
+        print(config)
+
+        x = torch.randn((batch_size, 1, input_size)).to(device)
+        stochastic_noise = torch.randn((batch_size, 10, target_size)).to(device)
+        noise_condition = torch.randn((batch_size, noise_size)).to(device)
+
+        model = FilteredNoiseShaper(config.model.params).to(device)
+
+        rir_estimated = model(x, stochastic_noise, noise_condition)
+        print(rir_estimated.shape)
