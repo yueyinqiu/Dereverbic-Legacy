@@ -284,7 +284,7 @@ class FinsNetwork(torch.nn.Module):
             bias=False,
         )
         # Octave band pass initialization
-        self.filter.weight.data = torch.tensor(FinsNetwork.__get_octave_filters())
+        self.filter.weight.data = torch.tensor(FinsNetwork.__get_octave_filters(), dtype=torch.float32)
 
         # Mask for direct and early part
         mask: Tensor = torch.zeros((1, 1, rir_length))
@@ -460,8 +460,7 @@ class FinsModel(RirBlindEstimationModel):
 
     def __predict(self, reverb_batch: Tensor):
         b: int = reverb_batch.size()[0]
-        stochastic_noise: Tensor = torch.randn((b, 
-                                                self.module.num_filters, 
+        stochastic_noise: Tensor = torch.randn((b, 1,
                                                 self.module.rir_length), 
                                                generator=self.random, 
                                                device=self.device)
