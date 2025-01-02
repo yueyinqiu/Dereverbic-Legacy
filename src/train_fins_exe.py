@@ -1,6 +1,7 @@
 from shared import *
 import train_fins_config as config
 
+print("Loading...")
 random: Random = Random(config.random_seed)
 checkpoints: CheckpointsDirectory = CheckpointsDirectory(config.checkpoints_directory)
 train_data: TrainDataProvider = TrainDataProvider(config.train_list_rir, 

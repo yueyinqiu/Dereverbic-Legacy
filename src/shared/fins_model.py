@@ -295,6 +295,8 @@ class FinsNetwork(torch.nn.Module):
         self.output_conv = torch.nn.Conv1d(num_filters + 1, 1, kernel_size=1, stride=1)
 
     def forward(self, x: Tensor, stochastic_noise: Tensor, noise_condition: Tensor):
+        x = x.unsqueeze(1)
+        
         # Filter random noise signal
         filtered_noise: Tensor = self.filter(stochastic_noise)
 
