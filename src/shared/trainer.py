@@ -40,12 +40,14 @@ def train(checkpoints: CheckpointsDirectory,
     print_csv: '_csv._writer' = csv.writer(sys.stdout)
     print_csv.writerow(("time", *detail_keys))
     print_csv.writerow((time.time() - start_time, *(details[key] for key in detail_keys)))
+    sys.stdout.flush()
 
     while True:
         batch_index += 1
         rir_batch, speech_batch, reverb_batch = train_data.next_batch()
         details = model.train_on(reverb_batch, rir_batch, speech_batch)
         print_csv.writerow((time.time() - start_time, *(details[key] for key in detail_keys)))
+        sys.stdout.flush()
 
         if batch_index % checkpoint_interval == 0:
             save_checkpoint()
