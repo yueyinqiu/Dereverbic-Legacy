@@ -6,7 +6,7 @@ class CheckpointsDirectory:
                  path: Path, 
                  prefix: str = "epoch", 
                  suffix: str = ".pt") -> None:
-        self._path = path.absolute()
+        self._path = csdir.create_directory(path).absolute()
         self._prefix = prefix
         self._suffix = suffix
 

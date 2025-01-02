@@ -265,6 +265,7 @@ class FinsNetwork(torch.nn.Module):
 
         self.rir_length = rir_length
         self.noise_condition_length = noise_condition_length
+        self.num_filters = num_filters
 
         # Learned decoder input
         self.decoder_input = torch.nn.Parameter(torch.randn((1, 1, decoder_input_length)))
@@ -459,10 +460,13 @@ class FinsModel(RirBlindEstimationModel):
 
     def __predict(self, reverb_batch: Tensor):
         b: int = reverb_batch.size()[0]
-        stochastic_noise: Tensor = torch.randn((b, 1, self.module.rir_length), 
+        stochastic_noise: Tensor = torch.randn((b, 
+                                                self.module.num_filters, 
+                                                self.module.rir_length), 
                                                generator=self.random, 
                                                device=self.device)
-        noise_condition: Tensor = torch.randn((b, self.module.noise_condition_length), 
+        noise_condition: Tensor = torch.randn((b, 
+                                               self.module.noise_condition_length), 
                                               generator=self.random, 
                                               device=self.device)
         predicted: Tensor = self.module(reverb_batch, stochastic_noise, noise_condition)
