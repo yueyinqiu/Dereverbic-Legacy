@@ -30,9 +30,5 @@ train_list_speech: _pathlib.Path = \
     _split_dataset_config.train_list_speech
 
 
-batch_count: int = \
-    -1
-
-
 random_seed: str = \
     "AB866237-508D-4D3B-AC74-5CB8A84E632B"

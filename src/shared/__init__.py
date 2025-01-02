@@ -1,7 +1,10 @@
 from .checkpoints_directory import CheckpointsDirectory
 from .data_provider import TrainDataProvider, ValidationOrTestDataset
+from .fins_model import FinsModel
 from .imports import *
-from . import rir_convolve_fft as rir_convolve_fft
-from . import rir_convolve as rir_convolve
-from .string_random import StringRandom as StringRandom
-from . import tensor_audio as tensor_audio
+from .rir_blind_estimation_model import RirBlindEstimationModel
+from . import rir_convolve_fft
+from . import rir_convolve
+from .string_random import StringRandom
+from . import tensor_audio
+from . import trainer
