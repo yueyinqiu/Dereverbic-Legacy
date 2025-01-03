@@ -6,12 +6,11 @@ import split_dataset_config as _split_dataset_config
 
 
 device: _torch.device = \
-    _torch.device("cpu")
+    _torch.device("cuda", 0)
 
 
 checkpoint_interval: int = \
-    2
-#    200
+    1000
 
 
 checkpoints_directory: _pathlib.Path = \

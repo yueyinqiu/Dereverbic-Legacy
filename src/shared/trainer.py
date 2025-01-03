@@ -51,4 +51,4 @@ def train(checkpoints: CheckpointsDirectory,
 
         if batch_index % checkpoint_interval == 0:
             save_checkpoint()
-            print(f"[Checkpoint saved at {batch_index}.]")
+            print(f"# Checkpoint saved at {batch_index}.")
