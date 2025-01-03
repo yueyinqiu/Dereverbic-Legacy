@@ -494,6 +494,8 @@ class FinsModel(RirBlindEstimationModel):
         return result
 
     def evaluate_on(self, reverb_batch: Tensor) -> Tensor:
+        reverb_batch = reverb_batch.unsqueeze(1)
+        
         self.module.eval()
         predicted: Tensor = self.__predict(reverb_batch)
         self.module.train()
