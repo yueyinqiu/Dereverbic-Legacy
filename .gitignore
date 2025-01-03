@@ -1,5 +1,6 @@
 /.vscode/
 /.slurm/
+/.gitignored/
 /src/*.gitignored.py
 
 # Byte-compiled / optimized / DLL files

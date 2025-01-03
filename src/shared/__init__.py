@@ -1,5 +1,5 @@
 from .checkpoints_directory import CheckpointsDirectory
-from .data_provider import TrainDataProvider, ValidationOrTestDataset
+from .data_provider import TrainDataProvider, ValidationOrTestDataset, DataBatch
 from .fins_model import FinsModel
 from .imports import *
 from .rir_blind_estimation_model import RirBlindEstimationModel

@@ -295,8 +295,6 @@ class FinsNetwork(torch.nn.Module):
         self.output_conv = torch.nn.Conv1d(num_filters + 1, 1, kernel_size=1, stride=1)
 
     def forward(self, x: Tensor, stochastic_noise: Tensor, noise_condition: Tensor):
-        x = x.unsqueeze(1)
-        
         # Filter random noise signal
         filtered_noise: Tensor = self.filter(stochastic_noise)
 
@@ -475,6 +473,9 @@ class FinsModel(RirBlindEstimationModel):
         return predicted
 
     def train_on(self, reverb_batch: Tensor, rir_batch: Tensor, speech_batch: Tensor) -> dict[str, float]:
+        reverb_batch = reverb_batch.unsqueeze(1)
+        rir_batch = rir_batch.unsqueeze(1)
+        
         predicted: Tensor = self.__predict(reverb_batch)
         losses: MultiResolutionSTFTLoss.Return = self.loss(predicted, rir_batch)
 

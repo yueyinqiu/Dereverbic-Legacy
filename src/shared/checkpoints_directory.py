@@ -4,7 +4,7 @@ from .imports import *
 class CheckpointsDirectory:
     def __init__(self,
                  path: Path, 
-                 prefix: str = "epoch", 
+                 prefix: str = "epoch_", 
                  suffix: str = ".pt") -> None:
         self._path = csdir.create_directory(path).absolute()
         self._prefix = prefix
