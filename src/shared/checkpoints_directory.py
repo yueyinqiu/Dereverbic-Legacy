@@ -13,7 +13,11 @@ class CheckpointsDirectory:
     def get_path(self, epoch: int) -> Path:
         return self._path / f"{self._prefix}{epoch}{self._suffix}"
     
-    def get_all(self) -> Iterable[tuple[int, Path]]:
+    class EpochAndPath(NamedTuple):
+        epoch: int
+        path: Path
+
+    def __get_all(self) -> Iterable[EpochAndPath]:
         file: Path
         for file in self._path.iterdir():
             if not file.is_file():
@@ -30,10 +34,13 @@ class CheckpointsDirectory:
                 epoch: int = int(file_name)
             except ValueError:
                 continue
-            yield (epoch, file)
+            yield CheckpointsDirectory.EpochAndPath(epoch, file)
     
-    def get_latest(self) -> tuple[int, Path] | None:
+    def get_all(self) -> list[EpochAndPath]:
+        return sorted(self.__get_all(), key=lambda x: x[0])
+    
+    def get_latest(self) -> EpochAndPath | None:
         try:
-            return max(self.get_all(), key=lambda x: x[0])
+            return max(self.__get_all(), key=lambda x: x[0])
         except ValueError:
             return None
