@@ -2,6 +2,7 @@ from shared.imports import Tensor
 from .imports import *
 from .rir_blind_estimation_model import RirBlindEstimationModel
 from .metrics import MultiResolutionStftLoss
+from . import rir_convolve_fft
 
 
 class FinsEncoderBlock(torch.nn.Module):
@@ -377,8 +378,21 @@ class FinsModel(RirBlindEstimationModel):
                                         stochastic_noise, 
                                         noise_condition)
         return predicted.squeeze(1)
+    
+    def preprocess(self, rir_batch: Tensor, speech_batch: Tensor):
+        rir_batch = rir_batch * 0.999 / rir_batch.max(dim=1, keepdim=True)[0]
+        speech_batch = speech_batch - speech_batch.mean(dim=1, keepdim=True)
+        speech_batch = speech_batch * 0.1
+        reverb_batch: Tensor = rir_convolve_fft.get_reverb(speech_batch, rir_batch)
 
+        rms_level: float = 0.01
+        reverb_batch *= torch.sqrt((reverb_batch.shape[1] * rms_level ** 2) / 
+                                   (torch.sum(reverb_batch ** 2, dim=1, keepdim=True) + 1e-7))
+        return reverb_batch, rir_batch
+        
     def train_on(self, reverb_batch: Tensor, rir_batch: Tensor, speech_batch: Tensor) -> dict[str, float]:
+        reverb_batch, rir_batch = self.preprocess(rir_batch, speech_batch)
+        
         predicted: Tensor = self.__predict(reverb_batch)
         losses: MultiResolutionStftLoss.Return = self.loss(predicted, rir_batch)
 
