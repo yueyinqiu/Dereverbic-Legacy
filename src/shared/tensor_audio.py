@@ -27,4 +27,4 @@ def load_audio(path: Path,
 
 def save_audio(audio: Tensor, path: Path, sample_rate: int) -> None:
     import soundfile
-    soundfile.write(path, audio.numpy(), sample_rate)
+    soundfile.write(path, audio.detach().cpu().numpy(), sample_rate)
