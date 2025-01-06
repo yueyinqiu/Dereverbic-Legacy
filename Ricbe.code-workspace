@@ -1,6 +1,11 @@
 {
 	"settings": {
 		"files.autoSave": "afterDelay",
+		"explorer.fileNesting.enabled": true,
+		"explorer.fileNesting.patterns": {
+			"*_exe.py": "${capture}_config.py",
+			"*.gitignored.py": "$*.gitignored.py",
+		},
 		"python.analysis.exclude": [
 			"**/__pycache__",
 			".git",
