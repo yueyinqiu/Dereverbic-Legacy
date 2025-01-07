@@ -365,13 +365,13 @@ class FinsModel(RirBlindEstimationModel):
 
     def __predict(self, reverb_batch: Tensor):
         b: int = reverb_batch.size()[0]
-        stochastic_noise: Tensor = torch.randn((b, 
-                                                self.module.num_filters,
-                                                self.module.rir_length), 
-                                               generator=self.random, 
+
+        stochastic_noise: Tensor = torch.randn((b, 1, self.module.rir_length), 
+                                               generator=self.random,
                                                device=self.device)
-        noise_condition: Tensor = torch.randn((b, 
-                                               self.module.noise_condition_length), 
+        stochastic_noise = stochastic_noise.repeat(1, self.module.num_filters, 1)
+
+        noise_condition: Tensor = torch.randn((b, self.module.noise_condition_length), 
                                               generator=self.random, 
                                               device=self.device)
         predicted: Tensor = self.module(reverb_batch.unsqueeze(1), 

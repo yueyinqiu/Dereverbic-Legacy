@@ -15,5 +15,5 @@ class RirBlindEstimationModel(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def evaluate_on(self, reverb_batch: Tensor) -> Tensor:
+    def evaluate_on(self, reverb_batch: Tensor) -> Any:
         ...
