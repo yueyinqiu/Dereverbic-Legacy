@@ -381,7 +381,7 @@ class FinsModel(RirBlindEstimationModel):
     
     @staticmethod
     def preprocess(rir_batch: Tensor, speech_batch: Tensor):
-        rir_batch = rir_batch * 0.999 / rir_batch.max(dim=1, keepdim=True).values
+        rir_batch = rir_batch / (0.999 * rir_batch.abs().max(dim=1, keepdim=True).values)
         speech_batch = speech_batch - speech_batch.mean(dim=1, keepdim=True)
         speech_batch = speech_batch * 0.1
         reverb_batch: Tensor = rir_convolve_fft.get_reverb(speech_batch, rir_batch)
