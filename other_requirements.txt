@@ -1,6 +1,5 @@
 csharp-like-file
 librosa==0.10.2
 matplotlib==3.9.2
-tensorboard==2.18.0
 
 variable-declaration-checker
