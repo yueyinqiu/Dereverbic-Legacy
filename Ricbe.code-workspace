@@ -2,9 +2,9 @@
 	"settings": {
 		"files.autoSave": "afterDelay",
 		"explorer.fileNesting.enabled": true,
+		"explorer.fileNesting.expand": false,
 		"explorer.fileNesting.patterns": {
-			"*_exe.py": "${capture}_config.py",
-			"*.gitignored.py": "$*.gitignored.py",
+			"*_exe.py": "${capture}_config.py"
 		},
 		"python.analysis.exclude": [
 			"**/__pycache__",
