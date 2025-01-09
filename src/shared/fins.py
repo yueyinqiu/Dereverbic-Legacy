@@ -378,9 +378,45 @@ class FinsModel(RirBlindEstimationModel):
                                         stochastic_noise, 
                                         noise_condition)
         return predicted.squeeze(1)
-    
+
     @staticmethod
-    def preprocess(rir_batch: Tensor, speech_batch: Tensor):
+    def __add_noise(reverb_batch: Tensor, noise_seed: int):
+        noise_batch: Tensor
+        snr_batch: Tensor
+        def _():
+            random: numpy.random.RandomState = numpy.random.RandomState(noise_seed)
+            device: torch.device = reverb_batch.device
+            noises: list[Tensor] = []
+            snrs: list[float] = []
+            for _ in range(0, reverb_batch.size(0)):
+                if random.random() < 0.9:
+                    min_snr: float = 0.0
+                    max_snr: float = 30.0
+                    beta: float = random.random() + 1.0
+                    import colorednoise
+                    noise_numpy: numpy.ndarray = colorednoise.powerlaw_psd_gaussian(beta, 
+                                                                                    reverb_batch.size(-1), 
+                                                                                    random_state=random)
+                    noises.append(torch.tensor(noise_numpy, device=device, dtype=torch.float32))
+                    snrs.append(random.random() * (max_snr - min_snr) + min_snr)
+                else:
+                    noises.append(torch.zeros([reverb_batch.size(-1)], device=device))
+                    snrs.append(0)
+            return torch.stack(noises), torch.tensor(snrs, device=device)
+        noise_batch, snr_batch = _()
+
+        mean_square_signal: Tensor = torch.mean(reverb_batch ** 2, dim=1)
+        signal_level_db: Tensor = 10 * torch.log10(mean_square_signal)
+        noise_db: Tensor = signal_level_db - snr_batch
+        mean_square_noise: Tensor = torch.sqrt(10 ** (noise_db / 10))
+        mean_square_noise = torch.unsqueeze(mean_square_noise, dim=1)
+        mean_square_noise = mean_square_noise.repeat(1, reverb_batch.size(1))
+        modified_noise: Tensor = torch.mul(noise_batch, mean_square_noise)
+
+        return reverb_batch + modified_noise
+
+    @staticmethod
+    def preprocess(rir_batch: Tensor, speech_batch: Tensor, noise_seed: int | None):
         rir_batch = rir_batch / (0.999 * rir_batch.abs().max(dim=1, keepdim=True).values)
         speech_batch = speech_batch - speech_batch.mean(dim=1, keepdim=True)
         speech_batch = speech_batch * 0.1
@@ -389,10 +425,17 @@ class FinsModel(RirBlindEstimationModel):
         rms_level: float = 0.01
         reverb_batch *= torch.sqrt((reverb_batch.shape[1] * rms_level ** 2) / 
                                    (torch.sum(reverb_batch ** 2, dim=1, keepdim=True) + 1e-7))
+        
+        if noise_seed is not None:
+            reverb_batch = FinsModel.__add_noise(reverb_batch, noise_seed)
+
         return reverb_batch, rir_batch, speech_batch
         
     def train_on(self, reverb_batch: Tensor, rir_batch: Tensor, speech_batch: Tensor) -> dict[str, float]:
-        reverb_batch, rir_batch, _ = FinsModel.preprocess(rir_batch, speech_batch)
+        noise_seed: int = int(torch.randint(0, 2147483647, [], 
+                                            device=self.device, 
+                                            generator=self.random))
+        reverb_batch, rir_batch, _ = FinsModel.preprocess(rir_batch, speech_batch, noise_seed)
         
         predicted: Tensor = self.__predict(reverb_batch)
         losses: MultiResolutionStftLoss.Return = self.loss(predicted, rir_batch)
