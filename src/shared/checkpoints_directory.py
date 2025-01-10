@@ -3,14 +3,16 @@ from .imports import *
 
 class CheckpointsDirectory:
     def __init__(self,
-                 path: Path, 
+                 path: Path | str, 
                  prefix: str = "epoch_", 
                  suffix: str = ".pt") -> None:
         self._path = csdir.create_directory(path).absolute()
         self._prefix = prefix
         self._suffix = suffix
 
-    def get_path(self, epoch: int) -> Path:
+    def get_path(self, epoch: int | None) -> Path:
+        if epoch is None:
+            return self._path
         return self._path / f"{self._prefix}{epoch}{self._suffix}"
     
     class EpochAndPath(NamedTuple):

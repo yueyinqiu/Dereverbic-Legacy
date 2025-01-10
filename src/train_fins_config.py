@@ -6,7 +6,7 @@ import split_dataset_config as _split_dataset_config
 
 
 device: _torch.device = \
-    _torch.device("cuda", 0)
+    _torch.device("cuda", 0) if _torch.cuda.is_available() else _torch.device("cpu")
 
 
 checkpoint_interval: int = \
@@ -14,7 +14,7 @@ checkpoint_interval: int = \
 
 
 checkpoints_directory: _pathlib.Path = \
-    _common_config.checkpoints_directory / "fins/"
+    _common_config.checkpoints_directory / "fins_modified_reverb/"
 
 
 train_list_rir: _pathlib.Path = \
