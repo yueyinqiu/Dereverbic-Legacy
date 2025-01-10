@@ -1,5 +1,6 @@
 from .checkpoints_directory import CheckpointsDirectory
 from .data_provider import TrainDataProvider, ValidationOrTestDataset, DataBatch
+from . import dirty_inspector
 from .fins import FinsModel
 from .imports import *
 from .metrics import MultiResolutionStftLoss

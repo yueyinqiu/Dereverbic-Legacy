@@ -79,7 +79,7 @@ class FinsUpsampleNet(torch.nn.Module):
             padding=upsample_factor // 2,
         )
         torch.nn.init.orthogonal_(layer.weight)
-        self.layer = torch.nn.utils.spectral_norm(layer)
+        self.layer = torch.nn.utils.spectral_norm(layer)  # type: ignore
 
     def forward(self, inputs: Tensor):
         outputs: Tensor = self.layer(inputs)
@@ -95,7 +95,7 @@ class FinsConditionalBatchNorm1d(torch.nn.Module):
         self.condition_length = condition_length
         self.norm = torch.nn.BatchNorm1d(num_features, affine=True, track_running_stats=True)
 
-        self.layer = torch.nn.utils.spectral_norm(torch.nn.Linear(condition_length, num_features * 2))
+        self.layer = torch.nn.utils.spectral_norm(torch.nn.Linear(condition_length, num_features * 2))  # type: ignore
         self.layer.weight.data.normal_(1, 0.02)
         self.layer.bias.data.zero_()
 
@@ -442,7 +442,7 @@ class FinsModel(RirBlindEstimationModel):
 
         self.optimizer.zero_grad()
         losses["total"].backward()
-        torch.nn.utils.clip_grad_norm_(self.module.parameters(), 5)
+        torch.nn.utils.clip_grad_norm_(self.module.parameters(), 5)  # type: ignore
         self.optimizer.step()
 
         result: dict[str, float] = {
