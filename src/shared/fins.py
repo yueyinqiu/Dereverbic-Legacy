@@ -363,19 +363,24 @@ class FinsModel(RirBlindEstimationModel):
         self.scheduler.load_state_dict(state["scheduler"])
         self.random.set_state(state["random"])
 
-    def __predict(self, reverb_batch: Tensor):
+    def _predict(self, 
+                 reverb_batch: Tensor, 
+                 stochastic_noise_batch: Tensor | None, 
+                 noise_condition: Tensor | None):
         b: int = reverb_batch.size()[0]
 
-        stochastic_noise: Tensor = torch.randn((b, 1, self.module.rir_length), 
-                                               generator=self.random,
-                                               device=self.device)
-        stochastic_noise = stochastic_noise.repeat(1, self.module.num_filters, 1)
+        if stochastic_noise_batch is None:
+            stochastic_noise_batch = torch.randn((b, 1, self.module.rir_length), 
+                                                    generator=self.random,
+                                                    device=self.device)
+            stochastic_noise_batch = stochastic_noise_batch.repeat(1, self.module.num_filters, 1)
 
-        noise_condition: Tensor = torch.randn((b, self.module.noise_condition_length), 
-                                              generator=self.random, 
-                                              device=self.device)
+        if noise_condition is None:
+            noise_condition = torch.randn((b, self.module.noise_condition_length), 
+                                          generator=self.random, 
+                                          device=self.device)
         predicted: Tensor = self.module(reverb_batch.unsqueeze(1), 
-                                        stochastic_noise, 
+                                        stochastic_noise_batch, 
                                         noise_condition)
         return predicted.squeeze(1)
 
@@ -437,7 +442,7 @@ class FinsModel(RirBlindEstimationModel):
                                             generator=self.random))
         reverb_batch, rir_batch, _ = FinsModel.preprocess(rir_batch, speech_batch, noise_seed)
         
-        predicted: Tensor = self.__predict(reverb_batch)
+        predicted: Tensor = self._predict(reverb_batch, None, None)
         losses: MultiResolutionStftLoss.Return = self.loss(predicted, rir_batch)
 
         self.optimizer.zero_grad()
@@ -451,12 +456,12 @@ class FinsModel(RirBlindEstimationModel):
             "loss_sc": float(losses["sc_loss"])
         }
 
-        self.scheduler.step()
+        # self.scheduler.step()
         return result
 
     def evaluate_on(self, reverb_batch: Tensor) -> Tensor:
         self.module.eval()
-        predicted: Tensor = self.__predict(reverb_batch)
+        predicted: Tensor = self._predict(reverb_batch, None, None)
         self.module.train()
         return predicted
     

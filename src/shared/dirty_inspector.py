@@ -1,4 +1,4 @@
-from imports import *
+from .imports import *
 
 _path: Path | None = None
 _values: dict = {}
@@ -10,7 +10,8 @@ def enable(path: Path | str):
     if _path is not None:
         raise RuntimeError(f"Dirty inspector cannot be enabled twice.")
     print("# Dirty inspector is enabled. Note that it is only for debugging purpose.")
-    _path = csdir.create_directory(path).absolute()
+    _path = Path(path)
+    csdir.create_directory(_path.parent)
 
 _T = TypeVar("_T")
 def set(key: str, value: _T, converter: Callable[[_T], Any]):
