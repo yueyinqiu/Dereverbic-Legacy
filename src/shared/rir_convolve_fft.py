@@ -50,18 +50,10 @@ def inverse_convolve_full(a_star_v: Tensor,
 def get_reverb(speech: Tensor, 
                rir: Tensor,
                cut: bool = True):
-    from fft_conv_pytorch import fft_conv
-    def batch_convolution(signal, filter):
-        batch_size, n_channels, signal_length = signal.size()
-        _, _, filter_length = filter.size()
-        padded_signal = torch.nn.functional.pad(signal, (filter_length, 0), 'constant', 0)
-        padded_signal = padded_signal.transpose(0, 1)
-        filtered_signal = fft_conv(padded_signal.double(), filter.double(), padding=0, groups=batch_size).transpose(0, 1)[
-            :, :, :signal_length
-        ]
-        filtered_signal = filtered_signal.type(signal.dtype)
-        return filtered_signal
-    return batch_convolution(speech.unsqueeze(1), rir.flip(-1).unsqueeze_(1)).squeeze(1)
+    reverb: Tensor = convolve(speech, rir, "full")
+    if cut:
+        reverb = reverb[..., :speech.shape[-1]]
+    return reverb
 
 
 def _test_convolve():

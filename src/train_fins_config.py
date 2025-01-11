@@ -14,7 +14,7 @@ checkpoint_interval: int = \
 
 
 checkpoints_directory: _pathlib.Path = \
-    _common_config.checkpoints_directory / "fins_modified_reverb/"
+    _common_config.checkpoints_directory / "fins/"
 
 
 train_list_rir: _pathlib.Path = \
