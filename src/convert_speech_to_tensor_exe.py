@@ -34,7 +34,7 @@ def main():
             path = path.absolute()
             print(f"Dealing with {path} ...")
 
-            audio: Tensor = tensor_audio.load_audio(path, 16000, "as_mono")
+            audio: Tensor = TensorAudio.load_audio(path, 16000, "as_mono")
             channel: numpy.ndarray = audio[0, :].numpy()
             channel, _ = librosa.effects.trim(channel,
                                               top_db=60, 

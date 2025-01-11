@@ -34,7 +34,7 @@ def main():
             path = path.absolute()
             print(f"Dealing with {path} ...")
 
-            audio: torch.Tensor = tensor_audio.load_audio(path, 16000, "as_many")
+            audio: torch.Tensor = TensorAudio.load_audio(path, 16000, "as_many")
             
             i: int
             for i in range(audio.shape[0]):

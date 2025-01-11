@@ -8,6 +8,6 @@ for input, output in config.files:
     output = output.absolute()
     print(f"Dealing with {input} (-> {output} )...")
     tensor: torch.Tensor = torch.load(input, weights_only=True)
-    tensor_audio.save_audio(tensor, output, 16000)
+    TensorAudio.save_audio(tensor, output, 16000)
 
 print("Completed.")

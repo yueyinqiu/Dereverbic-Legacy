@@ -8,5 +8,5 @@ from .rir_blind_estimation_model import RirBlindEstimationModel
 from .rir_convolve_fft import RirConvolveFft
 from .static_class import StaticClass
 from .string_random import StringRandom
-from . import tensor_audio
+from .tensor_audio import TensorAudio
 from . import trainer
