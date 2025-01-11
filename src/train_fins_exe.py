@@ -15,4 +15,4 @@ train_data: TrainDataProvider = TrainDataProvider(config.train_list_rir,
 
 model: FinsModel = FinsModel(config.device, random.randint(0, 1000))
 
-trainer.train(checkpoints, train_data, model, config.checkpoint_interval)
+Trainer.train(checkpoints, train_data, model, config.checkpoint_interval)
