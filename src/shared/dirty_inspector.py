@@ -1,37 +1,46 @@
-from .imports import *
+from imports import *
+from static_class import StaticClass
 
-_path: Path | None = None
-_values: dict = {}
 
-global_variables: dict = {}
+class DirtyInspector(StaticClass):
+    _path: Path | None = None
+    _values: dict = {}
+    _variables: dict = {}
 
-def enable(path: Path | str):
-    global _path
-    if _path is not None:
-        raise RuntimeError(f"Dirty inspector cannot be enabled twice.")
-    print("# Dirty inspector is enabled. Note that it is only for debugging purpose.")
-    _path = Path(path)
-    csdir.create_directory(_path.parent)
+    @classmethod
+    def variables(cls):
+        return cls._variables
 
-_T = TypeVar("_T")
-def set(key: str, value: _T, converter: Callable[[_T], Any]):
-    if _path is None:
-        return
-    if key in _values:
-        raise KeyError(f"The key ({key}) already exists. Please try another key.")
-    _values[key] = converter(value)
+    @classmethod
+    def enable(cls, path: Path | str):
+        if cls._path is not None:
+            raise RuntimeError(f"Dirty inspector cannot be enabled twice.")
+        print("# Dirty inspector is enabled. Note that it is only for debugging purpose.")
+        cls._path = Path(path)
+        csdir.create_directory(cls._path.parent)
 
-def set_tensor(key: str, value: Tensor):
-    set(key, value, lambda x: x.clone().detach().cpu())
+    _T = TypeVar("_T")  # pylint: disable=un-declared-variable
+    @classmethod
+    def set(cls, key: str, value: _T, converter: Callable[[_T], Any]):
+        if cls._path is None:
+            return
+        if key in cls._values:
+            raise KeyError(f"The key ({key}) already exists. Please try another key.")
+        cls._values[key] = converter(value)
 
-def set_float(key: str, value: float):
-    set(key, value, lambda x: x)
+    @classmethod
+    def set_tensor(cls, key: str, value: Tensor):
+        cls.set(key, value, lambda x: x.clone().detach().cpu())
 
-def save_and_exit():
-    if _path is None:
-        return
-    torch.save(_values, _path)
-    print("# Program will exit by dirty inspector...")
-    print(f"# Inspector output: {_path}")
-    exit()
-    
+    @classmethod
+    def set_float(cls, key: str, value: float):
+        cls.set(key, value, lambda x: x)
+
+    @classmethod
+    def save_and_exit(cls):
+        if cls._path is None:
+            return
+        torch.save(cls._values, cls._path)
+        print("# Program will exit by dirty inspector...")
+        print(f"# Inspector output: {cls._path}")
+        exit()

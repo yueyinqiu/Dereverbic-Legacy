@@ -14,7 +14,7 @@ from typing import (
     Generic
 )
 from torch.utils.data import DataLoader, Dataset
-from torch.optim import AdamW  # type: ignore
+from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 
 import torch
 import csfile
