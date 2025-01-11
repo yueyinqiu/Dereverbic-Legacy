@@ -1,5 +1,5 @@
 from imports import *
-from static_class import StaticClass
+from .static_class import StaticClass
 
 
 class DirtyInspector(StaticClass):

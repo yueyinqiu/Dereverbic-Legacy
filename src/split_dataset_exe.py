@@ -26,7 +26,7 @@ def save_reverb(rir_path: str,
                 directory: Path):
     rir: Tensor = torch.load(rir_path, weights_only=True)
     speech: Tensor = torch.load(speech_path, weights_only=True)
-    reverb: Tensor = rir_convolve_fft.get_reverb(speech, rir)
+    reverb: Tensor = RirConvolveFft.get_reverb(speech, rir)
 
     file_name: str = name_generator.next()
 

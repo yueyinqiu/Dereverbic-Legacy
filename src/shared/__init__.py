@@ -5,7 +5,7 @@ from .fins import FinsModel
 from .imports import *
 from .metrics import MultiResolutionStftLoss
 from .rir_blind_estimation_model import RirBlindEstimationModel
-from . import rir_convolve_fft
+from .rir_convolve_fft import RirConvolveFft
 from .static_class import StaticClass
 from .string_random import StringRandom
 from . import tensor_audio

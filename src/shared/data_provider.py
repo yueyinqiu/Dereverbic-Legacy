@@ -1,5 +1,5 @@
 from .imports import *
-from . import rir_convolve_fft
+from .rir_convolve_fft import RirConvolveFft
 
 
 class DataBatch(NamedTuple):
@@ -49,7 +49,7 @@ class TrainDataProvider:
 
         rirs_batch: Tensor = torch.stack(rirs)
         speeches_batch: Tensor = torch.stack(speeches)
-        reverb_batch: Tensor = rir_convolve_fft.get_reverb(speeches_batch,
+        reverb_batch: Tensor = RirConvolveFft.get_reverb(speeches_batch,
                                                            rirs_batch)
 
         return DataBatch(rirs_batch, speeches_batch, reverb_batch)

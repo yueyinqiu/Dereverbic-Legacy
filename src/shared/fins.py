@@ -2,7 +2,7 @@ from shared.imports import Tensor
 from .imports import *
 from .rir_blind_estimation_model import RirBlindEstimationModel
 from .metrics import MultiResolutionStftLoss
-from . import rir_convolve_fft
+from .rir_convolve_fft import RirConvolveFft
 
 
 class FinsEncoderBlock(torch.nn.Module):
@@ -425,7 +425,7 @@ class FinsModel(RirBlindEstimationModel):
         rir_batch = rir_batch / (0.999 * rir_batch.abs().max(dim=1, keepdim=True).values)
         speech_batch = speech_batch - speech_batch.mean(dim=1, keepdim=True)
         speech_batch = speech_batch * 0.1
-        reverb_batch: Tensor = rir_convolve_fft.get_reverb(speech_batch, rir_batch)
+        reverb_batch: Tensor = RirConvolveFft.get_reverb(speech_batch, rir_batch)
 
         rms_level: float = 0.01
         reverb_batch *= torch.sqrt((reverb_batch.shape[1] * rms_level ** 2) / 
