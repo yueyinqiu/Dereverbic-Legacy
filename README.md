@@ -8,7 +8,7 @@
 conda create -n Ricbe python=3.12.5
 conda activate Ricbe
 conda install ffmpeg=6.1.1
-pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cu124
+pip install torch==2.5.1
 pip install -r other_requirements.txt
 ```
 
