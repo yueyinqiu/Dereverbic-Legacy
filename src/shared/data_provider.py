@@ -1,11 +1,12 @@
 from .imports import *
 from .rir_convolve_fft import RirConvolveFft
+from .dimension_descriptors import *
 
 
 class DataBatch(NamedTuple):
-    rir: Tensor
-    speech: Tensor
-    reverb: Tensor
+    rir: Tensor2d[DBatch, DSample]
+    speech: Tensor2d[DBatch, DSample]
+    reverb: Tensor2d[DBatch, DSample]
 
 
 class TrainDataProvider:
@@ -33,8 +34,8 @@ class TrainDataProvider:
         self._random.set_state(state_dict["random"])
     
     def next_batch(self) -> DataBatch:
-        rirs: list[Tensor] = []
-        speeches: list[Tensor] = []
+        rirs: list[Tensor1d] = []
+        speeches: list[Tensor1d] = []
 
         i: Tensor
         for i in torch.randint(len(self._rirs), [self._batch_size], generator=self._random):
@@ -47,12 +48,14 @@ class TrainDataProvider:
                                         weights_only=True, 
                                         map_location=self._device))
 
-        rirs_batch: Tensor = torch.stack(rirs)
-        speeches_batch: Tensor = torch.stack(speeches)
-        reverb_batch: Tensor = RirConvolveFft.get_reverb(speeches_batch,
-                                                           rirs_batch)
+        rirs_batch: Tensor2d[DBatch, DSample] = Tensor2d(
+            torch.stack(cast(list[Tensor], rirs)))
+        speeches_batch: Tensor2d[DBatch, DSample] = Tensor2d(
+            torch.stack(cast(list[Tensor], speeches)))
+        reverb_batch: Tensor2d[DBatch, DSample] = RirConvolveFft.get_reverb_batch(speeches_batch,
+                                                                               rirs_batch)
 
-        return DataBatch(rirs_batch, speeches_batch, reverb_batch)
+        return DataBatch(rirs_batch, speeches_batch, Tensor2d(reverb_batch))
 
 
 class ValidationOrTestDataset(Dataset):
@@ -66,18 +69,18 @@ class ValidationOrTestDataset(Dataset):
         return self._paths.__len__()
 
     class DatasetItem(TypedDict):
-        rir: Tensor
-        speech: Tensor
-        reverb: Tensor
+        rir: Tensor1d[DSample]
+        speech: Tensor1d[DSample]
+        reverb: Tensor1d[DSample]
 
     def __getitem__(self, i: int) -> DatasetItem:
         return torch.load(self._paths[i], weights_only=True, map_location=self._device)
 
     def get_data_loader(self, batch_size: int) -> DataLoader:
         def collate(data: list[ValidationOrTestDataset.DatasetItem]) -> DataBatch:
-            rirs: list[Tensor] = []
-            speeches: list[Tensor] = []
-            reverbs: list[Tensor] = []
+            rirs: list[Tensor1d] = []
+            speeches: list[Tensor1d] = []
+            reverbs: list[Tensor1d] = []
 
             item: ValidationOrTestDataset.DatasetItem
             for item in data:
@@ -85,9 +88,9 @@ class ValidationOrTestDataset(Dataset):
                 speeches.append(item["speech"])
                 reverbs.append(item["reverb"])
             
-            return DataBatch(torch.stack(rirs), 
-                             torch.stack(speeches), 
-                             torch.stack(reverbs))
+            return DataBatch(Tensor2d(torch.stack(cast(list[Tensor], rirs))), 
+                             Tensor2d(torch.stack(cast(list[Tensor], speeches))), 
+                             Tensor2d(torch.stack(cast(list[Tensor], reverbs))))
 
         return DataLoader(self, batch_size, False, collate_fn=collate)
 

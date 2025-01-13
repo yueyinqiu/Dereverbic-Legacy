@@ -1,5 +1,6 @@
 from .imports import *
 from .static_class import StaticClass
+from .dimension_descriptors import *
 
 
 class RirConvolveFft(StaticClass):
@@ -38,7 +39,7 @@ class RirConvolveFft(StaticClass):
     @classmethod
     def inverse_convolve_full(cls,
                               a_star_v: Tensor,
-                              a_or_v: Tensor):
+                              a_or_v: Tensor) -> Tensor:
         # a_star_v -> reverb
         # a_or_v -> speech
 
@@ -53,14 +54,24 @@ class RirConvolveFft(StaticClass):
         return rir_fft_ifft[0:a_star_v.shape[-1] - a_or_v.shape[-1] + 1].real
 
     @classmethod
-    def get_reverb(cls,
-                   speech: Tensor, 
-                   rir: Tensor,
-                   cut: bool = True):
+    def _get_reverb(cls,
+                    speech: Tensor, 
+                    rir: Tensor) -> Tensor:
         reverb: Tensor = cls.convolve(speech, rir, "full")
-        if cut:
-            reverb = reverb[..., :speech.shape[-1]]
+        reverb = reverb[..., :speech.shape[-1]]
         return reverb
+    
+    @classmethod
+    def get_reverb(cls,
+                   speech: Tensor1d[DSample], 
+                   rir: Tensor1d[DSample]) -> Tensor1d[DSample]:
+        return Tensor1d(cls._get_reverb(speech, rir))
+    
+    @classmethod
+    def get_reverb_batch(cls,
+                         speech: Tensor2d[DBatch, DSample], 
+                         rir: Tensor2d[DBatch, DSample]) -> Tensor2d[DBatch, DSample]:
+        return Tensor2d(cls._get_reverb(speech, rir))
 
 
 def _test_convolve():

@@ -1,6 +1,5 @@
-from shared.imports import Tensor
 from .imports import *
-from .rir_blind_estimation_model import RirBlindEstimationModel
+from .dimension_descriptors import *
 
 
 class STFTLoss(torch.nn.Module):
@@ -33,7 +32,7 @@ class STFTLoss(torch.nn.Module):
         self.window: Tensor
         self.register_buffer("window", getattr(torch, window)(win_length), False)
 
-    def forward(self, x, y):
+    def forward(self, x: Tensor2d[DBatch, DSample], y: Tensor2d[DBatch, DSample]):
         x_mag: Tensor = STFTLoss.stft(x, self.fft_size, self.shift_size, self.win_length, self.window)
         y_mag: Tensor = STFTLoss.stft(y, self.fft_size, self.shift_size, self.win_length, self.window)
         sc_loss: Tensor = STFTLoss.spectral_convergence_loss(x_mag, y_mag)
@@ -64,32 +63,32 @@ class MultiResolutionStftLoss(torch.nn.Module):
         for fs, ss, wl in zip(fft_sizes, hop_sizes, win_lengths):
             self.stft_losses = self.stft_losses + [STFTLoss(fs, ss, wl, window)]
         
-        self.zero: Tensor
+        self.zero: Tensor0d
         self.register_buffer("zero", torch.zeros([]), False)
 
     class Return(TypedDict):
-        total: Tensor
-        sc_loss: Tensor
-        mag_loss: Tensor
+        total: Tensor0d
+        sc_loss: Tensor0d
+        mag_loss: Tensor0d
 
-    def forward(self, x: Tensor, y: Tensor) -> Return:
+    def forward(self, x: Tensor2d[DBatch, DSample], y: Tensor2d[DBatch, DSample]) -> Return:
         """
         shape: [batch_size, rir_length]
         """
-        sc_loss: Tensor = self.zero
-        mag_loss: Tensor = self.zero
+        sc_loss: Tensor0d = self.zero
+        mag_loss: Tensor0d = self.zero
 
         f: torch.nn.Module
         for f in self.stft_losses:
-            sc_l: Tensor
-            mag_l: Tensor
+            sc_l: Tensor0d
+            mag_l: Tensor0d
             sc_l, mag_l = f(x, y)
-            sc_loss = sc_loss + sc_l
-            mag_loss = mag_loss + mag_l
+            sc_loss = Tensor0d(sc_loss + sc_l)
+            mag_loss = Tensor0d(mag_loss + mag_l)
 
         return {
-            "total": (sc_loss * self.sc_weight + mag_loss * self.mag_weight) / len(self.stft_losses),
-            "sc_loss": sc_loss / len(self.stft_losses),
-            "mag_loss": mag_loss / len(self.stft_losses),
+            "total": Tensor0d((sc_loss * self.sc_weight + mag_loss * self.mag_weight) / len(self.stft_losses)),
+            "sc_loss": Tensor0d(sc_loss / len(self.stft_losses)),
+            "mag_loss": Tensor0d(mag_loss / len(self.stft_losses)),
         }
     

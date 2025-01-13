@@ -1,5 +1,6 @@
 from .checkpoints_directory import CheckpointsDirectory
 from .data_provider import TrainDataProvider, ValidationOrTestDataset, DataBatch
+from .dimension_descriptors import *
 from .dirty_inspector import DirtyInspector
 from .fins_model import FinsModel
 from .imports import *

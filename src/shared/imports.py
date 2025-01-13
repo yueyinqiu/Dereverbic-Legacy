@@ -11,10 +11,18 @@ from typing import (
     Generator, 
     Protocol, 
     TypeVar, 
-    Generic
+    Generic,
+    cast
 )
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
+from statictorch import (
+    TensorDimensionDescriptor,
+    Tensor0d,
+    Tensor1d,
+    Tensor2d,
+    Tensor3d
+)
 
 import torch
 import csfile

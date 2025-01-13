@@ -2,7 +2,7 @@ from shared import *
 import _csv as _csv
 
 
-def _save_tensor(audio: torch.Tensor,
+def _save_tensor(audio: Tensor1d[DSample],
                  file_name_without_suffix: str,
                  directory: Path):
     directory = directory / file_name_without_suffix[0] / file_name_without_suffix[1]
@@ -34,11 +34,13 @@ def main():
             path = path.absolute()
             print(f"Dealing with {path} ...")
 
-            audio: torch.Tensor = TensorAudio.load_audio(path, 16000, "as_many")
+            audio: Tensor2d[DChannel, DSample] = TensorAudio.load_audio(path, 
+                                                                        16000, 
+                                                                        "as_many")
             
             i: int
             for i in range(audio.shape[0]):
-                tensor_file: Path = _save_tensor(audio[i], 
+                tensor_file: Path = _save_tensor(Tensor1d(audio[i]), 
                                                  string_random.next(), 
                                                  config.output_directory)
                 contents_writer.writerow([str(tensor_file), str(path), str(i)])

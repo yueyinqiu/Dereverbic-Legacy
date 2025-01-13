@@ -1,4 +1,5 @@
 from .imports import *
+from .dimension_descriptors import *
 
 
 class RirBlindEstimationModel(abc.ABC):
@@ -11,5 +12,8 @@ class RirBlindEstimationModel(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def train_on(self, reverb_batch: Tensor, rir_batch: Tensor, speech_batch: Tensor) -> dict[str, float]:
+    def train_on(self, 
+                 reverb_batch: Tensor2d[DBatch, DSample], 
+                 rir_batch: Tensor2d[DBatch, DSample], 
+                 speech_batch: Tensor2d[DBatch, DSample]) -> dict[str, float]:
         ...

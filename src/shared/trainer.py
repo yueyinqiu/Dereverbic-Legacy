@@ -4,6 +4,7 @@ from .data_provider import TrainDataProvider
 from .rir_blind_estimation_model import RirBlindEstimationModel
 import _csv
 from .static_class import StaticClass
+from .dimension_descriptors import *
 
 
 class Trainer(StaticClass):
@@ -31,9 +32,9 @@ class Trainer(StaticClass):
             train_data.load_state_dict(checkpoint["data"])
         
         batch_index += 1
-        rir_batch: Tensor
-        speech_batch: Tensor
-        reverb_batch: Tensor
+        rir_batch: Tensor2d[DBatch, DSample]
+        speech_batch: Tensor2d[DBatch, DSample]
+        reverb_batch: Tensor2d[DBatch, DSample]
         rir_batch, speech_batch, reverb_batch = train_data.next_batch()
         details: dict[str, float] = model.train_on(reverb_batch, rir_batch, speech_batch)
         
