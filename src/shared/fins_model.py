@@ -342,7 +342,7 @@ class FinsModel(RirBlindEstimationModel):
         self.optimizer = AdamW(self.module.parameters(), lr=0.000055, weight_decay=1e-6)
         self.scheduler = torch.optim.lr_scheduler.StepLR(
             self.optimizer,
-            step_size=80,
+            step_size=10000,
             gamma=0.8
         )
         self.random = torch.Generator(device).manual_seed(seed)
@@ -458,10 +458,10 @@ class FinsModel(RirBlindEstimationModel):
                  reverb_batch: Tensor2d[DBatch, DSample], 
                  rir_batch: Tensor2d[DBatch, DSample], 
                  speech_batch: Tensor2d[DBatch, DSample]) -> dict[str, float]:
-        noise_seed: int = int(torch.randint(0, 2147483647, [], 
-                                            device=self.device, 
-                                            generator=self.random))
-        reverb_batch, rir_batch, _ = FinsModel.preprocess(rir_batch, speech_batch, noise_seed)
+        #noise_seed: int = int(torch.randint(0, 2147483647, [], 
+        #                                    device=self.device, 
+        #                                    generator=self.random))
+        #reverb_batch, rir_batch, _ = FinsModel.preprocess(rir_batch, speech_batch, noise_seed)
         
         predicted: Tensor2d[DBatch, DSample] = self._predict(reverb_batch, None, None)
         losses: MultiResolutionStftLoss.Return = self.loss(predicted, rir_batch)
@@ -474,10 +474,11 @@ class FinsModel(RirBlindEstimationModel):
         result: dict[str, float] = {
             "loss_total": float(losses["total"]),
             "loss_mag": float(losses["mag_loss"]),
-            "loss_sc": float(losses["sc_loss"])
+            "loss_sc": float(losses["sc_loss"]),
+            "lr": self.scheduler.get_last_lr()[0]
         }
 
-        # self.scheduler.step()
+        self.scheduler.step()
         return result
 
     def evaluate_on(self, reverb_batch: Tensor2d[DBatch, DSample]) -> Tensor2d[DBatch, DSample]:
