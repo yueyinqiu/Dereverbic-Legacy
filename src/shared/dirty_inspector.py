@@ -1,4 +1,4 @@
-from imports import *
+from .imports import *
 from .static_class import StaticClass
 
 
