@@ -5,9 +5,9 @@
 我们在 Linux 上使用 Anaconda 进行环境管理。 CUDA 版本为 12.4 。
 
 ```shell
-conda create -n Ricbe python=3.12.5
+conda create -n Ricbe python=3.12.8
 conda activate Ricbe
-conda install ffmpeg=6.1.1
+conda install ffmpeg=7.1.0
 pip install torch==2.5.1
 pip install -r other_requirements.txt
 ```
