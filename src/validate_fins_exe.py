@@ -15,7 +15,7 @@ with torch.no_grad():
     csv_print.writerow(["epoch", "batch", "metric", "value"])
     epoch: int
     path: Path
-    for epoch, path in checkpoints.get_all():
+    for epoch, path in itertools.islice(checkpoints.get_all(), config.skip, None):
         Trainer.load_model(model, path)
 
         mrstft_total_accumulator: KahanAccumulator = KahanAccumulator()
@@ -33,8 +33,8 @@ with torch.no_grad():
             mrstft_mag: float = float(mrstft_value["mag_loss"])
 
             mrstft_total_accumulator.add(mrstft_total)
-            mrstft_total_accumulator.add(mrstft_sc)
-            mrstft_total_accumulator.add(mrstft_mag)
+            mrstft_sc_accumulator.add(mrstft_sc)
+            mrstft_mag_accumulator.add(mrstft_mag)
 
             csv_print.writerow([epoch, batch_index, "mrstft_total", mrstft_total])
             csv_print.writerow([epoch, batch_index, "mrstft_sc", mrstft_sc])

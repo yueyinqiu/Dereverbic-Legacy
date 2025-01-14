@@ -14,6 +14,10 @@ checkpoints_directory: _pathlib.Path = \
     _train_fins_config.checkpoints_directory
 
 
+skip: int = \
+    1
+
+
 validation_list: _pathlib.Path = \
     _split_dataset_config.validation_list
 
