@@ -1,5 +1,5 @@
 import download_bird_config as config
-from shared import *
+from shared.i import *
 
 directory_compressed: Path = config.destination.joinpath("compressed")
 csdir.create_directory(directory_compressed)

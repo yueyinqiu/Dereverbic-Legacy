@@ -1,8 +1,13 @@
-from .imports import *
-from .dimension_descriptors import *
+# The metric is modified from: 
+# https://github.com/kyungyunlee/fins/blob/main/fins/loss.py
+# Please respect the original license
 
 
-class STFTLoss(torch.nn.Module):
+from typing import Any
+from .i0 import *
+
+
+class StftLoss(torch.nn.Module):
     @staticmethod
     def stft(x: Tensor, fft_size: int, hop_size: int, win_length: int, window: Tensor):
         x_stft: Tensor = torch.stft(x, fft_size, hop_size, win_length, window, return_complex=True)
@@ -24,7 +29,7 @@ class STFTLoss(torch.nn.Module):
         win_length=600,
         window="hann_window",
     ):
-        super(STFTLoss, self).__init__()
+        super(StftLoss, self).__init__()
         self.fft_size = fft_size
         self.shift_size = shift_size
         self.win_length = win_length
@@ -32,15 +37,16 @@ class STFTLoss(torch.nn.Module):
         self.window: Tensor
         self.register_buffer("window", getattr(torch, window)(win_length), False)
 
-    def forward(self, x: Tensor2d[DBatch, DSample], y: Tensor2d[DBatch, DSample]):
-        x_mag: Tensor = STFTLoss.stft(x, self.fft_size, self.shift_size, self.win_length, self.window)
-        y_mag: Tensor = STFTLoss.stft(y, self.fft_size, self.shift_size, self.win_length, self.window)
-        sc_loss: Tensor = STFTLoss.spectral_convergence_loss(x_mag, y_mag)
-        log_mag_loss: Tensor = STFTLoss.log_stft_magnitude_loss(x_mag, y_mag)
+    def forward(self, x: Tensor2d, y: Tensor2d):
+        x_mag: Tensor = StftLoss.stft(x, self.fft_size, self.shift_size, self.win_length, self.window)
+        y_mag: Tensor = StftLoss.stft(y, self.fft_size, self.shift_size, self.win_length, self.window)
+        sc_loss: Tensor = StftLoss.spectral_convergence_loss(x_mag, y_mag)
+        log_mag_loss: Tensor = StftLoss.log_stft_magnitude_loss(x_mag, y_mag)
         return sc_loss, log_mag_loss
 
 
-class MultiResolutionStftLoss(torch.nn.Module):
+
+class MrstftLossModule(torch.nn.Module):
     def __init__(
         self,
         fft_sizes=[64, 512, 2048, 8192],
@@ -50,7 +56,7 @@ class MultiResolutionStftLoss(torch.nn.Module):
         sc_weight=1.0,
         mag_weight=1.0,
     ):
-        super(MultiResolutionStftLoss, self).__init__()
+        super(MrstftLossModule, self).__init__()
         assert len(fft_sizes) == len(hop_sizes) == len(win_lengths)
         self.stft_losses = torch.nn.ModuleList()
         self.fft_sizes = fft_sizes
@@ -61,20 +67,12 @@ class MultiResolutionStftLoss(torch.nn.Module):
         ss: int
         wl: int
         for fs, ss, wl in zip(fft_sizes, hop_sizes, win_lengths):
-            self.stft_losses = self.stft_losses + [STFTLoss(fs, ss, wl, window)]
+            self.stft_losses = self.stft_losses + [StftLoss(fs, ss, wl, window)]
         
         self.zero: Tensor0d
         self.register_buffer("zero", torch.zeros([]), False)
 
-    class Return(TypedDict):
-        total: Tensor0d
-        sc_loss: Tensor0d
-        mag_loss: Tensor0d
-
-    def forward(self, x: Tensor2d[DBatch, DSample], y: Tensor2d[DBatch, DSample]) -> Return:
-        """
-        shape: [batch_size, rir_length]
-        """
+    def forward(self, x: Tensor2d, y: Tensor2d) -> dict[str, Tensor0d]:
         sc_loss: Tensor0d = self.zero
         mag_loss: Tensor0d = self.zero
 
@@ -89,6 +87,18 @@ class MultiResolutionStftLoss(torch.nn.Module):
         return {
             "total": Tensor0d((sc_loss * self.sc_weight + mag_loss * self.mag_weight) / len(self.stft_losses)),
             "sc_loss": Tensor0d(sc_loss / len(self.stft_losses)),
-            "mag_loss": Tensor0d(mag_loss / len(self.stft_losses)),
+            "mag_loss": Tensor0d(mag_loss / len(self.stft_losses))
         }
     
+
+class MrstftLoss():
+    def __init__(self, device: torch.device) -> None:
+        self._module = MrstftLossModule().to(device)
+    
+    class Return(TypedDict):
+        total: Tensor0d
+        sc_loss: Tensor0d
+        mag_loss: Tensor0d
+
+    def __call__(self, x: Tensor2d, y: Tensor2d) -> Return:
+        return self._module(x, y)

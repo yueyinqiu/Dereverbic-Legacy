@@ -1,13 +1,19 @@
-from .imports import *
+from .i0 import *
+from .csv_protocol import CsvWriterProtocol
 from .checkpoints_directory import CheckpointsDirectory
 from .data_provider import TrainDataProvider
 from .rir_blind_estimation_model import RirBlindEstimationModel
-import _csv
 from .static_class import StaticClass
-from .dimension_descriptors import *
 
 
 class Trainer(StaticClass):
+    @classmethod
+    def load_model(cls,
+                   model: RirBlindEstimationModel,
+                   checkpoint: Path):
+        checkpoint_content: Any = torch.load(checkpoint, weights_only=True)
+        model.set_state(checkpoint_content["model"])
+
     @classmethod
     def train(cls,
               checkpoints: CheckpointsDirectory, 
@@ -32,13 +38,13 @@ class Trainer(StaticClass):
             train_data.load_state_dict(checkpoint["data"])
         
         batch_index += 1
-        rir_batch: Tensor2d[DBatch, DSample]
-        speech_batch: Tensor2d[DBatch, DSample]
-        reverb_batch: Tensor2d[DBatch, DSample]
+        rir_batch: Tensor2d
+        speech_batch: Tensor2d
+        reverb_batch: Tensor2d
         rir_batch, speech_batch, reverb_batch = train_data.next_batch()
         details: dict[str, float] = model.train_on(reverb_batch, rir_batch, speech_batch)
         
-        print_csv: '_csv._writer' = csv.writer(sys.stdout)
+        print_csv: CsvWriterProtocol = csv.writer(sys.stdout)
         detail_keys: list[str] = list(details.keys())
         def print_details():
             print_csv.writerow((batch_index, 

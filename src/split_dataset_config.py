@@ -1,6 +1,6 @@
 import pathlib as _pathlib
 
-import shared.common_configurations as _common_config
+import common_configurations as _common_config
 import convert_rir_to_tensor_config as _convert_rir_to_tensor_config
 import convert_speech_to_tensor_config as _convert_speech_to_tensor_config
 

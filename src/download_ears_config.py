@@ -1,6 +1,6 @@
 import pathlib as _pathlib
 
-import shared.common_configurations as _common_config
+import common_configurations as _common_config
 
 
 base_url: str = \

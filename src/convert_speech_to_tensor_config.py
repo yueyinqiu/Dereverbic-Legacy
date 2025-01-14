@@ -1,7 +1,7 @@
 import pathlib as _pathlib
 import typing as _typing
 
-import shared.common_configurations as _common_config
+import common_configurations as _common_config
 import download_ears_config as _download_ears_config
 
 

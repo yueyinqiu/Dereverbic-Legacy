@@ -12,6 +12,9 @@ from typing import (
     Protocol, 
     TypeVar, 
     Generic,
+    ContextManager,
+    TypeAlias,
+    TYPE_CHECKING,
     cast
 )
 from torch.utils.data import DataLoader, Dataset

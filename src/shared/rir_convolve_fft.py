@@ -1,6 +1,5 @@
-from .imports import *
+from .i0 import *
 from .static_class import StaticClass
-from .dimension_descriptors import *
 
 
 class RirConvolveFft(StaticClass):
@@ -63,14 +62,14 @@ class RirConvolveFft(StaticClass):
     
     @classmethod
     def get_reverb(cls,
-                   speech: Tensor1d[DSample], 
-                   rir: Tensor1d[DSample]) -> Tensor1d[DSample]:
+                   speech: Tensor1d, 
+                   rir: Tensor1d) -> Tensor1d:
         return Tensor1d(cls._get_reverb(speech, rir))
     
     @classmethod
     def get_reverb_batch(cls,
-                         speech: Tensor2d[DBatch, DSample], 
-                         rir: Tensor2d[DBatch, DSample]) -> Tensor2d[DBatch, DSample]:
+                         speech: Tensor2d, 
+                         rir: Tensor2d) -> Tensor2d:
         return Tensor2d(cls._get_reverb(speech, rir))
 
 

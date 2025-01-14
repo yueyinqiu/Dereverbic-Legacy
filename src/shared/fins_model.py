@@ -1,9 +1,13 @@
+# The model is modified from: 
+# https://github.com/kyungyunlee/fins
+# Please respect the original license
+
+
 from torch._tensor import Tensor
-from .imports import *
+from .i0 import *
 from .rir_blind_estimation_model import RirBlindEstimationModel
-from .metrics import MultiResolutionStftLoss
+from .mrstft_loss import MrstftLoss
 from .rir_convolve_fft import RirConvolveFft
-from .dimension_descriptors import *
 
 
 class FinsEncoderBlock(torch.nn.Module):
@@ -298,10 +302,10 @@ class FinsNetwork(torch.nn.Module):
         self.output_conv = torch.nn.Conv1d(num_filters + 1, 1, kernel_size=1, stride=1)
 
     def forward(self, 
-                x: Tensor3d[DBatch, DChannel, DSample], 
-                stochastic_noise: Tensor3d[DBatch, DChannel, DSample], 
+                x: Tensor3d, 
+                stochastic_noise: Tensor3d, 
                 noise_condition: Tensor2d) \
-                    -> Tensor3d[DBatch, DChannel, DSample]:
+                    -> Tensor3d:
         # Filter random noise signal
         filtered_noise: Tensor = self.filter(stochastic_noise)
 
@@ -346,7 +350,7 @@ class FinsModel(RirBlindEstimationModel):
             gamma=0.8
         )
         self.random = torch.Generator(device).manual_seed(seed)
-        self.loss = MultiResolutionStftLoss().to(device)
+        self.loss = MrstftLoss(device)
 
     class StateDict(TypedDict):
         model: dict[str, Any]
@@ -369,10 +373,10 @@ class FinsModel(RirBlindEstimationModel):
         self.random.set_state(state["random"])
 
     def _predict(self, 
-                 reverb_batch: Tensor2d[DBatch, DSample], 
-                 stochastic_noise_batch: Tensor3d[DBatch, DChannel, DSample] | None, 
+                 reverb_batch: Tensor2d, 
+                 stochastic_noise_batch: Tensor3d | None, 
                  noise_condition: Tensor2d | None) \
-                    -> Tensor2d[DBatch, DSample]:
+                    -> Tensor2d:
         b: int = reverb_batch.size()[0]
 
         if stochastic_noise_batch is None:
@@ -388,15 +392,15 @@ class FinsModel(RirBlindEstimationModel):
                 torch.randn((b, self.module.noise_condition_length), 
                             generator=self.random, 
                             device=self.device))
-        predicted: Tensor3d[DBatch, DChannel, DSample] = self.module(
+        predicted: Tensor3d = self.module(
             reverb_batch.unsqueeze(1), 
             stochastic_noise_batch, 
             noise_condition)
         return Tensor2d(predicted.squeeze(1))
 
     @staticmethod
-    def __add_noise(reverb_batch: Tensor2d[DBatch, DSample], 
-                    noise_seed: int) -> Tensor2d[DBatch, DSample]:
+    def __add_noise(reverb_batch: Tensor2d, 
+                    noise_seed: int) -> Tensor2d:
         noise_batch: Tensor
         snr_batch: Tensor
         def _():
@@ -432,16 +436,16 @@ class FinsModel(RirBlindEstimationModel):
         return Tensor2d(reverb_batch + modified_noise)
 
     @staticmethod
-    def preprocess(rir_batch: Tensor2d[DBatch, DSample], 
-                   speech_batch: Tensor2d[DBatch, DSample], 
+    def preprocess(rir_batch: Tensor2d, 
+                   speech_batch: Tensor2d, 
                    noise_seed: int | None) \
-                    -> tuple[Tensor2d[DBatch, DSample], 
-                             Tensor2d[DBatch, DSample], 
-                             Tensor2d[DBatch, DSample]]:
+                    -> tuple[Tensor2d, 
+                             Tensor2d, 
+                             Tensor2d]:
         rir_batch = Tensor2d(rir_batch / (0.999 * rir_batch.abs().max(dim=1, keepdim=True).values))
         speech_batch = Tensor2d(speech_batch - speech_batch.mean(dim=1, keepdim=True))
         speech_batch = Tensor2d(speech_batch * 0.1)
-        reverb_batch: Tensor2d[DBatch, DSample] = RirConvolveFft.get_reverb_batch(speech_batch, rir_batch)
+        reverb_batch: Tensor2d = RirConvolveFft.get_reverb_batch(speech_batch, rir_batch)
 
         rms_level: float = 0.01
         reverb_batch = Tensor2d(
@@ -455,16 +459,16 @@ class FinsModel(RirBlindEstimationModel):
         return reverb_batch, rir_batch, speech_batch
         
     def train_on(self, 
-                 reverb_batch: Tensor2d[DBatch, DSample], 
-                 rir_batch: Tensor2d[DBatch, DSample], 
-                 speech_batch: Tensor2d[DBatch, DSample]) -> dict[str, float]:
+                 reverb_batch: Tensor2d, 
+                 rir_batch: Tensor2d, 
+                 speech_batch: Tensor2d) -> dict[str, float]:
         #noise_seed: int = int(torch.randint(0, 2147483647, [], 
         #                                    device=self.device, 
         #                                    generator=self.random))
         #reverb_batch, rir_batch, _ = FinsModel.preprocess(rir_batch, speech_batch, noise_seed)
         
-        predicted: Tensor2d[DBatch, DSample] = self._predict(reverb_batch, None, None)
-        losses: MultiResolutionStftLoss.Return = self.loss(predicted, rir_batch)
+        predicted: Tensor2d = self._predict(reverb_batch, None, None)
+        losses: MrstftLoss.Return = self.loss(predicted, rir_batch)
 
         self.optimizer.zero_grad()
         losses["total"].backward()
@@ -481,9 +485,9 @@ class FinsModel(RirBlindEstimationModel):
         self.scheduler.step()
         return result
 
-    def evaluate_on(self, reverb_batch: Tensor2d[DBatch, DSample]) -> Tensor2d[DBatch, DSample]:
+    def evaluate_on(self, reverb_batch: Tensor2d) -> Tensor2d:
         self.module.eval()
-        predicted: Tensor2d[DBatch, DSample] = self._predict(reverb_batch, None, None)
+        predicted: Tensor2d = self._predict(reverb_batch, None, None)
         self.module.train()
         return predicted
     

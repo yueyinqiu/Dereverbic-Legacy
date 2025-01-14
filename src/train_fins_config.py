@@ -1,7 +1,7 @@
 import pathlib as _pathlib
 import torch as _torch
 
-import shared.common_configurations as _common_config
+import common_configurations as _common_config
 import split_dataset_config as _split_dataset_config
 
 
@@ -19,10 +19,6 @@ checkpoints_directory: _pathlib.Path = \
 
 train_list_rir: _pathlib.Path = \
     _split_dataset_config.train_list_rir
-
-
-validation_list: _pathlib.Path = \
-    _split_dataset_config.validation_list
 
 
 train_list_speech: _pathlib.Path = \

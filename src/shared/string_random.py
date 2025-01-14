@@ -1,4 +1,4 @@
-from .imports import *
+from .i0 import *
 
 
 class StringRandom:

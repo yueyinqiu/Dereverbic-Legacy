@@ -1,5 +1,5 @@
 import convert_wav_pt_to_wav_config as config
-from shared import *
+from shared.i import *
 
 input: Path
 output: Path
@@ -7,7 +7,7 @@ for input, output in config.files:
     input = input.absolute()
     output = output.absolute()
     print(f"Dealing with {input} (-> {output} )...")
-    tensor: Tensor1d[DSample] = torch.load(input, weights_only=True)
+    tensor: Tensor1d = torch.load(input, weights_only=True)
     TensorAudio.save_audio(tensor, output, 16000)
 
 print("Completed.")

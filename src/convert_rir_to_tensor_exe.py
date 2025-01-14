@@ -1,8 +1,8 @@
-from shared import *
+from shared.i import *
 import _csv as _csv
 
 
-def _save_tensor(audio: Tensor1d[DSample],
+def _save_tensor(audio: Tensor1d,
                  file_name_without_suffix: str,
                  directory: Path):
     directory = directory / file_name_without_suffix[0] / file_name_without_suffix[1]
@@ -34,9 +34,7 @@ def main():
             path = path.absolute()
             print(f"Dealing with {path} ...")
 
-            audio: Tensor2d[DChannel, DSample] = TensorAudio.load_audio(path, 
-                                                                        16000, 
-                                                                        "as_many")
+            audio: Tensor2d = TensorAudio.load_audio(path, 16000, "as_many")
             
             i: int
             for i in range(audio.shape[0]):

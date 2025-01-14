@@ -1,6 +1,5 @@
-from .imports import *
+from .i0 import *
 from .static_class import StaticClass
-from .dimension_descriptors import *
 
 class TensorAudio(StaticClass):
     @classmethod
@@ -8,7 +7,7 @@ class TensorAudio(StaticClass):
                    path: Path,
                    sample_rate: int,
                    mutichannel_behavior: Literal["first_only", "as_mono", "as_many"]) \
-                    -> Tensor2d[DChannel, DSample]:
+                    -> Tensor2d:
         import librosa
         import numpy
         import torch
@@ -28,7 +27,7 @@ class TensorAudio(StaticClass):
 
     @classmethod
     def save_audio(cls, 
-                   audio: Tensor1d[DSample] | Tensor2d[DChannel, DSample], 
+                   audio: Tensor1d | Tensor2d, 
                    path: Path, 
                    sample_rate: int) -> None:
         import soundfile

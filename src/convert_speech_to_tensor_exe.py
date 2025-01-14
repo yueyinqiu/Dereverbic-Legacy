@@ -1,8 +1,8 @@
-from shared import *
+from shared.i import *
 import _csv as _csv
 
 
-def _save_tensor(audio: Tensor1d[DSample],
+def _save_tensor(audio: Tensor1d,
                  file_name_without_suffix: str,
                  directory: Path):
     directory = directory / file_name_without_suffix[0] / file_name_without_suffix[1]
@@ -34,14 +34,14 @@ def main():
             path = path.absolute()
             print(f"Dealing with {path} ...")
 
-            audio: Tensor2d[DChannel, DSample] = TensorAudio.load_audio(path, 16000, "as_mono")
+            audio: Tensor2d = TensorAudio.load_audio(path, 16000, "as_mono")
             channel: numpy.ndarray = audio[0, :].numpy()
             channel, _ = librosa.effects.trim(channel,
                                               top_db=60, 
                                               frame_length=2048, 
                                               hop_length=512)
             
-            tensor: Tensor1d[DSample] = Tensor1d(torch.tensor(channel, dtype=torch.float))
+            tensor: Tensor1d = Tensor1d(torch.tensor(channel, dtype=torch.float))
             start: int = 16000 // 5
             while start + 5 * 16000 < tensor.__len__() - 16000 // 5:
                 tensor_file: Path = _save_tensor(Tensor1d(tensor[start:(start + 5 * 16000)]), 

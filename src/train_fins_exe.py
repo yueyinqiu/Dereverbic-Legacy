@@ -1,4 +1,4 @@
-from shared import *
+from shared.i import *
 import train_fins_config as config
 
 print("# Loading...")
