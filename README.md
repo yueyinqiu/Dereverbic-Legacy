@@ -29,12 +29,10 @@ python src/xxxxx_exe.py
 ```mermaid
 flowchart TB
 
-subgraph Dataset Preparation
-    download_bird
+subgraph Data
     download_bird ==> convert_rir_to_tensor
     convert_rir_to_tensor ==> split_dataset
 
-    download_ears
     download_ears ==> convert_speech_to_tensor
     convert_speech_to_tensor ==> split_dataset
 
@@ -44,11 +42,12 @@ end
 
 subgraph Fins
     split_dataset ==> train_fins
+    train_fins ==> validate_fins
+    validate_fins ==> test_fins
 end
 ```
 
-
-## 数据集和预处理
+## 数据集
 
 ### Rir 数据集
 
@@ -61,13 +60,3 @@ Bird： https://github.com/FrancoisGrondin/BIRD
 Ears： https://github.com/facebookresearch/ears_dataset
 
 可以使用 `download_ears_exe` 下载：
-
-### 预处理
-
-#### 生成 wav.pt 文件
-
-可以使用 `convert_rir_to_tensor_exe` 和 `convert_speech_to_tensor_exe` 生成 `.wav.pt` 文件。
-
-#### 数据集切割
-
-使用 `split_dataset_exe` 进行全局数据集切割。
