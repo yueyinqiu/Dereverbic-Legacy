@@ -1,12 +1,12 @@
 from shared.i import *
-import validate_fins_config as config
+import test_fins_config as config
 
 print("# Loading...")
 with torch.no_grad():
     random: Random = Random(config.random_seed)
     checkpoints: CheckpointsDirectory = CheckpointsDirectory(config.checkpoints_directory)
     model: FinsModel = FinsModel(config.device, random.randint(0, 1000))
-    data: DataLoader = ValidationOrTestDataset(config.validation_list, 
+    data: DataLoader = ValidationOrTestDataset(config.test_list, 
                                                config.device).get_data_loader(32)
     mrstft: MrstftLoss = MrstftLoss(config.device)
     print(f"# Batch count: {data.__len__()}")
@@ -14,11 +14,8 @@ with torch.no_grad():
     csv_print: CsvWriterProtocol = csv.writer(sys.stdout)
     csv_print.writerow(["epoch", "batch", "metric", "value"])
     epoch: int
-    path: Path
-    for epoch, path in checkpoints.get_all():
-        if epoch < config.start_checkpoint:
-            continue
-        
+    for epoch in config.checkpoints:
+        path: Path = checkpoints.get_path(epoch)
         Trainer.load_model(model, path)
 
         mrstft_total_accumulator: KahanAccumulator = KahanAccumulator()

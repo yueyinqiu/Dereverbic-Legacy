@@ -14,8 +14,8 @@ checkpoints_directory: _pathlib.Path = \
     _train_fins_config.checkpoints_directory
 
 
-skip: int = \
-    1
+start_checkpoint: int = \
+    4000
 
 
 validation_list: _pathlib.Path = \
