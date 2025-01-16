@@ -227,7 +227,7 @@ class FinsDecoder(torch.nn.Module):
 
 class FinsNetwork(torch.nn.Module):
     @staticmethod
-    def __get_octave_filters():
+    def _get_octave_filters():
         f_bounds: list[tuple[float, float]] = []
         f_bounds.append((22.3, 44.5))
         f_bounds.append((44.5, 88.4))
@@ -291,7 +291,7 @@ class FinsNetwork(torch.nn.Module):
             bias=False,
         )
         # Octave band pass initialization
-        self.filter.weight.data = torch.tensor(FinsNetwork.__get_octave_filters(), dtype=torch.float32)
+        self.filter.weight.data = torch.tensor(FinsNetwork._get_octave_filters(), dtype=torch.float32)
 
         # Mask for direct and early part
         mask: Tensor3d = Tensor3d(torch.zeros((1, 1, rir_length)))

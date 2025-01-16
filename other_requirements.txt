@@ -1,7 +1,6 @@
 csharp-like-file
 librosa==0.10.2
 matplotlib==3.10.0
-colorednoise==2.2.0
 statictorch
 
 variable-declaration-checker

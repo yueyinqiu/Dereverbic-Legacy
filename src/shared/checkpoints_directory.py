@@ -19,7 +19,7 @@ class CheckpointsDirectory:
         epoch: int
         path: Path
 
-    def __get_all(self) -> Iterable[EpochAndPath]:
+    def _get_all_not_sorted(self) -> Iterable[EpochAndPath]:
         file: Path
         for file in self._path.iterdir():
             if not file.is_file():
@@ -39,10 +39,10 @@ class CheckpointsDirectory:
             yield CheckpointsDirectory.EpochAndPath(epoch, file)
     
     def get_all(self) -> list[EpochAndPath]:
-        return sorted(self.__get_all(), key=lambda x: x[0])
+        return sorted(self._get_all_not_sorted(), key=lambda x: x[0])
     
     def get_latest(self) -> EpochAndPath | None:
         try:
-            return max(self.__get_all(), key=lambda x: x[0])
+            return max(self._get_all_not_sorted(), key=lambda x: x[0])
         except ValueError:
             return None
