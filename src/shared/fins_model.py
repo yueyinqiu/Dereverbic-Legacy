@@ -7,7 +7,6 @@ from torch._tensor import Tensor
 from .i0 import *
 from .rir_blind_estimation_model import RirBlindEstimationModel
 from .mrstft_loss import MrstftLoss
-from .rir_convolve_fft import RirConvolveFft
 
 
 class FinsEncoderBlock(torch.nn.Module):
@@ -32,9 +31,15 @@ class FinsEncoderBlock(torch.nn.Module):
                 torch.nn.Conv1d(in_channels, out_channels, kernel_size=1, stride=2, padding=0),
             )
 
-    def forward(self, x: Tensor):
+    def forward(self, x: Tensor3d):
+        """
+        x: [32, C, L] (L = 80000, 40000, 20000, 10000, 5000, 2500, 1250, 625, 313, 157, 79, 40, 20)
+        """
+        # [32, C', L / 2]
         out: Tensor = self.conv(x)
+        # [32, C', L / 2]
         skip_out: Tensor = self.skip_conv(x)
+        # [32, C', L / 2]
         skip_out = out + skip_out
         return skip_out
 
@@ -60,11 +65,17 @@ class FinsEncoder(torch.nn.Module):
         self.pooling = torch.nn.AdaptiveAvgPool1d(1)
         self.fc = torch.nn.Linear(512, 128)
 
-    def forward(self, x: Tensor):
-        b: int = x.size()[0]
+    def forward(self, x: Tensor3d):
+        """
+        x: [32, 1, 80000]
+        """
+        # [32, 512, 10]
         out: Tensor = self.encode(x)
+        # [32, 512, 1]
         out = self.pooling(out)
-        out = out.view(b, -1)
+        # [32, 512]
+        out = out.squeeze(-1)
+        # [32, 128]
         out = self.fc(out)
         return out
 
@@ -185,24 +196,29 @@ class FinsDecoderBlock(torch.nn.Module):
 
 
 class FinsDecoder(torch.nn.Module):
-    def __init__(self, num_filters: int, cond_length: int):
+    def __init__(self, num_filters: int, cond_length: int, rir_length: int):
         super(FinsDecoder, self).__init__()
+        self.rir_length = rir_length
 
         self.preprocess = torch.nn.Conv1d(1, 512, kernel_size=15, padding=7)
 
         self.blocks = torch.nn.ModuleList(
             [
+                # 134
                 FinsDecoderBlock(512, 512, 1, cond_length),
+                # 134
                 FinsDecoderBlock(512, 512, 1, cond_length),
-
-                FinsDecoderBlock(512, 256, 1, cond_length),
-
+                # 134
+                FinsDecoderBlock(512, 256, 2, cond_length),
+                # 268
                 FinsDecoderBlock(256, 256, 2, cond_length),
+                # 536
                 FinsDecoderBlock(256, 256, 2, cond_length),
-
-                FinsDecoderBlock(256, 128, 2, cond_length),
-
-                FinsDecoderBlock(128, 64, 5, cond_length),
+                # 1072
+                FinsDecoderBlock(256, 128, 3, cond_length),
+                # 3216
+                FinsDecoderBlock(128, 64, 5, cond_length)
+                # 16080
             ]
         )
 
@@ -211,15 +227,28 @@ class FinsDecoder(torch.nn.Module):
         self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, v: Tensor, condition: Tensor):
+        """
+        v: [32, 1, 134]
+
+        condition: [32, 144]
+        """
+        # [32, 512, 134]
         inputs: Tensor = self.preprocess(v)
         outputs: Tensor = inputs
         layer: torch.nn.Module
         for layer in self.blocks:
+            # Final: [32, 64, 16080]
             outputs = layer(outputs, condition)
+        # [32, 64, 16000]
+        outputs = outputs[:, :, :self.rir_length]
+        # [32, 11, 16000]
         outputs = self.postprocess(outputs)
 
+        # [32, 1, 16000]
         direct_early: Tensor = outputs[:, 0:1]
+        # [32, 10, 16000]
         late: Tensor = outputs[:, 1:]
+        # [32, 10, 16000]
         late = self.sigmoid(late)
 
         return direct_early, late
@@ -264,7 +293,7 @@ class FinsNetwork(torch.nn.Module):
         # blocks in _Decoder should also be modified.
         rir_length: int = 16000
         early_length: int = 800
-        decoder_input_length: int = 400
+        decoder_input_length: int = 134
         num_filters: int = 10
         noise_condition_length: int = 16
         z_size: int = 128
@@ -278,7 +307,7 @@ class FinsNetwork(torch.nn.Module):
         self.decoder_input = torch.nn.Parameter(torch.randn((1, 1, decoder_input_length)))
         self.encoder = FinsEncoder()
 
-        self.decoder = FinsDecoder(num_filters, noise_condition_length + z_size)
+        self.decoder = FinsDecoder(num_filters, noise_condition_length + z_size, rir_length)
 
         # Learned "octave-band" like filter
         self.filter = torch.nn.Conv1d(
@@ -302,38 +331,40 @@ class FinsNetwork(torch.nn.Module):
         self.output_conv = torch.nn.Conv1d(num_filters + 1, 1, kernel_size=1, stride=1)
 
     def forward(self, 
-                x: Tensor3d, 
+                reverb: Tensor3d, 
                 stochastic_noise: Tensor3d, 
                 noise_condition: Tensor2d) \
                     -> Tensor3d:
-        # Filter random noise signal
+        """
+        reverb: [32, 1, 80000]
+
+        stochastic_noise: [32, 10, 16000]
+
+        noise_condition: [32, 16]
+        """
+        # [32, 10, 16000]
         filtered_noise: Tensor = self.filter(stochastic_noise)
-
-        # Encode the reverberated speech
-        z: Tensor = self.encoder(x)
-
-        # Make condition vector
+        # [32, 128]
+        z: Tensor = self.encoder(reverb)
+        # [32, 144 = 128 + 16]
         condition: Tensor = torch.cat([z, noise_condition], dim=-1)
+        # [32, 1, 134]
+        decoder_input: Tensor = self.decoder_input.repeat(reverb.size()[0], 1, 1)
 
-        # Learnable decoder input. Repeat it in the batch dimension.
-        decoder_input: Tensor = self.decoder_input.repeat(x.size()[0], 1, 1)
-
-        # Generate RIR
+        # [32, 1, 16000]
         direct_early: Tensor
+        # [32, 10, 16000]
         late_mask: Tensor
         direct_early, late_mask = self.decoder(decoder_input, condition)
-
-        # Apply mask to the filtered noise to get the late part
+        # [32, 10, 16000]
         late_part: Tensor = filtered_noise * late_mask
-
-        # Zero out sample beyond 2400 for direct early part
+        # [32, 1, 16000]
         direct_early = torch.mul(direct_early, self.mask)
-        # Concat direct,early with late and perform convolution
+        # [32, 11, 16000]
         rir: Tensor = torch.cat((direct_early, late_part), 1)
 
-        # Sum
+        # [32, 1, 16000]
         rir = self.output_conv(rir)
-
         return Tensor3d(rir)
 
 

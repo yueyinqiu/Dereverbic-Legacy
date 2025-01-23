@@ -14,12 +14,12 @@ from typing import (
     Generic,
     ContextManager,
     TypeAlias,
-    TYPE_CHECKING,
-    cast
+    TYPE_CHECKING
 )
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 from statictorch import (
+    anify,
     TensorDimensionDescriptor,
     Tensor0d,
     Tensor1d,

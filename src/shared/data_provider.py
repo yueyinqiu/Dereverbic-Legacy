@@ -47,8 +47,8 @@ class TrainDataProvider:
                                         weights_only=True, 
                                         map_location=self._device))
 
-        rirs_batch: Tensor2d = Tensor2d(torch.stack(cast(list[Tensor], rirs)))
-        speeches_batch: Tensor2d = Tensor2d(torch.stack(cast(list[Tensor], speeches)))
+        rirs_batch: Tensor2d = Tensor2d(torch.stack(anify(rirs)))
+        speeches_batch: Tensor2d = Tensor2d(torch.stack(anify(speeches)))
         reverb_batch: Tensor2d = RirConvolveFft.get_reverb_batch(speeches_batch, rirs_batch)
 
         return DataBatch(rirs_batch, speeches_batch, reverb_batch)
@@ -84,9 +84,9 @@ class ValidationOrTestDataset(Dataset):
                 speeches.append(item["speech"])
                 reverbs.append(item["reverb"])
             
-            return DataBatch(Tensor2d(torch.stack(cast(list[Tensor], rirs))), 
-                             Tensor2d(torch.stack(cast(list[Tensor], speeches))), 
-                             Tensor2d(torch.stack(cast(list[Tensor], reverbs))))
+            return DataBatch(Tensor2d(torch.stack(anify(rirs))), 
+                             Tensor2d(torch.stack(anify(speeches))), 
+                             Tensor2d(torch.stack(anify(reverbs))))
 
         return DataLoader(self, batch_size, False, collate_fn=collate)
 
