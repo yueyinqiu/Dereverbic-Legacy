@@ -16,7 +16,7 @@ checkpoints_directory: _pathlib.Path = \
 
 
 checkpoints: _typing.Iterable[int] = \
-    [7000, 20000]
+    [10000]
 
 
 test_list: _pathlib.Path = \

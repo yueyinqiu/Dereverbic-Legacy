@@ -15,7 +15,7 @@ checkpoints_directory: _pathlib.Path = \
 
 
 start_checkpoint: int = \
-    10000
+    1
 
 
 validation_list: _pathlib.Path = \
