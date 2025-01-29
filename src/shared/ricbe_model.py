@@ -1,17 +1,12 @@
-# The model is modified from: 
-# https://github.com/kyungyunlee/fins
-# Please respect the original license
-
-
 from torch._tensor import Tensor
 from .i0 import *
 from .rir_blind_estimation_model import RirBlindEstimationModel
 from .mrstft_loss import MrstftLoss
 
 
-class FinsEncoderBlock(torch.nn.Module):
+class RicbeEncoderBlock(torch.nn.Module):
     def __init__(self, in_channels: int, out_channels: int, use_batchnorm=True):
-        super(FinsEncoderBlock, self).__init__()
+        super(RicbeEncoderBlock, self).__init__()
         if use_batchnorm:
             self.conv = torch.nn.Sequential(
                 torch.nn.Conv1d(in_channels, out_channels, kernel_size=15, stride=2, padding=7),
@@ -44,10 +39,10 @@ class FinsEncoderBlock(torch.nn.Module):
         return skip_out
 
 
-class FinsEncoder(torch.nn.Module):
+class RicbeEncoder(torch.nn.Module):
     def __init__(self):
-        super(FinsEncoder, self).__init__()
-        block_list: list[FinsEncoderBlock] = []
+        super(RicbeEncoder, self).__init__()
+        block_list: list[RicbeEncoderBlock] = []
         channels: list[int] = [1, 32, 32, 64, 64, 64, 128, 128, 128, 256, 256, 256, 512, 512]
 
         i: int
@@ -58,7 +53,7 @@ class FinsEncoder(torch.nn.Module):
                 use_batchnorm = False
             in_channels: int = channels[i]
             out_channels: int = channels[i + 1]
-            curr_block: FinsEncoderBlock = FinsEncoderBlock(in_channels, out_channels, use_batchnorm)
+            curr_block: RicbeEncoderBlock = RicbeEncoderBlock(in_channels, out_channels, use_batchnorm)
             block_list.append(curr_block)
 
         self.encode = torch.nn.Sequential(*block_list)
@@ -80,9 +75,9 @@ class FinsEncoder(torch.nn.Module):
         return out
 
 
-class FinsUpsampleNet(torch.nn.Module):
+class RicbeUpsampleNet(torch.nn.Module):
     def __init__(self, input_size: int, output_size: int, upsample_factor: int):
-        super(FinsUpsampleNet, self).__init__()
+        super(RicbeUpsampleNet, self).__init__()
         self.input_size = input_size
         self.output_size = output_size
         self.upsample_factor = upsample_factor
@@ -103,7 +98,7 @@ class FinsUpsampleNet(torch.nn.Module):
         return outputs
 
 
-class FinsConditionalBatchNorm1d(torch.nn.Module):
+class RicbeConditionalBatchNorm1d(torch.nn.Module):
     def __init__(self, num_features: int, condition_length: int):
         super().__init__()
 
@@ -128,28 +123,28 @@ class FinsConditionalBatchNorm1d(torch.nn.Module):
         return outputs
 
 
-class FinsDecoderBlock(torch.nn.Module):
+class RicbeDecoderBlock(torch.nn.Module):
     def __init__(self, 
                  in_channels: int, 
                  out_channels: int, 
                  upsample_factor: int, 
                  condition_length: int):
-        super(FinsDecoderBlock, self).__init__()
+        super(RicbeDecoderBlock, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.condition_length = condition_length
         self.upsample_factor = upsample_factor
 
         # Block A
-        self.condition_batchnorm1 = FinsConditionalBatchNorm1d(in_channels, condition_length)
+        self.condition_batchnorm1 = RicbeConditionalBatchNorm1d(in_channels, condition_length)
 
         self.first_stack = torch.nn.Sequential(
             torch.nn.PReLU(),
-            FinsUpsampleNet(in_channels, in_channels, upsample_factor),
+            RicbeUpsampleNet(in_channels, in_channels, upsample_factor),
             torch.nn.Conv1d(in_channels, out_channels, kernel_size=15, dilation=1, padding=7),
         )
 
-        self.condition_batchnorm2 = FinsConditionalBatchNorm1d(out_channels, condition_length)
+        self.condition_batchnorm2 = RicbeConditionalBatchNorm1d(out_channels, condition_length)
 
         self.second_stack = torch.nn.Sequential(
             torch.nn.PReLU(),
@@ -157,18 +152,18 @@ class FinsDecoderBlock(torch.nn.Module):
         )
 
         self.residual1 = torch.nn.Sequential(
-            FinsUpsampleNet(in_channels, in_channels, upsample_factor),
+            RicbeUpsampleNet(in_channels, in_channels, upsample_factor),
             torch.nn.Conv1d(in_channels, out_channels, kernel_size=1, padding=0),
         )
         # Block B
-        self.condition_batchnorm3 = FinsConditionalBatchNorm1d(out_channels, condition_length)
+        self.condition_batchnorm3 = RicbeConditionalBatchNorm1d(out_channels, condition_length)
 
         self.third_stack = torch.nn.Sequential(
             torch.nn.PReLU(),
             torch.nn.Conv1d(out_channels, out_channels, kernel_size=15, dilation=4, padding=28),
         )
 
-        self.condition_batchnorm4 = FinsConditionalBatchNorm1d(out_channels, condition_length)
+        self.condition_batchnorm4 = RicbeConditionalBatchNorm1d(out_channels, condition_length)
 
         self.fourth_stack = torch.nn.Sequential(
             torch.nn.PReLU(),
@@ -195,9 +190,9 @@ class FinsDecoderBlock(torch.nn.Module):
         return outputs
 
 
-class FinsDecoder(torch.nn.Module):
+class RicbeDecoder(torch.nn.Module):
     def __init__(self, num_filters: int, cond_length: int, rir_length: int):
-        super(FinsDecoder, self).__init__()
+        super(RicbeDecoder, self).__init__()
         self.rir_length = rir_length
 
         self.preprocess = torch.nn.Conv1d(1, 512, kernel_size=15, padding=7)
@@ -205,19 +200,19 @@ class FinsDecoder(torch.nn.Module):
         self.blocks = torch.nn.ModuleList(
             [
                 # 134
-                FinsDecoderBlock(512, 512, 1, cond_length),
+                RicbeDecoderBlock(512, 512, 1, cond_length),
                 # 134
-                FinsDecoderBlock(512, 512, 1, cond_length),
+                RicbeDecoderBlock(512, 512, 1, cond_length),
                 # 134
-                FinsDecoderBlock(512, 256, 2, cond_length),
+                RicbeDecoderBlock(512, 256, 2, cond_length),
                 # 268
-                FinsDecoderBlock(256, 256, 2, cond_length),
+                RicbeDecoderBlock(256, 256, 2, cond_length),
                 # 536
-                FinsDecoderBlock(256, 256, 2, cond_length),
+                RicbeDecoderBlock(256, 256, 2, cond_length),
                 # 1072
-                FinsDecoderBlock(256, 128, 3, cond_length),
+                RicbeDecoderBlock(256, 128, 3, cond_length),
                 # 3216
-                FinsDecoderBlock(128, 64, 5, cond_length)
+                RicbeDecoderBlock(128, 64, 5, cond_length)
                 # 16080
             ]
         )
@@ -254,7 +249,7 @@ class FinsDecoder(torch.nn.Module):
         return direct_early, late
 
 
-class FinsNetwork(torch.nn.Module):
+class RicbeNetwork(torch.nn.Module):
     @staticmethod
     def _get_octave_filters():
         f_bounds: list[tuple[float, float]] = []
@@ -287,7 +282,7 @@ class FinsNetwork(torch.nn.Module):
         return firs_np
 
     def __init__(self):
-        super(FinsNetwork, self).__init__()
+        super(RicbeNetwork, self).__init__()
 
         rir_length: int = 16000
         early_length: int = 800
@@ -303,9 +298,9 @@ class FinsNetwork(torch.nn.Module):
 
         # Learned decoder input
         self.decoder_input = torch.nn.Parameter(torch.randn((1, 1, decoder_input_length)))
-        self.encoder = FinsEncoder()
+        self.encoder = RicbeEncoder()
 
-        self.decoder = FinsDecoder(num_filters, noise_condition_length + z_size, rir_length)
+        self.decoder = RicbeDecoder(num_filters, noise_condition_length + z_size, rir_length)
 
         # Learned "octave-band" like filter
         self.filter = torch.nn.Conv1d(
@@ -318,7 +313,7 @@ class FinsNetwork(torch.nn.Module):
             bias=False,
         )
         # Octave band pass initialization
-        self.filter.weight.data = torch.tensor(FinsNetwork._get_octave_filters(), dtype=torch.float32)
+        self.filter.weight.data = torch.tensor(RicbeNetwork._get_octave_filters(), dtype=torch.float32)
 
         # Mask for direct and early part
         mask: Tensor3d = Tensor3d(torch.zeros((1, 1, rir_length)))
@@ -366,39 +361,31 @@ class FinsNetwork(torch.nn.Module):
         return Tensor3d(rir)
 
 
-class FinsModel(RirBlindEstimationModel):
+class RicbeModel(RirBlindEstimationModel):
     def __init__(self, device: torch.device, seed: int) -> None:
         super().__init__()
         self.device = device
 
-        self.module = FinsNetwork().to(device)
-        self.optimizer = AdamW(self.module.parameters(), lr=0.000055, weight_decay=1e-6)
-        self.scheduler = torch.optim.lr_scheduler.StepLR(
-            self.optimizer,
-            step_size=10000,
-            gamma=0.8
-        )
+        self.module = RicbeNetwork().to(device)
+        self.optimizer = AdamW(self.module.parameters())
         self.random = torch.Generator(device).manual_seed(seed)
         self.loss = MrstftLoss(device)
 
     class StateDict(TypedDict):
         model: dict[str, Any]
         optimizer: dict[str, Any]
-        scheduler: dict[str, Any]
         random: Tensor
 
     def get_state(self) -> StateDict:
         return {
             "model": self.module.state_dict(),
             "optimizer": self.optimizer.state_dict(),
-            "scheduler": self.scheduler.state_dict(),
             "random": self.random.get_state()
         }
 
     def set_state(self, state: StateDict):
         self.module.load_state_dict(state["model"])
         self.optimizer.load_state_dict(state["optimizer"])
-        self.scheduler.load_state_dict(state["scheduler"])
         self.random.set_state(state["random"])
 
     def _predict(self, 
@@ -443,10 +430,8 @@ class FinsModel(RirBlindEstimationModel):
             "loss_total": float(losses["total"]),
             "loss_mag": float(losses["mag_loss"]),
             "loss_sc": float(losses["sc_loss"]),
-            "lr": self.scheduler.get_last_lr()[0]
         }
 
-        self.scheduler.step()
         return result
 
     def evaluate_on(self, reverb_batch: Tensor2d) -> Tensor2d:
