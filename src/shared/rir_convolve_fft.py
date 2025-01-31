@@ -3,11 +3,14 @@ from .static_class import StaticClass
 
 
 class RirConvolveFft(StaticClass):
+    _TensorNd = TypeVar("_TensorNd",   # pylint: disable=un-declared-variable
+                        Tensor, Tensor1d, Tensor2d, Tensor3d)
+
     @classmethod
     def convolve(cls,
-                 a: Tensor, 
-                 v: Tensor,
-                 mode: Literal["same", "valid", "full"] = "same") -> Tensor:
+                 a: _TensorNd, 
+                 v: _TensorNd,
+                 mode: Literal["same", "valid", "full"] = "same") -> _TensorNd:
         # v -> rir
         # a -> speech
 
@@ -33,12 +36,20 @@ class RirConvolveFft(StaticClass):
         else:
             left = center_index - length // 2 - length % 2
             right = center_index + length // 2
-        return reverb_fft_ifft[..., left:right].real
+        return anify(reverb_fft_ifft[..., left:right].real)
 
     @classmethod
-    def inverse_convolve_full(cls,
-                              a_star_v: Tensor,
-                              a_or_v: Tensor) -> Tensor:
+    def get_reverb(cls,
+                   speech: _TensorNd, 
+                   rir: _TensorNd) -> _TensorNd:
+        reverb: Tensor = cls.convolve(speech, rir, "full")
+        reverb = reverb[..., :speech.shape[-1]]
+        return anify(reverb)
+    
+    @classmethod
+    def inverse_convolve(cls,
+                         a_star_v: _TensorNd,
+                         a_or_v: _TensorNd) -> _TensorNd:
         # a_star_v -> reverb
         # a_or_v -> speech
 
@@ -50,27 +61,15 @@ class RirConvolveFft(StaticClass):
         rir_fft: Tensor = reverb_fft / speech_fft
         rir_fft_ifft: Tensor = torch.fft.ifft(rir_fft)
 
-        return rir_fft_ifft[0:a_star_v.shape[-1] - a_or_v.shape[-1] + 1].real
-
-    @classmethod
-    def _get_reverb(cls,
-                    speech: Tensor, 
-                    rir: Tensor) -> Tensor:
-        reverb: Tensor = cls.convolve(speech, rir, "full")
-        reverb = reverb[..., :speech.shape[-1]]
-        return reverb
+        return anify(rir_fft_ifft.real)
     
     @classmethod
-    def get_reverb(cls,
-                   speech: Tensor1d, 
-                   rir: Tensor1d) -> Tensor1d:
-        return Tensor1d(cls._get_reverb(speech, rir))
-    
-    @classmethod
-    def get_reverb_batch(cls,
-                         speech: Tensor2d, 
-                         rir: Tensor2d) -> Tensor2d:
-        return Tensor2d(cls._get_reverb(speech, rir))
+    def inverse_convolve_full(cls,
+                              a_star_v: _TensorNd,
+                              a_or_v: _TensorNd) -> _TensorNd:
+        result: Tensor = cls.inverse_convolve(a_star_v, a_or_v)
+        result = result[..., 0:a_star_v.shape[-1] - a_or_v.shape[-1] + 1]
+        return anify(result)
 
 
 def _test_convolve():

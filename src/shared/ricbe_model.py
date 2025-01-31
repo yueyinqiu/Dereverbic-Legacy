@@ -1,7 +1,7 @@
-from torch._tensor import Tensor
 from .i0 import *
 from .rir_blind_estimation_model import RirBlindEstimationModel
 from .mrstft_loss import MrstftLoss
+from .rir_convolve_fft import RirConvolveFft
 
 
 class RicbeEncoderBlock(torch.nn.Module):
@@ -323,18 +323,32 @@ class RicbeNetwork(torch.nn.Module):
 
         self.output_conv = torch.nn.Conv1d(num_filters + 1, 1, kernel_size=1, stride=1)
 
+        stochastic_noise: Tensor = torch.randn((1, 1, self.module.rir_length), 
+                                                     device=self.device)
+        stochastic_noise = stochastic_noise.repeat(1, self.module.num_filters, 1)
+        self.stochastic_noise: Tensor3d
+        self.register_buffer("stochastic_noise", stochastic_noise, True)
+
+        noise_condition: Tensor = torch.randn((1, self.module.noise_condition_length), 
+                                              device=self.device)
+        self.noise_condition: Tensor2d
+        self.register_buffer("noise_condition", noise_condition, True)
+
+
     def forward(self, 
-                reverb: Tensor3d, 
-                stochastic_noise: Tensor3d, 
-                noise_condition: Tensor2d) \
-                    -> Tensor3d:
+                reverb_batch: Tensor2d) \
+                    -> tuple[Tensor2d, Tensor2d]:
         """
-        reverb: [32, 1, 80000]
-
-        stochastic_noise: [32, 10, 16000]
-
-        noise_condition: [32, 16]
+        reverb: [32, 80000]
         """
+        # [32, 1, 80000]
+        reverb: Tensor = Tensor3d(reverb_batch.unsqueeze(1))
+
+        # [32, 10, 16000]
+        stochastic_noise: Tensor = self.stochastic_noise.repeat(reverb.size(0), 1, 1)
+        # [32, 16]
+        noise_condition: Tensor = self.noise_condition.repeat(reverb.size(0), 1)
+
         # [32, 10, 16000]
         filtered_noise: Tensor = self.filter(stochastic_noise)
         # [32, 128]
@@ -358,7 +372,11 @@ class RicbeNetwork(torch.nn.Module):
 
         # [32, 1, 16000]
         rir = self.output_conv(rir)
-        return Tensor3d(rir)
+
+        # [32, 16000]
+        rir = Tensor2d(rir.squeeze(1))
+        speech: Tensor2d = RirConvolveFft.inverse_convolve(reverb_batch, rir)
+        return rir, speech
 
 
 class RicbeModel(RirBlindEstimationModel):
@@ -388,55 +406,42 @@ class RicbeModel(RirBlindEstimationModel):
         self.optimizer.load_state_dict(state["optimizer"])
         self.random.set_state(state["random"])
 
-    def _predict(self, 
-                 reverb_batch: Tensor2d, 
-                 stochastic_noise_batch: Tensor3d | None, 
-                 noise_condition: Tensor2d | None) \
-                    -> Tensor2d:
-        b: int = reverb_batch.size()[0]
+    class Prediction(NamedTuple):
+        rir: Tensor2d
+        speech: Tensor2d
 
-        if stochastic_noise_batch is None:
-            stochastic_noise_batch = Tensor3d(
-                torch.randn((b, 1, self.module.rir_length), 
-                            generator=self.random,
-                            device=self.device))
-            stochastic_noise_batch = Tensor3d(
-                stochastic_noise_batch.repeat(1, self.module.num_filters, 1))
-
-        if noise_condition is None:
-            noise_condition = Tensor2d(
-                torch.randn((b, self.module.noise_condition_length), 
-                            generator=self.random, 
-                            device=self.device))
-        predicted: Tensor3d = self.module(
-            reverb_batch.unsqueeze(1), 
-            stochastic_noise_batch, 
-            noise_condition)
-        return Tensor2d(predicted.squeeze(1))
+    def _predict(self,
+                 reverb_batch: Tensor2d):
+        rir: Tensor2d
+        speech: Tensor2d
+        rir, speech = self.module(reverb_batch)
+        return RicbeModel.Prediction(rir, speech)
 
     def train_on(self, 
                  reverb_batch: Tensor2d, 
                  rir_batch: Tensor2d, 
                  speech_batch: Tensor2d) -> dict[str, float]:
-        predicted: Tensor2d = self._predict(reverb_batch, None, None)
-        losses: MrstftLoss.Return = self.loss(predicted, rir_batch)
+        predicted: RicbeModel.Prediction = self._predict(reverb_batch)
+        rir_loss: Tensor0d = self.loss(predicted.rir, rir_batch)["total"]
+        speech_loss: Tensor0d = self.loss(predicted.speech, speech_batch)["total"]
+        total_loss: Tensor0d = Tensor0d(rir_loss + speech_loss)
 
         self.optimizer.zero_grad()
-        losses["total"].backward()
+        total_loss.backward()
         torch.nn.utils.clip_grad_norm_(self.module.parameters(), 5)
         self.optimizer.step()
 
         result: dict[str, float] = {
-            "loss_total": float(losses["total"]),
-            "loss_mag": float(losses["mag_loss"]),
-            "loss_sc": float(losses["sc_loss"]),
+            "loss_total": float(total_loss),
+            "loss_rir": float(rir_loss),
+            "loss_speech": float(speech_loss),
         }
 
         return result
 
-    def evaluate_on(self, reverb_batch: Tensor2d) -> Tensor2d:
+    def evaluate_on(self, reverb_batch: Tensor2d) -> Prediction:
         self.module.eval()
-        predicted: Tensor2d = self._predict(reverb_batch, None, None)
+        predicted: RicbeModel.Prediction = self._predict(reverb_batch)
         self.module.train()
         return predicted
     
