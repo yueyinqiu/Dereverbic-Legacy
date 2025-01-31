@@ -323,17 +323,14 @@ class RicbeNetwork(torch.nn.Module):
 
         self.output_conv = torch.nn.Conv1d(num_filters + 1, 1, kernel_size=1, stride=1)
 
-        stochastic_noise: Tensor = torch.randn((1, 1, self.module.rir_length), 
-                                                     device=self.device)
-        stochastic_noise = stochastic_noise.repeat(1, self.module.num_filters, 1)
+        stochastic_noise: Tensor = torch.randn((1, 1, rir_length))
+        stochastic_noise = stochastic_noise.repeat(1, self.num_filters, 1)
         self.stochastic_noise: Tensor3d
         self.register_buffer("stochastic_noise", stochastic_noise, True)
 
-        noise_condition: Tensor = torch.randn((1, self.module.noise_condition_length), 
-                                              device=self.device)
+        noise_condition: Tensor = torch.randn((1, self.noise_condition_length))
         self.noise_condition: Tensor2d
         self.register_buffer("noise_condition", noise_condition, True)
-
 
     def forward(self, 
                 reverb_batch: Tensor2d) \
@@ -422,19 +419,19 @@ class RicbeModel(RirBlindEstimationModel):
                  rir_batch: Tensor2d, 
                  speech_batch: Tensor2d) -> dict[str, float]:
         predicted: RicbeModel.Prediction = self._predict(reverb_batch)
-        rir_loss: Tensor0d = self.loss(predicted.rir, rir_batch)["total"]
-        speech_loss: Tensor0d = self.loss(predicted.speech, speech_batch)["total"]
-        total_loss: Tensor0d = Tensor0d(rir_loss + speech_loss)
+        loss_rir: Tensor0d = self.loss(predicted.rir, rir_batch)["total"]
+        loss_speech: Tensor0d = self.loss(predicted.speech, speech_batch)["total"]
+        loss_total: Tensor0d = Tensor0d(loss_rir + loss_speech * 0.)
 
         self.optimizer.zero_grad()
-        total_loss.backward()
+        loss_total.backward()
         torch.nn.utils.clip_grad_norm_(self.module.parameters(), 5)
         self.optimizer.step()
 
         result: dict[str, float] = {
-            "loss_total": float(total_loss),
-            "loss_rir": float(rir_loss),
-            "loss_speech": float(speech_loss),
+            "loss_total": float(loss_total),
+            "loss_rir": float(loss_rir),
+            "loss_speech": float(loss_speech),
         }
 
         return result
