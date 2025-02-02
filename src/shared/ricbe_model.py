@@ -420,7 +420,7 @@ class RicbeModel(RirBlindEstimationModel):
                             device=self.device))
         rir: Tensor2d
         speech: Tensor2d
-        rir, speech = self.module(reverb_batch)
+        rir, speech = self.module(reverb_batch, stochastic_noise_batch, noise_condition)
         return RicbeModel.Prediction(rir, speech)
 
     def train_on(self, 
