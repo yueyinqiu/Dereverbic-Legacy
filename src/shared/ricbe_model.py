@@ -323,28 +323,20 @@ class RicbeNetwork(torch.nn.Module):
 
         self.output_conv = torch.nn.Conv1d(num_filters + 1, 1, kernel_size=1, stride=1)
 
-        stochastic_noise: Tensor = torch.randn((1, 1, rir_length))
-        stochastic_noise = stochastic_noise.repeat(1, self.num_filters, 1)
-        self.stochastic_noise: Tensor3d
-        self.register_buffer("stochastic_noise", stochastic_noise, True)
-
-        noise_condition: Tensor = torch.randn((1, self.noise_condition_length))
-        self.noise_condition: Tensor2d
-        self.register_buffer("noise_condition", noise_condition, True)
-
     def forward(self, 
-                reverb_batch: Tensor2d) \
+                reverb_batch: Tensor2d,
+                stochastic_noise: Tensor3d,
+                noise_condition: Tensor2d) \
                     -> tuple[Tensor2d, Tensor2d]:
         """
-        reverb: [32, 80000]
+        reverb_batch: [32, 80000]
+
+        stochastic_noise: [32, 10, 16000]
+
+        noise_condition: [32, 16]
         """
         # [32, 1, 80000]
         reverb: Tensor = Tensor3d(reverb_batch.unsqueeze(1))
-
-        # [32, 10, 16000]
-        stochastic_noise: Tensor = self.stochastic_noise.repeat(reverb.size(0), 1, 1)
-        # [32, 16]
-        noise_condition: Tensor = self.noise_condition.repeat(reverb.size(0), 1)
 
         # [32, 10, 16000]
         filtered_noise: Tensor = self.filter(stochastic_noise)
@@ -408,7 +400,24 @@ class RicbeModel(RirBlindEstimationModel):
         speech: Tensor2d
 
     def _predict(self,
-                 reverb_batch: Tensor2d):
+                 reverb_batch: Tensor2d,
+                 stochastic_noise_batch: Tensor3d | None = None, 
+                 noise_condition: Tensor2d | None = None):
+        b: int = reverb_batch.size()[0]
+
+        if stochastic_noise_batch is None:
+            stochastic_noise_batch = Tensor3d(
+                torch.randn((b, 1, self.module.rir_length), 
+                            generator=self.random,
+                            device=self.device))
+            stochastic_noise_batch = Tensor3d(
+                stochastic_noise_batch.repeat(1, self.module.num_filters, 1))
+
+        if noise_condition is None:
+            noise_condition = Tensor2d(
+                torch.randn((b, self.module.noise_condition_length), 
+                            generator=self.random, 
+                            device=self.device))
         rir: Tensor2d
         speech: Tensor2d
         rir, speech = self.module(reverb_batch)
