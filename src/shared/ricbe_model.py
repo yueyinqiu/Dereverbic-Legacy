@@ -429,8 +429,11 @@ class RicbeModel(RirBlindEstimationModel):
                  speech_batch: Tensor2d) -> dict[str, float]:
         predicted: RicbeModel.Prediction = self._predict(reverb_batch)
         loss_rir: Tensor0d = self.loss(predicted.rir, rir_batch)["total"]
-        loss_speech: Tensor0d = self.loss(predicted.speech, speech_batch)["total"]
-        loss_total: Tensor0d = Tensor0d(loss_rir + loss_speech * 0.)
+        loss_reverb_op: Tensor0d = self.loss(
+            RirConvolveFft.get_reverb(speech_batch, predicted.rir), 
+            reverb_batch)["total"]
+
+        loss_total: Tensor0d = Tensor0d(loss_rir + loss_reverb_op * 1e-2)
 
         self.optimizer.zero_grad()
         loss_total.backward()
@@ -440,7 +443,7 @@ class RicbeModel(RirBlindEstimationModel):
         result: dict[str, float] = {
             "loss_total": float(loss_total),
             "loss_rir": float(loss_rir),
-            "loss_speech": float(loss_speech),
+            "loss_reverb_op": float(loss_reverb_op)
         }
 
         return result
