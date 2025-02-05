@@ -17,7 +17,10 @@ from typing import (
     TYPE_CHECKING
 )
 from torch.utils.data import DataLoader, Dataset
-from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
+from torch.optim import (
+    AdamW,
+    Adam
+)
 from statictorch import (
     anify,
     TensorDimensionDescriptor,
