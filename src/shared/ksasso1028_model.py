@@ -33,33 +33,45 @@ class AutoVerb(nn.Module):
         self.process = CutBlock(start, 1)
 
     def forward(self, mix):
+        # [32, 1, 80000]
         x = mix.clone()
+        # [32, 48, 80000]
         x = self.prelu(self.conv(x))
+
+        # [32, 48, 80000]
+        # [32, 96, 20000]
+        # [32, 144, 5000]
+        # [32, 192, 1250]
+        # [32, 240, 313]
+        # [32, 288, 79]
         features = []
         features.append(x)
         for module in self.hidden:
             x = module(x)
-            # print(x.shape)
-            # save features for skip connections
             features.append(x)
 
+        # [32, 288, 79]
         bottle_neck = x.clone()
+        # [32, 288, 79]
         bottle_neck = self.bottle_act(self.bottleneck(bottle_neck))
+        # [32, 79, 288]
         bottle_neck = bottle_neck.permute(0, 2, 1)
+        # [32, 79, 288]
         bottle_neck, _ = self.lstm(bottle_neck)
+        # [32, 79, 288]
         bottle_neck = self.linear(bottle_neck)
-        bottle_neck = bottle_neck.permute(0,2,1)
+        # [32, 288, 79]
+        bottle_neck = bottle_neck.permute(0, 2, 1)
 
+        # [32, 288, 79]
         x = x + bottle_neck
         for i, module in enumerate(self.decode):
             index = i + 1
-            # print("SHAPE",features[-abs(index)].size(2))
-            # print(x.shape)
             # Match dims from encoder to decoder
             x = x[:, :, :features[-abs(index)].size(2)] + features[-abs(index)]
-            x = module(x)
-        #print(x.shape)
+            x = module(x)  # [32, 240, 316(313)], [32, 240, 1252(1250)], ...
         x = x[:, :, :mix.size(-1)]
+
         # remove noise, refine synthesis of final waveform.
         out = self.process(x)
         return out
@@ -346,16 +358,16 @@ class KsassoModel(RirBlindEstimationModel):
     def _predict(self,
                  reverb_batch: Tensor2d):
         speech: Tensor3d = self.module(reverb_batch.unsqueeze(1))
-        return Tensor2d(speech.squeeze(1))
+        return Tensor2d(speech.squeeze(1)[:16000])
 
     def train_on(self, 
                  reverb_batch: Tensor2d, 
                  rir_batch: Tensor2d, 
                  speech_batch: Tensor2d) -> dict[str, float]:
         predicted: Tensor2d = self._predict(reverb_batch)
-        loss_l1: Tensor0d = self.l1(predicted, speech_batch)
+        loss_l1: Tensor0d = self.l1(predicted, rir_batch)
         loss_stft: Tensor0d
-        _, loss_stft = self.spec_loss(predicted, speech_batch)
+        _, loss_stft = self.spec_loss(predicted, rir_batch)
         loss_total: Tensor0d = Tensor0d(loss_l1 + loss_stft)
 
         self.optimizer.zero_grad()

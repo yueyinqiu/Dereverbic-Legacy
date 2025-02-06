@@ -18,8 +18,8 @@ from typing import (
 )
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import (
-    AdamW,
-    Adam
+    AdamW,  # pyright: ignore [reportPrivateImportUsage]
+    Adam  # pyright: ignore [reportPrivateImportUsage]
 )
 from statictorch import (
     anify,
