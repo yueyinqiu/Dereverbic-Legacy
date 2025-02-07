@@ -92,7 +92,14 @@ class MrstftLossModule(torch.nn.Module):
     
 
 class MrstftLoss():
-    def __init__(self, device: torch.device) -> None:
+    def __init__(self, 
+                 device: torch.device,
+                 fft_sizes=[64, 512, 2048, 8192],
+                 hop_sizes=[32, 256, 1024, 4096],
+                 win_lengths=[64, 512, 2048, 8192],
+                 window="hann_window",
+                 sc_weight=1.0,
+                 mag_weight=1.0) -> None:
         self._module = MrstftLossModule().to(device)
     
     class Return(TypedDict):

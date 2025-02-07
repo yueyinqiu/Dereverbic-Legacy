@@ -379,7 +379,10 @@ class FinsModel(RirBlindEstimationModel):
             gamma=0.8
         )
         self.random = torch.Generator(device).manual_seed(seed)
-        self.loss = MrstftLoss(device)
+        self.loss = MrstftLoss(device,                 
+                               fft_sizes=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
+                               hop_sizes=[i * 16000 // 48000 for i in [32, 256, 1024, 4096]],
+                               win_lengths=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],)
 
     class StateDict(TypedDict):
         model: dict[str, Any]

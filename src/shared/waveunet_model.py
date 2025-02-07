@@ -456,7 +456,7 @@ class WaveUNetModel(RirBlindEstimationModel):
         self.module = Waveunet(1, 
                               [32 * 2 ** i for i in range(0, 6)], 
                               1, 
-                              ["speech", "rir"], 
+                              ["rir"], 
                               kernel_size=5,
                               target_output_size=80000, 
                               depth=1, 
@@ -467,6 +467,7 @@ class WaveUNetModel(RirBlindEstimationModel):
         self.optimizer = AdamW(self.module.parameters(), 1e-3)
         self.random = torch.Generator(device).manual_seed(seed)
         self.loss = MrstftLoss(device)
+        self.l1 = torch.nn.L1Loss().to(device)
 
     class StateDict(TypedDict):
         model: dict[str, Any]
@@ -487,19 +488,19 @@ class WaveUNetModel(RirBlindEstimationModel):
 
     def _predict(self,
                  reverb_batch: Tensor2d):
-        prediected: dict[str, Tensor3d] = self.module(reverb_batch.unsqueeze(1))
-        return Tensor2d(prediected["rir"].squeeze(1)), Tensor2d(prediected["speech"].squeeze(1))
+        reverb_batch = Tensor2d(torch.nn.functional.pad(reverb_batch, (0, 89769 - 80000)))
+        rir: Tensor3d = self.module(reverb_batch.unsqueeze(1), "rir")["rir"]
+        return Tensor2d(rir.squeeze(1)[:, :16000])
 
     def train_on(self, 
                  reverb_batch: Tensor2d, 
                  rir_batch: Tensor2d, 
                  speech_batch: Tensor2d) -> dict[str, float]:
         predicted_rir: Tensor2d
-        predicted_speech: Tensor2d
-        predicted_rir, predicted_speech = self._predict(reverb_batch)
-        loss_rir: Tensor0d = self.loss(predicted_rir, rir_batch)["total"]
-        loss_speech: Tensor0d = self.loss(predicted_speech, speech_batch)["total"]
-        loss_total: Tensor0d = Tensor0d(loss_rir + loss_speech)
+        predicted_rir = self._predict(reverb_batch)
+        loss: MrstftLoss.Return = self.loss(predicted_rir, rir_batch)
+        loss_l1: Tensor0d = self.l1(predicted_rir, rir_batch)
+        loss_total: Tensor = loss["mag_loss"] + loss_l1
 
         self.optimizer.zero_grad()
         loss_total.backward()
@@ -507,15 +508,17 @@ class WaveUNetModel(RirBlindEstimationModel):
 
         result: dict[str, float] = {
             "loss_total": float(loss_total),
-            "loss_rir": float(loss_rir),
-            "loss_speech": float(loss_total)
+            "loss_l1": float(loss_l1),
+            "loss_mrstft": float(loss["total"]),
+            "loss_sc": float(loss["sc_loss"]),
+            "loss_mag": float(loss["mag_loss"]),
         }
 
         return result
 
     def evaluate_on(self, reverb_batch: Tensor2d):
         self.module.eval()
-        predicted: tuple[Tensor2d, Tensor2d] = self._predict(reverb_batch)
+        predicted: Tensor2d = self._predict(reverb_batch)
         self.module.train()
         return predicted
     
