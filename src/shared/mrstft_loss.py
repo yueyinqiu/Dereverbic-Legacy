@@ -100,7 +100,12 @@ class MrstftLoss():
                  window="hann_window",
                  sc_weight=1.0,
                  mag_weight=1.0) -> None:
-        self._module = MrstftLossModule().to(device)
+        self._module = MrstftLossModule(fft_sizes, 
+                                        hop_sizes, 
+                                        win_lengths, 
+                                        window, 
+                                        sc_weight, 
+                                        mag_weight).to(device)
     
     class Return(TypedDict):
         total: Tensor0d

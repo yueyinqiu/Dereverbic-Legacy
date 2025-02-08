@@ -8,8 +8,13 @@ with torch.no_grad():
     model: FinsModel = FinsModel(config.device, random.randint(0, 1000))
     data: DataLoader = ValidationOrTestDataset(config.validation_list, 
                                                config.device).get_data_loader(32)
-    mrstft: MrstftLoss = MrstftLoss(config.device)
+    mrstft: MrstftLoss = MrstftLoss(config.device, 
+                                    fft_sizes=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
+                                    hop_sizes=[i * 16000 // 48000 for i in [32, 256, 1024, 4096]],
+                                    win_lengths=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]])
     print(f"# Batch count: {data.__len__()}")
+
+    scores: dict[int, float] = {}
 
     csv_print: CsvWriterProtocol = csv.writer(sys.stdout)
     csv_print.writerow(["epoch", "batch", "metric", "value"])
@@ -43,9 +48,16 @@ with torch.no_grad():
             csv_print.writerow([epoch, batch_index, "mrstft_sc", mrstft_sc])
             csv_print.writerow([epoch, batch_index, "mrstft_mag", mrstft_mag])
 
+        score: float = mrstft_total_accumulator.value() / data.__len__()
+        scores[epoch] = score
+
         csv_print.writerow([epoch, "average", "mrstft_total", 
-                            mrstft_total_accumulator.value() / data.__len__()])
+                            score])
         csv_print.writerow([epoch, "average", "mrstft_sc", 
                             mrstft_sc_accumulator.value() / data.__len__()])
         csv_print.writerow([epoch, "average", "mrstft_mag", 
                             mrstft_mag_accumulator.value() / data.__len__()])
+
+    csfile.write_all_lines(checkpoints.get_path(None) / "validation_rank.txt", 
+                           [str(key) for key in sorted(scores.keys(), key=lambda key: scores[key])])
+    
