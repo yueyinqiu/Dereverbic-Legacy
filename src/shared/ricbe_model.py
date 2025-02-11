@@ -8,27 +8,36 @@ from .mrstft_loss import MrstftLoss
 class AutoVerb(torch.nn.Module):
     def __init__(self, blocks: int, in_channels: int, channel_factor: int):
         super().__init__()
+
         dilation: int = 1
+
         self.preprocess = torch.nn.Sequential(
             torch.nn.Conv1d(1, in_channels, kernel_size=5, padding=2, stride=1),
             torch.nn.PReLU(in_channels)
         )
+
         self.encoder = Encoder(blocks, in_channels, channel_factor, dilation)
-        self.bottlenect = Bottleneck(in_channels, dilation)
-        self.decoder = Decoder(blocks, self.encoder.get_channels_output(), channel_factor, dilation)
+        channels_bottleneck: int = self.encoder.get_channels_output()
+
+        self.bottleneck = Bottleneck(channels_bottleneck, dilation)
+
+        self.decoder = Decoder(blocks, channels_bottleneck, channel_factor, dilation)
+
         self.postprocess = CutBlock(in_channels, 1)
 
     def forward(self, mix: Tensor3d):
         # [32, 48, 80000]
         x: Tensor3d = self.preprocess(mix)
+
         features: list[Tensor3d] = self.encoder(x)
 
         # [32, 288, 79]
-        x = self.bottlenect(features[-1])
+        x = self.bottleneck(features[-1])
 
         x = self.decoder(x, features)
         
         x = self.postprocess(x)
+
         return x
 
 class EncoderBlock(torch.nn.Module):
@@ -168,11 +177,11 @@ class Decoder(torch.nn.Module):
         i: int = -1
         block: DecoderBlock
         for block in self.blocks:
-            x = Tensor3d(x + features[-i])
+            x = Tensor3d(x + features[i])
             x = Tensor3d(block(x))
             i = i - 1
-            x = Tensor3d(x[:, :, :features[-i].size(2)])
-        return Tensor3d(x + features[-i])
+            x = Tensor3d(x[:, :, :features[i].size(2)])
+        return Tensor3d(x + features[i])
 
 class CutBlock(torch.nn.Module):
     def __init__(self, channels, out, dil=1, stride=1, mul=1):
