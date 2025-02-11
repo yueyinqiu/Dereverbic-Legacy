@@ -15,10 +15,6 @@ checkpoints_directory: _pathlib.Path = \
     _validate_fins_config.checkpoints_directory
 
 
-checkpoints: _typing.Iterable[int] = \
-    [10000]
-
-
 test_list: _pathlib.Path = \
     _split_dataset_config.test_list
 
