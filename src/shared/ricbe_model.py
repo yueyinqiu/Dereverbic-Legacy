@@ -5,63 +5,47 @@ from .rir_blind_estimation_model import RirBlindEstimationModel
 from .mrstft_loss import MrstftLoss
 
 
-class AutoVerb(torch.nn.Module):
-    def __init__(self, blocks: int, in_channels: int, channel_factor: int):
+class _Preprocess(torch.nn.Module):
+    def __init__(self, 
+                 channels_input: int, 
+                 channels_output: int):
         super().__init__()
-
-        dilation: int = 1
-
-        self.preprocess = torch.nn.Sequential(
-            torch.nn.Conv1d(1, in_channels, kernel_size=5, padding=2, stride=1),
-            torch.nn.PReLU(in_channels)
-        )
-
-        self.encoder = Encoder(blocks, in_channels, channel_factor, dilation)
-        channels_bottleneck: int = self.encoder.get_channels_output()
-
-        self.bottleneck = Bottleneck(channels_bottleneck, dilation)
-
-        self.decoder = Decoder(blocks, channels_bottleneck, channel_factor, dilation)
-
-        self.postprocess = CutBlock(in_channels, 1)
-
-    def forward(self, mix: Tensor3d):
-        # [32, 48, 80000]
-        x: Tensor3d = self.preprocess(mix)
-
-        features: list[Tensor3d] = self.encoder(x)
-
-        # [32, 288, 79]
-        x = self.bottleneck(features[-1])
-
-        x = self.decoder(x, features)
+        self.conv = torch.nn.Conv1d(channels_input, 
+                                    channels_output, 
+                                    kernel_size=5, 
+                                    padding=2, 
+                                    stride=1)
+        self.prelu = torch.nn.PReLU(channels_output)
         
-        x = self.postprocess(x)
-
+    def forward(self, x: Tensor3d):
+        x = self.conv(x)
+        x = self.prelu(x)
         return x
 
-class EncoderBlock(torch.nn.Module):
+
+class _EncoderBlock(torch.nn.Module):
     def __init__(self, 
                  in_channels: int, 
                  out_channels: int, 
                  dilation: int):
         super().__init__()
-        kernel: int = 7
+        kernel_size: int = 7
         stride: int = 4
         self.conv1 = torch.nn.Conv1d(in_channels,
                                      out_channels, 
-                                     kernel_size=kernel, 
+                                     kernel_size=kernel_size, 
                                      stride=stride,
                                      dilation=dilation,
-                                     padding=((kernel - 1) // 2) * dilation)
+                                     padding=((kernel_size - 1) // 2) * dilation)
         self.prelu1 = torch.nn.PReLU(out_channels)
 
     def forward(self, x):
         return self.prelu1(self.conv1(x))
 
-class Encoder(torch.nn.Module):
+
+class _Encoder(torch.nn.Module):
     class EncoderBlockList(Protocol):
-        def __iter__(self) -> Iterator[EncoderBlock]:
+        def __iter__(self) -> Iterator[_EncoderBlock]:
             raise RuntimeError()
 
     def __init__(self, 
@@ -70,35 +54,31 @@ class Encoder(torch.nn.Module):
                  channels_increase_per_layer: int, 
                  dilation: int) -> None:
         super().__init__()
-        block_list: list[EncoderBlock] = []
+        block_list: list[_EncoderBlock] = []
         for _ in range(block_count):
             channels_next: int = channels_input + channels_increase_per_layer
-            block_list.append(EncoderBlock(channels_input, channels_next, dilation))
+            block_list.append(_EncoderBlock(channels_input, channels_next, dilation))
             channels_input = channels_next
-        self._channels_output = channels_input
-        self.blocks: Encoder.EncoderBlockList = anify(torch.nn.ModuleList(block_list))
-
-    def get_channels_output(self):
-        return self._channels_output
+        self.blocks: _Encoder.EncoderBlockList = anify(torch.nn.ModuleList(block_list))
 
     def forward(self, x: Tensor3d):
         features: list[Tensor3d] = []
         features.append(x)
-        block: EncoderBlock
+        block: _EncoderBlock
         for block in self.blocks:
             x = block(x)
             features.append(x)
         return features
 
 
-class Bottleneck(torch.nn.Module):
+class _Bottleneck(torch.nn.Module):
     def __init__(self, channels: int, dilation: int) -> None:
         super().__init__()        
-        kernel: int = 3
+        kernel_size: int = 3
         self.conv = torch.nn.Conv1d(channels, 
                                     channels, 
-                                    kernel_size=kernel, 
-                                    padding=(((kernel - 1) // 2) * dilation), 
+                                    kernel_size=kernel_size, 
+                                    padding=(((kernel_size - 1) // 2) * dilation), 
                                     dilation=dilation)
         self.prelu = torch.nn.PReLU(channels)
         self.lstm = torch.nn.LSTM(channels, channels, num_layers=2, batch_first=True)
@@ -106,40 +86,36 @@ class Bottleneck(torch.nn.Module):
     
     def forward(self, x: Tensor3d):
         x = self.conv(x)
-        # [32, 288, 79]
         x = self.prelu(x)
-        # [32, 79, 288]
         x = Tensor3d(x.permute(0, 2, 1))
-        # [32, 79, 288]
         x, _ = self.lstm(x)
-        # [32, 79, 288]
         x = self.linear(x)
-        # [32, 288, 79]
         return Tensor3d(x.permute(0, 2, 1))
 
-class DecoderBlock(torch.nn.Module):
+
+class _DecoderBlock(torch.nn.Module):
     def __init__(self, in_channels: int, out_channels: int, dilation: int):
         super().__init__()
-        kernel: int = 7
+        kernel_size: int = 7
         stride: int = 1
-        padding: int = ((kernel - 1) // 2) * dilation
+        padding: int = ((kernel_size - 1) // 2) * dilation
 
         self.upsample = torch.nn.Upsample(scale_factor = 4)
         self.conv1 = torch.nn.Conv1d(in_channels, 
                                      out_channels, 
-                                     kernel_size=kernel, 
+                                     kernel_size=kernel_size, 
                                      dilation=dilation,
                                      stride=stride,
                                      padding=padding)
         self.conv2 = torch.nn.Conv1d(out_channels, 
                                      out_channels, 
-                                     kernel_size=kernel, 
+                                     kernel_size=kernel_size, 
                                      dilation=dilation,
                                      stride=stride,
                                      padding=padding)
         self.conv3 = torch.nn.Conv1d(out_channels, 
                                      out_channels,
-                                     kernel_size=kernel, 
+                                     kernel_size=kernel_size, 
                                      dilation=dilation,
                                      stride=stride,
                                      padding=padding)
@@ -150,14 +126,17 @@ class DecoderBlock(torch.nn.Module):
 
     def forward(self, x: Tensor3d):
         y1: Tensor3d = self.upsample(x)
-        y1 = self.prelu1(self.conv1(y1))
-        y2: Tensor3d = self.prelu2((self.conv2(y1)))
+        y1 = self.conv1(y1)
+        y1 = self.prelu1(y1)
+        y2: Tensor3d = self.conv2(y1)
+        y2 = self.prelu2(y2)
         y2 = self.prelu3(self.conv3(y2))
         return y1 + y2
 
-class Decoder(torch.nn.Module):
+
+class _Decoder(torch.nn.Module):
     class DecoderBlockList(Protocol):
-        def __iter__(self) -> Iterator[DecoderBlock]:
+        def __iter__(self) -> Iterator[_DecoderBlock]:
             raise RuntimeError()
         
     def __init__(self, 
@@ -166,16 +145,16 @@ class Decoder(torch.nn.Module):
                  channels_decrease_per_layer: int, 
                  dilation: int):
         super().__init__()
-        block_list: list[DecoderBlock] = []
+        block_list: list[_DecoderBlock] = []
         for _ in range(block_count):
             channels_next: int = channels_input - channels_decrease_per_layer
-            block_list.append(DecoderBlock(channels_input, channels_next, dilation))
+            block_list.append(_DecoderBlock(channels_input, channels_next, dilation))
             channels_input = channels_next
-        self.blocks: Decoder.DecoderBlockList = anify(torch.nn.ModuleList(block_list))
+        self.blocks: _Decoder.DecoderBlockList = anify(torch.nn.ModuleList(block_list))
 
     def forward(self, x: Tensor3d, features: list[Tensor3d]):
         i: int = -1
-        block: DecoderBlock
+        block: _DecoderBlock
         for block in self.blocks:
             x = Tensor3d(x + features[i])
             x = Tensor3d(block(x))
@@ -183,26 +162,84 @@ class Decoder(torch.nn.Module):
             x = Tensor3d(x[:, :, :features[i].size(2)])
         return Tensor3d(x + features[i])
 
-class CutBlock(torch.nn.Module):
-    def __init__(self, channels, out, dil=1, stride=1, mul=1):
+
+class _Postprocess(torch.nn.Module):
+    def __init__(self, 
+                 channels_input: int, 
+                 channels_output: int, 
+                 dilation: int, 
+                 stride1: int,
+                 stride2: int):
         super().__init__()
-        self.first_kernel = 11
-        self.second_kernel = 3
-        self.conv1 = torch.nn.Conv1d(channels, channels // 2, kernel_size = self.first_kernel, stride = stride, padding = ((self.first_kernel - 1) // 2) * dil)
-        self.conv2 = torch.nn.Conv1d(channels // 2, out, kernel_size = self.second_kernel, stride = stride, padding = ((self.second_kernel - 1) // 2) * dil)
-        self.prelu = torch.nn.PReLU(channels // 2)
+        self.kernel_size_1 = 11
+        self.kernel_size_2 = 3
+        self.conv1 = torch.nn.Conv1d(channels_input, 
+                                     channels_input // 2, 
+                                     kernel_size=self.kernel_size_1, 
+                                     stride=stride1, 
+                                     padding=((self.kernel_size_1 - 1) // 2) * dilation)
+        self.conv2 = torch.nn.Conv1d(channels_input // 2, 
+                                     channels_output, 
+                                     kernel_size=self.kernel_size_2, 
+                                     stride=stride2, 
+                                     padding=((self.kernel_size_2 - 1) // 2) * dilation)
+        self.prelu = torch.nn.PReLU(channels_input // 2)
         
-    def forward(self, x):
-        x = self.prelu(self.conv1(x))
+    def forward(self, x: Tensor3d):
+        x = self.conv1(x)
+        x = self.prelu(x)
         x = self.conv2(x)
         return x
+
+
+class _EncoderDecoderPair(torch.nn.Module):
+    def __init__(self, channels_input: int):
+        super().__init__()
+
+        block_count: int = 5
+        channel_step: int = 48
+
+        self.encoder = _Encoder(block_count, channels_input, channel_step, 1)
+        bottleneck_channels: int = block_count * channel_step + channels_input
+
+        self.bottleneck = _Bottleneck(bottleneck_channels, 1)
+        self.decoder = _Decoder(block_count, bottleneck_channels, channel_step, 1)
+
+    def forward(self, x: Tensor3d):
+        features: list[Tensor3d] = self.encoder(x)
+        x = self.bottleneck(features[-1])
+        x = self.decoder(x, features)
+        return x
+
+
+class _RicbeModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        channels: int = 48
+        self.preprocess = _Preprocess(1, channels)
+        self.pair1 = _EncoderDecoderPair(channels)
+        self.postprocess_speech = _Postprocess(channels, 1, 1, 1, 1)
+        self.pair2 = _EncoderDecoderPair(channels)
+        self.postprocess_rir = _Postprocess(channels, 1, 1, 1, 5)
+
+
+    def forward(self, reverb: Tensor3d):
+        reverb = self.preprocess(reverb)
+        speech: Tensor3d = self.pair1(reverb)
+        rir: Tensor3d = self.pair2(speech)
+
+        speech = self.postprocess_speech(speech)
+        rir = self.postprocess_rir(rir)
+        return rir, speech
+    
 
 class RicbeModel(RirBlindEstimationModel):
     def __init__(self, device: torch.device, seed: int) -> None:
         super().__init__()
         self.device = device
 
-        self.module = AutoVerb(blocks=5, in_channels=48, channel_factor=48).to(device)
+        self.module = _RicbeModule().to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
         self.random = torch.Generator(device).manual_seed(seed)
         self.spec_loss = MrstftLoss(device, 
@@ -228,20 +265,33 @@ class RicbeModel(RirBlindEstimationModel):
         self.optimizer.load_state_dict(state["optimizer"])
         self.random.set_state(state["random"])
 
+    class Prediction(NamedTuple):
+        rir: Tensor2d
+        speech: Tensor2d
+
     def _predict(self,
-                 reverb_batch: Tensor2d):
-        speech: Tensor3d = self.module(reverb_batch.unsqueeze(1))
-        return Tensor2d(speech.squeeze(1)[:, :16000])
+                 reverb_batch: Tensor2d) -> Prediction:
+        rir: Tensor3d
+        speech: Tensor3d
+        rir, speech = self.module(reverb_batch.unsqueeze(1))
+        return RicbeModel.Prediction(Tensor2d(rir.squeeze(1)), 
+                                     Tensor2d(speech.squeeze(1)))
 
     def train_on(self, 
                  reverb_batch: Tensor2d, 
                  rir_batch: Tensor2d, 
                  speech_batch: Tensor2d) -> dict[str, float]:
-        predicted: Tensor2d = self._predict(reverb_batch)
-        loss_l1: Tensor0d = self.l1(predicted, rir_batch)
-        loss_stft: Tensor0d
-        loss_stft = self.spec_loss(predicted, rir_batch)["mag_loss"]
-        loss_total: Tensor0d = Tensor0d(loss_l1 + loss_stft)
+        predicted: RicbeModel.Prediction = self._predict(reverb_batch)
+
+        loss_l1_rir: Tensor0d = self.l1(predicted.rir, rir_batch)
+        loss_stft_rir: Tensor0d = self.spec_loss(predicted.rir, rir_batch)["total"]
+        loss_l1_speech: Tensor0d = self.l1(predicted.speech, speech_batch)
+        loss_stft_speech: Tensor0d = self.spec_loss(predicted.speech, speech_batch)["total"]
+        
+        loss_rir: Tensor0d = Tensor0d(loss_l1_rir + loss_stft_rir)
+        loss_speech: Tensor0d = Tensor0d(loss_l1_speech + loss_stft_speech)
+
+        loss_total: Tensor0d = Tensor0d(loss_rir + loss_speech)
 
         self.optimizer.zero_grad()
         loss_total.backward()
@@ -249,15 +299,15 @@ class RicbeModel(RirBlindEstimationModel):
 
         result: dict[str, float] = {
             "loss_total": float(loss_total),
-            "loss_l1": float(loss_l1),
-            "loss_stft": float(loss_stft)
+            "loss_rir": float(loss_rir),
+            "loss_speech": float(loss_speech)
         }
 
         return result
 
     def evaluate_on(self, reverb_batch: Tensor2d):
         self.module.eval()
-        predicted: Tensor2d = self._predict(reverb_batch)
+        predicted: RicbeModel.Prediction = self._predict(reverb_batch)
         self.module.train()
         return predicted
     
