@@ -69,7 +69,7 @@ class AutoVerb(nn.Module):
             index = i + 1
             # Match dims from encoder to decoder
             x = x[:, :, :features[-abs(index)].size(2)] + features[-abs(index)]
-            x = module(x)  # [32, 240, 316(313)], [32, 240, 1252(1250)], ...
+            x = module(x)  # [32, 240, 316(313)], [32, 192, 1252(1250)], ..., [32, 48, 80000]
         x = x[:, :, :mix.size(-1)]
 
         # remove noise, refine synthesis of final waveform.
@@ -184,13 +184,13 @@ def stft(x, fft_size, hop_size, win_length, window):
         Tensor: Magnitude spectrogram (B, #frames, fft_size // 2 + 1).
     """
     x_stft = torch.stft(
-        x, fft_size, hop_size, win_length, window, return_complex=False
+        x, fft_size, hop_size, win_length, window, return_complex=True
     )
-    real = x_stft[..., 0]
-    imag = x_stft[..., 1]
+    real = x_stft.real
+    imag = x_stft.imag
 
     # NOTE(kan-bayashi): clamp is needed to avoid nan or inf
-    return torch.sqrt(torch.clamp(real ** 2 + imag ** 2, min=1e-7)).transpose(2, 1)
+    return torch.sqrt(torch.clamp(real ** 2 + imag ** 2, min=1e-8)).transpose(2, 1)
 
 
 class SpectralConvergenceLoss(torch.nn.Module):

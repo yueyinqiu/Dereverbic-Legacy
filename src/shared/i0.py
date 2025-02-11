@@ -14,7 +14,8 @@ from typing import (
     Generic,
     ContextManager,
     TypeAlias,
-    TYPE_CHECKING
+    TYPE_CHECKING,
+    Iterator
 )
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import (

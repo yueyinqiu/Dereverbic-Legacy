@@ -29,7 +29,7 @@ class StftLoss(torch.nn.Module):
         win_length=600,
         window="hann_window",
     ):
-        super(StftLoss, self).__init__()
+        super().__init__()
         self.fft_size = fft_size
         self.shift_size = shift_size
         self.win_length = win_length
@@ -56,7 +56,7 @@ class MrstftLossModule(torch.nn.Module):
         sc_weight=1.0,
         mag_weight=1.0,
     ):
-        super(MrstftLossModule, self).__init__()
+        super().__init__()
         assert len(fft_sizes) == len(hop_sizes) == len(win_lengths)
         self.stft_losses = torch.nn.ModuleList()
         self.fft_sizes = fft_sizes

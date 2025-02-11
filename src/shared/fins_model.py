@@ -11,7 +11,7 @@ from .mrstft_loss import MrstftLoss
 
 class FinsEncoderBlock(torch.nn.Module):
     def __init__(self, in_channels: int, out_channels: int, use_batchnorm=True):
-        super(FinsEncoderBlock, self).__init__()
+        super().__init__()
         if use_batchnorm:
             self.conv = torch.nn.Sequential(
                 torch.nn.Conv1d(in_channels, out_channels, kernel_size=15, stride=2, padding=7),
@@ -46,7 +46,7 @@ class FinsEncoderBlock(torch.nn.Module):
 
 class FinsEncoder(torch.nn.Module):
     def __init__(self):
-        super(FinsEncoder, self).__init__()
+        super().__init__()
         block_list: list[FinsEncoderBlock] = []
         channels: list[int] = [1, 32, 32, 64, 64, 64, 128, 128, 128, 256, 256, 256, 512, 512]
 
@@ -82,7 +82,7 @@ class FinsEncoder(torch.nn.Module):
 
 class FinsUpsampleNet(torch.nn.Module):
     def __init__(self, input_size: int, output_size: int, upsample_factor: int):
-        super(FinsUpsampleNet, self).__init__()
+        super().__init__()
         self.input_size = input_size
         self.output_size = output_size
         self.upsample_factor = upsample_factor
@@ -134,7 +134,7 @@ class FinsDecoderBlock(torch.nn.Module):
                  out_channels: int, 
                  upsample_factor: int, 
                  condition_length: int):
-        super(FinsDecoderBlock, self).__init__()
+        super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.condition_length = condition_length
@@ -197,7 +197,7 @@ class FinsDecoderBlock(torch.nn.Module):
 
 class FinsDecoder(torch.nn.Module):
     def __init__(self, num_filters: int, cond_length: int, rir_length: int):
-        super(FinsDecoder, self).__init__()
+        super().__init__()
         self.rir_length = rir_length
 
         self.preprocess = torch.nn.Conv1d(1, 512, kernel_size=15, padding=7)
@@ -287,7 +287,7 @@ class FinsNetwork(torch.nn.Module):
         return firs_np
 
     def __init__(self):
-        super(FinsNetwork, self).__init__()
+        super().__init__()
 
         rir_length: int = 16000
         early_length: int = 800
