@@ -1,4 +1,4 @@
-# Modified from https://github.com/ksasso1028/audio-reverb-removal/blob/main/dereverb/auto_verb.py
+# Inspired by https://github.com/ksasso1028/audio-reverb-removal/blob/main/dereverb/auto_verb.py
 
 from .i0 import *
 from .rir_blind_estimation_model import RirBlindEstimationModel
@@ -148,7 +148,7 @@ class _Decoder(torch.nn.Module):
         block_list: list[_DecoderBlock] = []
         for _ in range(block_count):
             channels_next: int = channels_input - channels_decrease_per_layer
-            block_list.append(_DecoderBlock(channels_input, channels_next, dilation))
+            block_list.append(_DecoderBlock(channels_input * 2, channels_next, dilation))
             channels_input = channels_next
         self.blocks: _Decoder.DecoderBlockList = anify(torch.nn.ModuleList(block_list))
 
@@ -156,11 +156,11 @@ class _Decoder(torch.nn.Module):
         i: int = -1
         block: _DecoderBlock
         for block in self.blocks:
-            x = Tensor3d(x + features[i])
+            x = Tensor3d(torch.cat([x, features[i]], dim=1))
             x = Tensor3d(block(x))
             i = i - 1
             x = Tensor3d(x[:, :, :features[i].size(2)])
-        return Tensor3d(x + features[i])
+        return Tensor3d(torch.cat([x, features[i]], dim=1))
 
 
 class _Postprocess(torch.nn.Module):
@@ -174,16 +174,16 @@ class _Postprocess(torch.nn.Module):
         self.kernel_size_1 = 11
         self.kernel_size_2 = 3
         self.conv1 = torch.nn.Conv1d(channels_input, 
-                                     channels_input // 2, 
+                                     channels_input // 4, 
                                      kernel_size=self.kernel_size_1, 
                                      stride=stride1, 
                                      padding=((self.kernel_size_1 - 1) // 2) * dilation)
-        self.conv2 = torch.nn.Conv1d(channels_input // 2, 
+        self.conv2 = torch.nn.Conv1d(channels_input // 4, 
                                      channels_output, 
                                      kernel_size=self.kernel_size_2, 
                                      stride=stride2, 
                                      padding=((self.kernel_size_2 - 1) // 2) * dilation)
-        self.prelu = torch.nn.PReLU(channels_input // 2)
+        self.prelu = torch.nn.PReLU(channels_input // 4)
         
     def forward(self, x: Tensor3d):
         x = self.conv1(x)
@@ -217,31 +217,35 @@ class _RicbeModule(torch.nn.Module):
         super().__init__()
 
         channels: int = 48
-        self.preprocess = _Preprocess(1, channels)
-        self.pair1 = _EncoderDecoderPair(channels)
-        self.postprocess_speech = _Postprocess(channels, 1, 1, 1, 1)
-        self.pair2 = _EncoderDecoderPair(channels)
-        self.postprocess_rir = _Postprocess(channels, 1, 1, 1, 5)
+        self.preprocess_for_speech = _Preprocess(1, channels)
+        self.pair_for_speech = _EncoderDecoderPair(channels)
+        self.postprocess_for_speech = _Postprocess(channels * 2, 1, 1, 1, 1)
+        
+        self.preprocess_for_rir = _Preprocess(2, channels)
+        self.pair_for_rir = _EncoderDecoderPair(channels)
+        self.postprocess_for_rir = _Postprocess(channels * 2, 1, 1, 1, 5)
 
 
     def forward(self, reverb: Tensor3d):
-        reverb = self.preprocess(reverb)
-        speech: Tensor3d = self.pair1(reverb)
-        rir: Tensor3d = self.pair2(speech)
+        rev: Tensor3d = self.preprocess_for_speech(reverb)
+        spe: Tensor3d = self.pair_for_speech(rev)
+        spe = self.postprocess_for_speech(spe)
 
-        speech = self.postprocess_speech(speech)
-        rir = self.postprocess_rir(rir)
-        return rir, speech
+        rs: Tensor3d = Tensor3d(torch.cat([reverb, spe], dim=1))
+
+        rs = self.preprocess_for_rir(rs)
+        rir: Tensor3d = self.pair_for_rir(rs)
+        rir = self.postprocess_for_rir(rir)
+        return rir, spe
     
 
 class RicbeModel(RirBlindEstimationModel):
-    def __init__(self, device: torch.device, seed: int) -> None:
+    def __init__(self, device: torch.device) -> None:
         super().__init__()
         self.device = device
 
         self.module = _RicbeModule().to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
-        self.random = torch.Generator(device).manual_seed(seed)
         self.spec_loss = MrstftLoss(device, 
                                     fft_sizes=[512, 1024, 2048, 4096], 
                                     hop_sizes=[50, 120, 240, 480], 
@@ -251,19 +255,16 @@ class RicbeModel(RirBlindEstimationModel):
     class StateDict(TypedDict):
         model: dict[str, Any]
         optimizer: dict[str, Any]
-        random: Tensor
 
     def get_state(self) -> StateDict:
         return {
             "model": self.module.state_dict(),
             "optimizer": self.optimizer.state_dict(),
-            "random": self.random.get_state()
         }
 
     def set_state(self, state: StateDict):
         self.module.load_state_dict(state["model"])
         self.optimizer.load_state_dict(state["optimizer"])
-        self.random.set_state(state["random"])
 
     class Prediction(NamedTuple):
         rir: Tensor2d
