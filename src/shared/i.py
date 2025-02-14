@@ -7,6 +7,7 @@ from .fins_model import FinsModel
 from .kahan_accumulator import KahanAccumulator
 from .mrstft_loss import MrstftLoss
 from .ricbe_model import RicbeModel
+from .rir_acoustic_feature_extractor import RirAcousticFeatureExtractor
 from .rir_blind_estimation_model import RirBlindEstimationModel
 from .rir_convolve_fft import RirConvolveFft
 from .static_class import StaticClass
