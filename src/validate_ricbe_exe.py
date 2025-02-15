@@ -31,9 +31,9 @@ with torch.no_grad():
             predicted: RicbeModel.Prediction = model.evaluate_on(batch.reverb)
             
             loss_l1_rir: Tensor0d = model.l1(predicted.rir, batch.rir)
-            loss_stft_rir: Tensor0d = model.spec_loss(predicted.rir, batch.rir).total()
+            loss_stft_rir: Tensor0d = model.rir_mrstft(predicted.rir, batch.rir).total()
             loss_l1_speech: Tensor0d = model.l1(predicted.speech, batch.speech)
-            loss_stft_speech: Tensor0d = model.spec_loss(predicted.speech, batch.speech).total()
+            loss_stft_speech: Tensor0d = model.rir_mrstft(predicted.speech, batch.speech).total()
             loss_rir: float = float(loss_l1_rir + loss_stft_rir)
             loss_speech: float = float(loss_l1_speech + loss_stft_speech)
             loss_total: float = float(loss_rir + loss_speech)

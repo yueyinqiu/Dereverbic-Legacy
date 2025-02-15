@@ -246,11 +246,17 @@ class RicbeModel(RirBlindEstimationModel):
 
         self.module = _RicbeModule().to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
-        self.spec_loss = MrstftLoss(device, 
-                                    fft_sizes=[512, 1024, 2048, 4096], 
-                                    hop_sizes=[50, 120, 240, 480], 
-                                    win_lengths=[512, 1024, 2048, 4096],
-                                    window="hann_window")
+
+        self.speech_mrstft = MrstftLoss(device, 
+                                        fft_sizes=[256, 512, 1024, 2048], 
+                                        hop_sizes=[64, 128, 256, 512], 
+                                        win_lengths=[256, 512, 1024, 2048],
+                                        window="hann_window")
+        self.rir_mrstft = MrstftLoss(device, 
+                                     fft_sizes=[32, 256, 1024, 4096],
+                                     hop_sizes=[16, 128, 512, 2048],
+                                     win_lengths=[32, 256, 1024, 4096], 
+                                     window="hann_window")
         self.l1 = torch.nn.L1Loss().to(device)
 
     class StateDict(TypedDict):
@@ -285,27 +291,24 @@ class RicbeModel(RirBlindEstimationModel):
                  speech_batch: Tensor2d) -> dict[str, float]:
         predicted: RicbeModel.Prediction = self._predict(reverb_batch)
 
-        loss_l1_rir: Tensor0d = self.l1(predicted.rir, rir_batch)
-        loss_stft_rir: Tensor0d = self.spec_loss(predicted.rir, rir_batch).total()
-        loss_l1_speech: Tensor0d = self.l1(predicted.speech, speech_batch)
-        loss_stft_speech: Tensor0d = self.spec_loss(predicted.speech, speech_batch).total()
+        rir_l1: Tensor0d = self.l1(predicted.rir, rir_batch)
+        rir_mrstft: Tensor0d = self.rir_mrstft(predicted.rir, rir_batch).total()
+        speech_l1: Tensor0d = self.l1(predicted.speech, speech_batch)
+        speech_mrstft: Tensor0d = self.speech_mrstft(predicted.speech, speech_batch).total()
         
-        loss_rir: Tensor0d = Tensor0d(loss_l1_rir + loss_stft_rir)
-        loss_speech: Tensor0d = Tensor0d(loss_l1_speech + loss_stft_speech)
-
+        loss_rir: Tensor0d = Tensor0d(rir_l1 + rir_mrstft)
+        loss_speech: Tensor0d = Tensor0d(speech_l1 + speech_mrstft)
         loss_total: Tensor0d = Tensor0d(loss_rir + loss_speech)
 
         self.optimizer.zero_grad()
         loss_total.backward()
         self.optimizer.step()
 
-        result: dict[str, float] = {
+        return {
             "loss_total": float(loss_total),
             "loss_rir": float(loss_rir),
             "loss_speech": float(loss_speech)
         }
-
-        return result
 
     def evaluate_on(self, reverb_batch: Tensor2d):
         self.module.eval()
