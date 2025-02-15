@@ -89,11 +89,13 @@ def main():
         }
     def criterion_reverberation_time(actual: DataBatch, 
                                      predicted: RicbeModel.Prediction) -> dict[str, float]:
-        actual_edc: Tensor2d = RirAcousticFeatureExtractor.energy_decay_curve_decibel(actual.rir)
-        actual_rt30: Tensor1d = RirAcousticFeatureExtractor.get_reverberation_time_2d(actual_edc)
-        predicted_edc: Tensor2d = RirAcousticFeatureExtractor.energy_decay_curve_decibel(predicted.rir)
-        predicted_rt30: Tensor1d = RirAcousticFeatureExtractor.get_reverberation_time_2d(predicted_edc)
-        return {"rt30": float(torch.nn.functional.mse_loss(predicted_rt30, actual_rt30))}
+        a_edc: Tensor2d = RirAcousticFeatureExtractor.energy_decay_curve_decibel(actual.rir)
+        a_rt30: Tensor1d = RirAcousticFeatureExtractor.get_reverberation_time_2d(a_edc, 
+                                                                                 sample_rate=16000)
+        p_edc: Tensor2d = RirAcousticFeatureExtractor.energy_decay_curve_decibel(predicted.rir)
+        p_rt30: Tensor1d = RirAcousticFeatureExtractor.get_reverberation_time_2d(p_edc, 
+                                                                                 sample_rate=16000)
+        return {"rt30": float(torch.nn.functional.mse_loss(p_rt30, a_rt30))}
 
     test(RicbeModel(config.device), 
          CheckpointsDirectory(config.checkpoints_directory), 
