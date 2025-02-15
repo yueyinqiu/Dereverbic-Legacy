@@ -382,7 +382,8 @@ class FinsModel(RirBlindEstimationModel):
         self.loss = MrstftLoss(device,                 
                                fft_sizes=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
                                hop_sizes=[i * 16000 // 48000 for i in [32, 256, 1024, 4096]],
-                               win_lengths=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]])
+                               win_lengths=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
+                               window="hann_window")
 
     class StateDict(TypedDict):
         model: dict[str, Any]
@@ -436,16 +437,17 @@ class FinsModel(RirBlindEstimationModel):
                  speech_batch: Tensor2d) -> dict[str, float]:
         predicted: Tensor2d = self._predict(reverb_batch, None, None)
         losses: MrstftLoss.Return = self.loss(predicted, rir_batch)
+        loss_total: Tensor0d = losses.total()
 
         self.optimizer.zero_grad()
-        losses["total"].backward()
+        loss_total.backward()
         torch.nn.utils.clip_grad_norm_(self.module.parameters(), 5)
         self.optimizer.step()
 
         result: dict[str, float] = {
-            "loss_total": float(losses["total"]),
-            "loss_mag": float(losses["mag_loss"]),
-            "loss_sc": float(losses["sc_loss"]),
+            "loss_total": float(loss_total),
+            "loss_mag": float(losses.mag_loss),
+            "loss_sc": float(losses.sc_loss),
             "lr": self.scheduler.get_last_lr()[0]
         }
 

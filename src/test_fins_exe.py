@@ -11,7 +11,8 @@ with torch.no_grad():
     mrstft: MrstftLoss = MrstftLoss(config.device, 
                                     fft_sizes=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
                                     hop_sizes=[i * 16000 // 48000 for i in [32, 256, 1024, 4096]],
-                                    win_lengths=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]])
+                                    win_lengths=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
+                                    window="hann_window")
     print(f"# Batch count: {data.__len__()}")
 
     rank_file: Path = checkpoints.get_path(None) / "validation_rank.txt"
@@ -41,9 +42,9 @@ with torch.no_grad():
         predicted: Tensor2d = model.evaluate_on(batch.reverb)
         mrstft_value: MrstftLoss.Return = mrstft(predicted, batch.rir)
         
-        mrstft_total: float = float(mrstft_value["total"])
-        mrstft_sc: float = float(mrstft_value["sc_loss"])
-        mrstft_mag: float = float(mrstft_value["mag_loss"])
+        mrstft_total: float = float(mrstft_value.total())
+        mrstft_sc: float = float(mrstft_value.sc_loss)
+        mrstft_mag: float = float(mrstft_value.mag_loss)
 
         mrstft_total_accumulator.add(mrstft_total)
         mrstft_sc_accumulator.add(mrstft_sc)

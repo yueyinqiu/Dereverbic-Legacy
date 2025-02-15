@@ -249,7 +249,8 @@ class RicbeModel(RirBlindEstimationModel):
         self.spec_loss = MrstftLoss(device, 
                                     fft_sizes=[512, 1024, 2048, 4096], 
                                     hop_sizes=[50, 120, 240, 480], 
-                                    win_lengths=[512, 1024, 2048, 4096])
+                                    win_lengths=[512, 1024, 2048, 4096],
+                                    window="hann_window")
         self.l1 = torch.nn.L1Loss().to(device)
 
     class StateDict(TypedDict):
@@ -285,9 +286,9 @@ class RicbeModel(RirBlindEstimationModel):
         predicted: RicbeModel.Prediction = self._predict(reverb_batch)
 
         loss_l1_rir: Tensor0d = self.l1(predicted.rir, rir_batch)
-        loss_stft_rir: Tensor0d = self.spec_loss(predicted.rir, rir_batch)["total"]
+        loss_stft_rir: Tensor0d = self.spec_loss(predicted.rir, rir_batch).total()
         loss_l1_speech: Tensor0d = self.l1(predicted.speech, speech_batch)
-        loss_stft_speech: Tensor0d = self.spec_loss(predicted.speech, speech_batch)["total"]
+        loss_stft_speech: Tensor0d = self.spec_loss(predicted.speech, speech_batch).total()
         
         loss_rir: Tensor0d = Tensor0d(loss_l1_rir + loss_stft_rir)
         loss_speech: Tensor0d = Tensor0d(loss_l1_speech + loss_stft_speech)

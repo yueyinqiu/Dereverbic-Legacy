@@ -57,35 +57,37 @@ def main():
     mrstft_ricbe: MrstftLoss = MrstftLoss(config.device, 
                                           fft_sizes=[512, 1024, 2048, 4096], 
                                           hop_sizes=[50, 120, 240, 480], 
-                                          win_lengths=[512, 1024, 2048, 4096])
+                                          win_lengths=[512, 1024, 2048, 4096],
+                                          window="hann_window")
     mrstft_fins: MrstftLoss = MrstftLoss(config.device, 
                                          fft_sizes=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
                                          hop_sizes=[i * 16000 // 48000 for i in [32, 256, 1024, 4096]],
-                                         win_lengths=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]])
+                                         win_lengths=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
+                                         window="hann_window")
     
     def criterion_rir_mrstft(actual: DataBatch, 
                              predicted: RicbeModel.Prediction) -> dict[str, float]:
         values: MrstftLoss.Return = mrstft_ricbe(actual.rir, predicted.rir)
         return {
-            "rir_mrstft": float(values["total"]),
-            "rir_mrstft_mag": float(values["mag_loss"]),
-            "rir_mrstft_sc": float(values["sc_loss"]),
+            "rir_mrstft": float(values.total()),
+            "rir_mrstft_mag": float(values.mag_loss),
+            "rir_mrstft_sc": float(values.sc_loss),
         }
     def criterion_speech_mrstft(actual: DataBatch, 
                              predicted: RicbeModel.Prediction) -> dict[str, float]:
         values: MrstftLoss.Return = mrstft_ricbe(actual.speech, predicted.speech)
         return {
-            "speech_mrstft": float(values["total"]),
-            "speech_mrstft_mag": float(values["mag_loss"]),
-            "speech_mrstft_sc": float(values["sc_loss"]),
+            "speech_mrstft": float(values.total()),
+            "speech_mrstft_mag": float(values.mag_loss),
+            "speech_mrstft_sc": float(values.sc_loss),
         }
     def criterion_rir_mrstft_fins(actual: DataBatch, 
                                   predicted: RicbeModel.Prediction) -> dict[str, float]:
         values: MrstftLoss.Return = mrstft_fins(actual.rir, predicted.rir)
         return {
-            "rir_mrstft_fins": float(values["total"]),
-            "rir_mrstft_fins_mag": float(values["mag_loss"]),
-            "rir_mrstft_fins_sc": float(values["sc_loss"]),
+            "rir_mrstft_fins": float(values.total()),
+            "rir_mrstft_fins_mag": float(values.mag_loss),
+            "rir_mrstft_fins_sc": float(values.sc_loss),
         }
     def criterion_reverberation_time(actual: DataBatch, 
                                      predicted: RicbeModel.Prediction) -> dict[str, float]:
