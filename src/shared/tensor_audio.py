@@ -30,5 +30,8 @@ class TensorAudio(StaticClass):
                    audio: Tensor1d | Tensor2d, 
                    path: Path, 
                    sample_rate: int) -> None:
+        audio_numpy: numpy.ndarray = audio.detach().cpu().numpy()
+        if audio_numpy.shape.__len__() == 2 and audio_numpy.shape[0] == 1:
+            audio_numpy = audio_numpy.squeeze(0)
         import soundfile
-        soundfile.write(path, audio.detach().cpu().numpy(), sample_rate)
+        soundfile.write(path, audio_numpy, sample_rate)
