@@ -97,7 +97,10 @@ def main():
         p_edc: Tensor2d = RirAcousticFeatureExtractor.energy_decay_curve_decibel(predicted.rir)
         p_rt30: Tensor1d = RirAcousticFeatureExtractor.get_reverberation_time_2d(p_edc, 
                                                                                  sample_rate=16000)
-        return {"rt30": float(torch.nn.functional.mse_loss(p_rt30, a_rt30))}
+        return {
+            "rt30_l1": float(torch.nn.functional.l1_loss(p_rt30, a_rt30)),
+            "rt30_mse": float(torch.nn.functional.mse_loss(p_rt30, a_rt30))
+        }
 
     test(RicbeModel(config.device), 
          CheckpointsDirectory(config.checkpoints_directory), 
