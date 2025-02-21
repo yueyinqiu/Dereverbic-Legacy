@@ -1,11 +1,14 @@
-from .i0 import *
-from .rir_convolve_fft import RirConvolveFft
 
+from pathlib import Path
+from typing import TypedDict
 
-class DataBatch(NamedTuple):
-    rir: Tensor2d
-    speech: Tensor2d
-    reverb: Tensor2d
+import csfile
+from torch import Tensor
+import torch
+from statictorch import Tensor1d, Tensor2d, anify
+
+from data_providing.data_batch import DataBatch
+from shared.rir_convolve_fft import RirConvolveFft
 
 
 class TrainDataProvider:
@@ -52,45 +55,8 @@ class TrainDataProvider:
         reverb_batch: Tensor2d = RirConvolveFft.get_reverb(speeches_batch, rirs_batch)
 
         return DataBatch(rirs_batch, speeches_batch, reverb_batch)
-
-
-class ValidationOrTestDataset(Dataset):
-    def __init__(self, 
-                 data_list: Path, 
-                 device: torch.device):
-        self._paths = csfile.read_all_lines(data_list)
-        self._device = device
-
-    def __len__(self):
-        return self._paths.__len__()
-
-    class DatasetItem(TypedDict):
-        rir: Tensor1d
-        speech: Tensor1d
-        reverb: Tensor1d
-
-    def __getitem__(self, i: int) -> DatasetItem:
-        return torch.load(self._paths[i], weights_only=True, map_location=self._device)
-
-    def get_data_loader(self, batch_size: int) -> DataLoader:
-        def collate(data: list[ValidationOrTestDataset.DatasetItem]) -> DataBatch:
-            rirs: list[Tensor1d] = []
-            speeches: list[Tensor1d] = []
-            reverbs: list[Tensor1d] = []
-
-            item: ValidationOrTestDataset.DatasetItem
-            for item in data:
-                rirs.append(item["rir"])
-                speeches.append(item["speech"])
-                reverbs.append(item["reverb"])
-            
-            return DataBatch(Tensor2d(torch.stack(anify(rirs))), 
-                             Tensor2d(torch.stack(anify(speeches))), 
-                             Tensor2d(torch.stack(anify(reverbs))))
-
-        return DataLoader(self, batch_size, False, collate_fn=collate)
-
-
+    
+    
 def _test_train_data_provider():
     import csfile
     import tempfile

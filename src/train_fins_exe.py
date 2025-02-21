@@ -1,3 +1,5 @@
+from checkpointing import CheckpointsDirectory
+from data_providing import TrainDataProvider
 from shared.i import *
 import train_fins_config as config
 

@@ -1,4 +1,9 @@
-from .i0 import *
+from pathlib import Path
+from typing import Iterable
+
+import csdir
+
+from checkpointing.epoch_and_path import EpochAndPath
 
 
 class CheckpointsDirectory:
@@ -15,10 +20,6 @@ class CheckpointsDirectory:
             return self._path
         return self._path / f"{self._prefix}{epoch}{self._suffix}"
     
-    class EpochAndPath(NamedTuple):
-        epoch: int
-        path: Path
-
     def _get_all_not_sorted(self) -> Iterable[EpochAndPath]:
         file: Path
         for file in self._path.iterdir():
@@ -36,7 +37,7 @@ class CheckpointsDirectory:
                 epoch: int = int(file_name)
             except ValueError:
                 continue
-            yield CheckpointsDirectory.EpochAndPath(epoch, file)
+            yield EpochAndPath(epoch, file)
     
     def get_all(self) -> list[EpochAndPath]:
         return sorted(self._get_all_not_sorted(), key=lambda x: x[0])

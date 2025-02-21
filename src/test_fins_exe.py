@@ -1,3 +1,8 @@
+from checkpointing import CheckpointsDirectory
+from checkpointing import EpochAndPath
+from csv_accessing import CsvWriter
+from data_providing import DataBatch
+from data_providing import ValidationOrTestDataset
 from shared.i import *
 import test_fins_config as config
 
@@ -21,13 +26,13 @@ with torch.no_grad():
         path: Path = checkpoints.get_path(epoch)
         print(f"# Rank file found. The best checkpoint {epoch} will be used.")
     else:
-        latest: CheckpointsDirectory.EpochAndPath | None = checkpoints.get_latest()
+        latest: EpochAndPath | None = checkpoints.get_latest()
         if not latest:
             raise FileNotFoundError("Failed to find any checkpoint in the checkpoints directory.")
         epoch, path = latest
         print(f"# Failed to find the rank file. The latest checkpoint {epoch} will be used.")
 
-    csv_print: CsvWriterProtocol = csv.writer(sys.stdout)
+    csv_print: CsvWriter = csv.writer(sys.stdout)
     csv_print.writerow(["batch", "metric", "value"])
 
     Trainer.load_model(model, path)

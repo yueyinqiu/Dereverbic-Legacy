@@ -1,7 +1,7 @@
+from csv_accessing.csv_writer import CsvWriter
+from data_providing.train_data_provider import TrainDataProvider
 from .i0 import *
-from .csv_protocol import CsvWriterProtocol
-from .checkpoints_directory import CheckpointsDirectory
-from .data_provider import TrainDataProvider
+from ..checkpointing.checkpoints_directory import CheckpointsDirectory
 from .rir_blind_estimation_model import RirBlindEstimationModel
 from .static_class import StaticClass
 
@@ -44,7 +44,7 @@ class Trainer(StaticClass):
         rir_batch, speech_batch, reverb_batch = train_data.next_batch()
         details: dict[str, float] = model.train_on(reverb_batch, rir_batch, speech_batch)
         
-        print_csv: CsvWriterProtocol = csv.writer(sys.stdout)
+        print_csv: CsvWriter = csv.writer(sys.stdout)
         detail_keys: list[str] = list(details.keys())
         def print_details():
             print_csv.writerow((batch_index, 

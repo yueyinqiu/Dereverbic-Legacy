@@ -1,3 +1,7 @@
+from checkpointing import CheckpointsDirectory
+from csv_accessing import CsvWriter
+from data_providing import DataBatch
+from data_providing import ValidationOrTestDataset
 from shared.i import *
 import validate_fins_config as config
 
@@ -17,7 +21,7 @@ with torch.no_grad():
 
     scores: dict[int, float] = {}
 
-    csv_print: CsvWriterProtocol = csv.writer(sys.stdout)
+    csv_print: CsvWriter = csv.writer(sys.stdout)
     csv_print.writerow(["epoch", "batch", "metric", "value"])
     epoch: int
     path: Path
