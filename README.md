@@ -2,7 +2,7 @@
 
 ## 环境
 
-我们在 Linux 上使用 Anaconda 进行环境管理。 CUDA 版本为 12.4 。
+我们在 Linux 上使用 Anaconda 进行环境管理。 CUDA 版本 12.4 。我们开发时使用 Visual Studio Code ，也强烈建议您继续使用它。
 
 ```shell
 conda create -n Ricbe python=3.12.8
@@ -14,15 +14,17 @@ pip install -r other_requirements.txt
 
 ## 项目结构
 
-所有代码均放在 `src` 文件夹下，但执行时一般把工作目录设置在 `Ricbe--RirBlindEstimation` 处，默认配置都是按照这个工作目录设置的。
+为了更好地导入各模块，我们统一将 `src` 视为根目录进行 `import` 。运行脚本时，需要将 `PYTHONPATH` 设置到 `src` 处，否则模块可能导入失败。如果您使用 Visual Studio Code ，则不需要手动调整，因为我们配置好了 `python.envFile` 。但由于相对路径的使用，在终端中执行脚本时，请确保当前目录位于默认的 `Ricbe--RirBlindEstimation` 处。
 
-其中以 `_exe.py` 结尾的文件是设计为可以直接执行的：
+我们在部分脚本的文件名中加入了 `_exe.py` ，以表示它是被设计为直接执行的：
 
 ```shell
 python src/xxxxx_exe.py
 ```
 
-而 `_exe.py` 会有与其对应的 `_config.py` 来储存配置。是的，我们直接使用 python 脚本来保存配置。这允许我们设置一些更加复杂的配置项，也能方便地复用之前的配置，并在代码中定位其配置项的使用位置。
+其余的脚本则会被这些可执行脚本引用，以完成相应的任务。其中一部分也能够直接运行并获得一些输出，但这主要用于测试其自身功能是否正常。
+
+除此之外，每个可执行脚本都会有与其对应的配置脚本 `_config.py` 来储存配置。使用脚本文件保存配置，可以允许一些更加复杂的配置项，也方便复用，并能够在代码中直接定位来源。如果使用 Visual Studio Code ，这些配置脚本会被嵌套在相应的可执行脚本下，而不是显示为一个独立的文件。
 
 为了更好地维护相互间的执行顺序和依赖关系，这里列出一张顺序表：
 
@@ -59,4 +61,4 @@ Bird： https://github.com/FrancoisGrondin/BIRD
 
 Ears： https://github.com/facebookresearch/ears_dataset
 
-可以使用 `download_ears_exe` 下载：
+可以使用 `download_ears_exe` 下载。

@@ -28,7 +28,8 @@
 			"--disable=all",
 			"--enable=un-declared-variable",
 			"--enable=re-declared-variable"
-		]
+		],
+		"python.envFile": "${workspaceFolder}/python.env"
 	},
 	"folders": [
 		{
