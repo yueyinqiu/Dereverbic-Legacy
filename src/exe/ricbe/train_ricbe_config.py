@@ -1,8 +1,8 @@
 import pathlib as _pathlib
 import torch as _torch
 
-import common_configurations as _common_config
-import split_dataset_config as _split_dataset_config
+from exe import common_configurations
+from exe.data import split_dataset_config
 
 
 device: _torch.device = \
@@ -14,16 +14,16 @@ checkpoint_interval: int = \
 
 
 checkpoints_directory: _pathlib.Path = \
-    _common_config.checkpoints_directory / "fins/"
+    common_configurations.checkpoints_directory / "ricbe/"
 
 
 train_list_rir: _pathlib.Path = \
-    _split_dataset_config.train_list_rir
+    split_dataset_config.train_list_rir
 
 
 train_list_speech: _pathlib.Path = \
-    _split_dataset_config.train_list_speech
+    split_dataset_config.train_list_speech
 
 
 random_seed: str = \
-    "AB866237-508D-4D3B-AC74-5CB8A84E632B"
+    "8D525442-6013-4C86-A12A-001A62B5A799"

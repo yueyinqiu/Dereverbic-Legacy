@@ -19,7 +19,6 @@ from metrics.stft_losses.mrstft_loss import MrstftLoss
 from torch.utils.data import DataLoader
 
 from models.fins_models.fins_model import FinsModel
-import test_fins_config
 from trainers.trainer import Trainer
 
 
@@ -73,8 +72,10 @@ def test(model: FinsModel,
 
 
 def main():
+    from exe.fins import test_fins_config as config
+
     print("# Loading...")
-    mrstft_rir: MrstftLoss = MrstftLoss(test_fins_config.device, 
+    mrstft_rir: MrstftLoss = MrstftLoss(config.device, 
                                         fft_sizes=[32, 256, 1024, 4096],
                                         hop_sizes=[16, 128, 512, 2048],
                                         win_lengths=[32, 256, 1024, 4096], 
@@ -93,7 +94,7 @@ def main():
         a_edc: Tensor2d = RirAcousticFeatures.energy_decay_curve_decibel(actual.rir)
         a_rt30: Tensor1d = RirAcousticFeatures.get_reverberation_time_2d(a_edc, 
                                                                          sample_rate=16000)
-        p_edc: Tensor2d = RirAcousticFeatures.energy_decay_curve_decibel(predicted.rir)
+        p_edc: Tensor2d = RirAcousticFeatures.energy_decay_curve_decibel(predicted)
         p_rt30: Tensor1d = RirAcousticFeatures.get_reverberation_time_2d(p_edc, 
                                                                          sample_rate=16000)
         return {
@@ -101,10 +102,10 @@ def main():
             "rt30_mse": float(torch.nn.functional.mse_loss(p_rt30, a_rt30))
         }
 
-    random: Random = Random(test_fins_config.random_seed)
-    test(FinsModel(test_fins_config.device, random.randint(0, 1000)), 
-         CheckpointsDirectory(test_fins_config.checkpoints_directory), 
-         ValidationOrTestDataset(test_fins_config.test_list, test_fins_config.device).get_data_loader(32),
+    random: Random = Random(config.random_seed)
+    test(FinsModel(config.device, random.randint(0, 1000)), 
+         CheckpointsDirectory(config.checkpoints_directory), 
+         ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          [
              criterion_rir_mrstft, 
              criterion_reverberation_time

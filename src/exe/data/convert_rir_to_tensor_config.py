@@ -1,16 +1,16 @@
 import pathlib as _pathlib
 import typing as _typing
 
-import common_configurations as _common_config
-import download_bird_config as _download_bird_config
+from exe import common_configurations
+from exe.data import download_bird_config
 
 
 inputs: _typing.Iterable[_pathlib.Path] = \
-    _download_bird_config.destination.glob("**/*.flac")
+    download_bird_config.destination.glob("**/*.flac")
 
 
 output_directory: _pathlib.Path = \
-    _common_config.data_directory / "rir/"
+    common_configurations.data_directory / "rir/"
 
 
 random_seed: str = \

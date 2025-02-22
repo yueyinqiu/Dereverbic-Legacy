@@ -7,7 +7,6 @@ from statictorch import Tensor1d, Tensor2d
 import torch
 
 from basic_utilities.string_random import StringRandom
-import convert_rir_to_tensor_config
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
 from inputs_and_outputs.tensor_audios.tensor_audios import TensorAudios
 
@@ -24,15 +23,17 @@ def _save_tensor(audio: Tensor1d,
 
 
 def main():
-    rand: Random = Random(convert_rir_to_tensor_config.random_seed)
+    from exe.data import convert_rir_to_tensor_config as config
+
+    rand: Random = Random(config.random_seed)
     string_random: StringRandom = StringRandom(rand, 16)
 
     print("Sorting files ...")
-    inputs: list[Path] = sorted(convert_rir_to_tensor_config.inputs)
+    inputs: list[Path] = sorted(config.inputs)
 
-    csdir.create_directory(convert_rir_to_tensor_config.output_directory)
+    csdir.create_directory(config.output_directory)
     contents_file: io.TextIOWrapper
-    with open(convert_rir_to_tensor_config.output_directory.joinpath("contents.csv").absolute(),
+    with open(config.output_directory.joinpath("contents.csv").absolute(),
               "w", newline="") as contents_file:
         contents_writer: CsvWriter = csv.writer(contents_file)
         contents_writer.writerow(["Tensor", "Original Audio", "Original Channel"])
@@ -48,7 +49,7 @@ def main():
             for i in range(audio.shape[0]):
                 tensor_file: Path = _save_tensor(Tensor1d(audio[i]), 
                                                  string_random.next(), 
-                                                 convert_rir_to_tensor_config.output_directory)
+                                                 config.output_directory)
                 contents_writer.writerow([str(tensor_file), str(path), str(i)])
                 contents_file.flush()
                 

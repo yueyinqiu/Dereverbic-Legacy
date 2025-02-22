@@ -1,16 +1,16 @@
 import pathlib as _pathlib
 import typing as _typing
 
-import common_configurations as _common_config
-import download_ears_config as _download_ears_config
+from exe import common_configurations
+from exe.data import download_ears_config
 
 
 inputs: _typing.Iterable[_pathlib.Path] = \
-    _download_ears_config.destination.glob("**/*.wav")
+    download_ears_config.destination.glob("**/*.wav")
 
 
 output_directory: _pathlib.Path = \
-    _common_config.data_directory / "speech/"
+    common_configurations.data_directory / "speech/"
 
 
 random_seed: str = \

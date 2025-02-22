@@ -4,7 +4,7 @@
 		"explorer.fileNesting.enabled": true,
 		"explorer.fileNesting.expand": false,
 		"explorer.fileNesting.patterns": {
-			"*_exe.py": "${capture}_config.py"
+			"*.py": "${capture}_config.py"
 		},
 		"python.analysis.exclude": [
 			"**/__pycache__",

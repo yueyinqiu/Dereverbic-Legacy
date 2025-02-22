@@ -18,7 +18,6 @@ from models.ricbe_models.ricbe_model import RicbeModel
 
 from torch.utils.data import DataLoader
 
-import test_ricbe_config
 from trainers.trainer import Trainer
 
 
@@ -72,13 +71,15 @@ def test(model: RicbeModel,
 
 
 def main():
+    from exe.ricbe import test_ricbe_config as config
+
     print("# Loading...")
-    mrstft_rir: MrstftLoss = MrstftLoss(test_ricbe_config.device, 
+    mrstft_rir: MrstftLoss = MrstftLoss(config.device, 
                                         fft_sizes=[32, 256, 1024, 4096],
                                         hop_sizes=[16, 128, 512, 2048],
                                         win_lengths=[32, 256, 1024, 4096], 
                                         window="hann_window")
-    mrstft_speech: MrstftLoss = MrstftLoss(test_ricbe_config.device, 
+    mrstft_speech: MrstftLoss = MrstftLoss(config.device, 
                                            fft_sizes=[256, 512, 1024, 2048], 
                                            hop_sizes=[64, 128, 256, 512], 
                                            win_lengths=[256, 512, 1024, 2048],
@@ -113,9 +114,9 @@ def main():
             "rt30_mse": float(torch.nn.functional.mse_loss(p_rt30, a_rt30))
         }
 
-    test(RicbeModel(test_ricbe_config.device), 
-         CheckpointsDirectory(test_ricbe_config.checkpoints_directory), 
-         ValidationOrTestDataset(test_ricbe_config.test_list, test_ricbe_config.device).get_data_loader(32),
+    test(RicbeModel(config.device), 
+         CheckpointsDirectory(config.checkpoints_directory), 
+         ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          [
              criterion_rir_mrstft, 
              criterion_speech_mrstft,

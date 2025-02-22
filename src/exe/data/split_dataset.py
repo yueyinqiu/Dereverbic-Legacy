@@ -12,7 +12,6 @@ from audio_processors.rir_convolution import RirConvolution
 from basic_utilities.string_random import StringRandom
 from inputs_and_outputs.csv_accessors.csv_reader import CsvReader
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
-import split_dataset_config
 
 
 def load_and_sort(contents: Path):
@@ -57,24 +56,25 @@ def save_reverb(rir_path: str,
 
 
 def main():
-    random: Random = Random(split_dataset_config.random_seed)
+    from exe.data import split_dataset_config as config
+    random: Random = Random(config.random_seed)
 
     print("Shuffling...")
     # 文件名为随机值，排序就是打乱
-    rirs: list[str] = load_and_sort(split_dataset_config.rir_contents)
-    speeches: list[str] = load_and_sort(split_dataset_config.speech_contents)
+    rirs: list[str] = load_and_sort(config.rir_contents)
+    speeches: list[str] = load_and_sort(config.speech_contents)
 
     print("Saving train lists...")
-    csfile.write_all_lines(split_dataset_config.train_list_rir, rirs[:-20000])
-    csfile.write_all_lines(split_dataset_config.train_list_speech, speeches[:-20000])
+    csfile.write_all_lines(config.train_list_rir, rirs[:-20000])
+    csfile.write_all_lines(config.train_list_speech, speeches[:-20000])
 
     validation_files: list[str] = []
     test_files: list[str] = []
 
     reverb_name_generator: StringRandom = StringRandom(random, 16)
     reverb_contents_file: io.TextIOWrapper
-    csdir.create_directory(split_dataset_config.reverb_directory)
-    with open(split_dataset_config.reverb_directory.joinpath("contents.csv").absolute(),
+    csdir.create_directory(config.reverb_directory)
+    with open(config.reverb_directory.joinpath("contents.csv").absolute(),
               "w", newline="") as reverb_contents_file:
         reverb_contents_writer: CsvWriter = csv.writer(reverb_contents_file)
         reverb_contents_writer.writerow(["Reverb", "Rir", "Speech"])
@@ -89,7 +89,7 @@ def main():
             reverb_path: Path = save_reverb(rir_path, 
                                             speech_path, 
                                             reverb_name_generator, 
-                                            split_dataset_config.reverb_directory)
+                                            config.reverb_directory)
             reverb_contents_writer.writerow([str(reverb_path), rir_path, speech_path])
             reverb_contents_file.flush()
             validation_files.append(str(reverb_path))
@@ -102,16 +102,16 @@ def main():
             reverb_path = save_reverb(rir_path, 
                                       speech_path, 
                                       reverb_name_generator, 
-                                      split_dataset_config.reverb_directory)
+                                      config.reverb_directory)
             reverb_contents_writer.writerow([str(reverb_path), rir_path, speech_path])
             reverb_contents_file.flush()
             test_files.append(str(reverb_path))
 
     print("Saving validation lists...")
-    csfile.write_all_lines(split_dataset_config.validation_list, validation_files)
+    csfile.write_all_lines(config.validation_list, validation_files)
 
     print("Saving test lists...")
-    csfile.write_all_lines(split_dataset_config.test_list, test_files)
+    csfile.write_all_lines(config.test_list, test_files)
 
     print("Completed.")
 
