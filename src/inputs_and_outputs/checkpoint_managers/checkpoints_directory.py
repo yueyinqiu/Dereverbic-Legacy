@@ -3,7 +3,7 @@ from typing import Iterable
 
 import csdir
 
-from checkpoint_managers.epoch_and_path import EpochAndPath
+from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath
 
 
 class CheckpointsDirectory:

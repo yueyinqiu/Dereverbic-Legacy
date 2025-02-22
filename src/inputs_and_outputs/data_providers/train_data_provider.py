@@ -8,7 +8,7 @@ import torch
 from statictorch import Tensor1d, Tensor2d, anify
 
 from audio_processors.rir_convolution import RirConvolution
-from data_providers.data_batch import DataBatch
+from inputs_and_outputs.data_providers.data_batch import DataBatch
 
 
 class TrainDataProvider:

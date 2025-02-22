@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from statictorch import Tensor1d, Tensor2d, anify
 
-from data_providers.data_batch import DataBatch
+from inputs_and_outputs.data_providers.data_batch import DataBatch
 
 
 class ValidationOrTestDataset(Dataset):
