@@ -1,20 +1,22 @@
-from checkpointing import CheckpointsDirectory
-from data_providing import TrainDataProvider
-from shared.i import *
-import train_ricbe_config as config
+from random import Random
+from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
+from inputs_and_outputs.data_providers.train_data_provider import TrainDataProvider
+from models.ricbe_models.ricbe_model import RicbeModel
+import train_ricbe_config
+from trainers.trainer import Trainer
 
 print("# Loading...")
-random: Random = Random(config.random_seed)
+random: Random = Random(train_ricbe_config.random_seed)
 
-checkpoints: CheckpointsDirectory = CheckpointsDirectory(config.checkpoints_directory)
+checkpoints: CheckpointsDirectory = CheckpointsDirectory(train_ricbe_config.checkpoints_directory)
 print(f"# Checkpoints: {checkpoints.get_path(None)}")
 
-train_data: TrainDataProvider = TrainDataProvider(config.train_list_rir, 
-                                                  config.train_list_speech,
+train_data: TrainDataProvider = TrainDataProvider(train_ricbe_config.train_list_rir, 
+                                                  train_ricbe_config.train_list_speech,
                                                   32,
-                                                  config.device,
+                                                  train_ricbe_config.device,
                                                   random.randint(0, 1000))
 
-model: RicbeModel = RicbeModel(config.device)
+model: RicbeModel = RicbeModel(train_ricbe_config.device)
 
-Trainer.train(checkpoints, train_data, model, config.checkpoint_interval)
+Trainer.train(checkpoints, train_data, model, train_ricbe_config.checkpoint_interval)

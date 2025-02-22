@@ -1,5 +1,17 @@
-from shared.i import *
-import _csv as _csv
+import csv
+import io
+from pathlib import Path
+from random import Random
+import csdir
+import librosa
+import numpy
+from statictorch import Tensor1d, Tensor2d
+import torch
+
+from basic_utilities.string_random import StringRandom
+import convert_speech_to_tensor_config
+from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
+from inputs_and_outputs.tensor_audios.tensor_audios import TensorAudios
 
 
 def _save_tensor(audio: Tensor1d,
@@ -13,20 +25,18 @@ def _save_tensor(audio: Tensor1d,
     return tensor_file
 
 
-def main():
-    import convert_speech_to_tensor_config as config
-    
-    rand: Random = Random(config.random_seed)
+def main():    
+    rand: Random = Random(convert_speech_to_tensor_config.random_seed)
     string_random: StringRandom = StringRandom(rand, 16)
     
     print("Sorting files ...")
-    inputs: list[Path] = sorted(config.inputs)
+    inputs: list[Path] = sorted(convert_speech_to_tensor_config.inputs)
 
-    csdir.create_directory(config.output_directory)
+    csdir.create_directory(convert_speech_to_tensor_config.output_directory)
     contents_file: io.TextIOWrapper
-    with open(config.output_directory.joinpath("contents.csv").absolute(),
+    with open(convert_speech_to_tensor_config.output_directory.joinpath("contents.csv").absolute(),
               "w", newline="") as contents_file:
-        contents_writer: '_csv._writer' = csv.writer(contents_file)
+        contents_writer: CsvWriter = csv.writer(contents_file)
         contents_writer.writerow(["Tensor", "Original Audio"])
 
         path: Path
@@ -34,7 +44,7 @@ def main():
             path = path.absolute()
             print(f"Dealing with {path} ...")
 
-            audio: Tensor2d = TensorAudio.load_audio(path, 16000, "as_mono")
+            audio: Tensor2d = TensorAudios.load_audio(path, 16000, "as_mono")
             channel: numpy.ndarray = audio[0, :].numpy()
             channel, _ = librosa.effects.trim(channel,
                                               top_db=60, 
@@ -46,7 +56,7 @@ def main():
             while start + 5 * 16000 < tensor.__len__() - 16000 // 5:
                 tensor_file: Path = _save_tensor(Tensor1d(tensor[start:(start + 5 * 16000)]), 
                                                  string_random.next(), 
-                                                 config.output_directory)
+                                                 convert_speech_to_tensor_config.output_directory)
                 contents_writer.writerow([str(tensor_file), str(path)])
                 contents_file.flush()
                 start += 5 * 16000

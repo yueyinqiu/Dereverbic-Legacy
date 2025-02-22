@@ -1,9 +1,25 @@
-from checkpointing import CheckpointsDirectory
-from checkpointing import EpochAndPath
-from csv_accessing import CsvWriter
-from data_providing import DataBatch
-from data_providing import ValidationOrTestDataset
-from shared.i import *
+import csv
+from pathlib import Path
+import sys
+from typing import Callable
+
+import csfile
+from statictorch import Tensor1d, Tensor2d
+import torch
+from audio_processors.rir_acoustic_features import RirAcousticFeatures
+from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
+from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath
+from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
+from inputs_and_outputs.data_providers.data_batch import DataBatch
+from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
+from metrics.kahan_accumulator import KahanAccumulator
+from metrics.stft_losses.mrstft_loss import MrstftLoss
+from models.ricbe_models.ricbe_model import RicbeModel
+
+from torch.utils.data import DataLoader
+
+import test_ricbe_config
+from trainers.trainer import Trainer
 
 
 def test(model: RicbeModel, 
@@ -56,15 +72,13 @@ def test(model: RicbeModel,
 
 
 def main():
-    import test_ricbe_config as config
-
     print("# Loading...")
-    mrstft_rir: MrstftLoss = MrstftLoss(config.device, 
+    mrstft_rir: MrstftLoss = MrstftLoss(test_ricbe_config.device, 
                                         fft_sizes=[32, 256, 1024, 4096],
                                         hop_sizes=[16, 128, 512, 2048],
                                         win_lengths=[32, 256, 1024, 4096], 
                                         window="hann_window")
-    mrstft_speech: MrstftLoss = MrstftLoss(config.device, 
+    mrstft_speech: MrstftLoss = MrstftLoss(test_ricbe_config.device, 
                                            fft_sizes=[256, 512, 1024, 2048], 
                                            hop_sizes=[64, 128, 256, 512], 
                                            win_lengths=[256, 512, 1024, 2048],
@@ -88,20 +102,20 @@ def main():
         }
     def criterion_reverberation_time(actual: DataBatch, 
                                      predicted: RicbeModel.Prediction) -> dict[str, float]:
-        a_edc: Tensor2d = RirAcousticFeatureExtractor.energy_decay_curve_decibel(actual.rir)
-        a_rt30: Tensor1d = RirAcousticFeatureExtractor.get_reverberation_time_2d(a_edc, 
+        a_edc: Tensor2d = RirAcousticFeatures.energy_decay_curve_decibel(actual.rir)
+        a_rt30: Tensor1d = RirAcousticFeatures.get_reverberation_time_2d(a_edc, 
                                                                                  sample_rate=16000)
-        p_edc: Tensor2d = RirAcousticFeatureExtractor.energy_decay_curve_decibel(predicted.rir)
-        p_rt30: Tensor1d = RirAcousticFeatureExtractor.get_reverberation_time_2d(p_edc, 
+        p_edc: Tensor2d = RirAcousticFeatures.energy_decay_curve_decibel(predicted.rir)
+        p_rt30: Tensor1d = RirAcousticFeatures.get_reverberation_time_2d(p_edc, 
                                                                                  sample_rate=16000)
         return {
-            "rt30_l1": float(torch.nn.functional.l1_loss(p_rt30, a_rt30)),
+            "rt30_bias": float(torch.mean(p_rt30 - a_rt30)),
             "rt30_mse": float(torch.nn.functional.mse_loss(p_rt30, a_rt30))
         }
 
-    test(RicbeModel(config.device), 
-         CheckpointsDirectory(config.checkpoints_directory), 
-         ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
+    test(RicbeModel(test_ricbe_config.device), 
+         CheckpointsDirectory(test_ricbe_config.checkpoints_directory), 
+         ValidationOrTestDataset(test_ricbe_config.test_list, test_ricbe_config.device).get_data_loader(32),
          [
              criterion_rir_mrstft, 
              criterion_speech_mrstft,

@@ -1,22 +1,32 @@
-from checkpointing import CheckpointsDirectory
-from csv_accessing import CsvWriter
-from data_providing import DataBatch
-from data_providing import ValidationOrTestDataset
-from shared.i import *
-import validate_fins_config as config
+import csv
+from pathlib import Path
+from random import Random
+import sys
+
+import csfile
+from statictorch import Tensor2d
+import torch
+from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
+from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
+from inputs_and_outputs.data_providers.data_batch import DataBatch
+from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
+from metrics.kahan_accumulator import KahanAccumulator
+from metrics.stft_losses.mrstft_loss import MrstftLoss
+from models.fins_models.fins_model import FinsModel
+from trainers.trainer import Trainer
+
+from torch.utils.data import DataLoader
+
+import validate_fins_config
 
 print("# Loading...")
 with torch.no_grad():
-    random: Random = Random(config.random_seed)
-    checkpoints: CheckpointsDirectory = CheckpointsDirectory(config.checkpoints_directory)
-    model: FinsModel = FinsModel(config.device, random.randint(0, 1000))
-    data: DataLoader = ValidationOrTestDataset(config.validation_list, 
-                                               config.device).get_data_loader(32)
-    mrstft: MrstftLoss = MrstftLoss(config.device, 
-                                    fft_sizes=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
-                                    hop_sizes=[i * 16000 // 48000 for i in [32, 256, 1024, 4096]],
-                                    win_lengths=[i * 16000 // 48000 for i in [64, 512, 2048, 8192]],
-                                    window="hann_window")
+    random: Random = Random(validate_fins_config.random_seed)
+    checkpoints: CheckpointsDirectory = CheckpointsDirectory(validate_fins_config.checkpoints_directory)
+    model: FinsModel = FinsModel(validate_fins_config.device, random.randint(0, 1000))
+    data: DataLoader = ValidationOrTestDataset(validate_fins_config.validation_list, 
+                                               validate_fins_config.device).get_data_loader(32)
+    mrstft: MrstftLoss = model.loss
     print(f"# Batch count: {data.__len__()}")
 
     scores: dict[int, float] = {}
@@ -26,7 +36,7 @@ with torch.no_grad():
     epoch: int
     path: Path
     for epoch, path in checkpoints.get_all():
-        if epoch < config.start_checkpoint:
+        if epoch < validate_fins_config.start_checkpoint:
             continue
         
         Trainer.load_model(model, path)

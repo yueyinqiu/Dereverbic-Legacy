@@ -1,17 +1,29 @@
-from checkpointing import CheckpointsDirectory
-from csv_accessing import CsvWriter
-from data_providing import DataBatch
-from data_providing import ValidationOrTestDataset
-from shared.i import *
-import validate_ricbe_config as config
+import csv
+from pathlib import Path
+import sys
+
+import csfile
+from statictorch import Tensor0d
+import torch
+from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
+from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
+from inputs_and_outputs.data_providers.data_batch import DataBatch
+from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
+from metrics.kahan_accumulator import KahanAccumulator
+from models.ricbe_models.ricbe_model import RicbeModel
+from trainers.trainer import Trainer
+
+from torch.utils.data import DataLoader
+
+import validate_ricbe_config
 
 
 print("# Loading...")
 with torch.no_grad():
-    checkpoints: CheckpointsDirectory = CheckpointsDirectory(config.checkpoints_directory)
-    model: RicbeModel = RicbeModel(config.device)
-    data: DataLoader = ValidationOrTestDataset(config.validation_list, 
-                                               config.device).get_data_loader(32)
+    checkpoints: CheckpointsDirectory = CheckpointsDirectory(validate_ricbe_config.checkpoints_directory)
+    model: RicbeModel = RicbeModel(validate_ricbe_config.device)
+    data: DataLoader = ValidationOrTestDataset(validate_ricbe_config.validation_list, 
+                                               validate_ricbe_config.device).get_data_loader(32)
     print(f"# Batch count: {data.__len__()}")
 
     scores: dict[int, float] = {}
@@ -21,7 +33,7 @@ with torch.no_grad():
     epoch: int
     path: Path
     for epoch, path in checkpoints.get_all():
-        if epoch < config.start_checkpoint:
+        if epoch < validate_ricbe_config.start_checkpoint:
             continue
         
         Trainer.load_model(model, path)
@@ -30,7 +42,7 @@ with torch.no_grad():
         loss_rir_accumulator: KahanAccumulator = KahanAccumulator()
         loss_speech_accumulator: KahanAccumulator = KahanAccumulator()
         
-        match config.rank:
+        match validate_ricbe_config.rank:
             case "rir_only":
                 rank: KahanAccumulator = loss_rir_accumulator
             case "speech_only":
