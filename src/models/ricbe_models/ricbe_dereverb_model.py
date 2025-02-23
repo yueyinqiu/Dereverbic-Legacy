@@ -87,7 +87,7 @@ class RicbeDereverbModel(Trainable, Validatable):
 
         predicted: Tensor2d = self._predict(reverb_batch)
         losses: dict[str, float]
-        _, losses = self._calculate_losses(rir_batch, predicted)
+        _, losses = self._calculate_losses(speech_batch, predicted)
 
         self.module.train()
         

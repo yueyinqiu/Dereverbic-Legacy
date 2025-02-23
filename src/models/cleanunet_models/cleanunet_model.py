@@ -22,9 +22,9 @@ class CleanunetModel(Trainable, Validatable):
         self.optimizer = Adam(self.module.parameters(), 2e-4)
 
         self.mrstft = MrstftLoss(device, 
-                                 fft_sizes=[50, 120, 240],
-                                 hop_sizes=[240, 600, 1200],
-                                 win_lengths=[512, 1024, 2048], 
+                                 fft_sizes=[512, 1024, 2048],
+                                 hop_sizes=[50, 120, 240],
+                                 win_lengths=[240, 600, 1200], 
                                  window="hann_window")
 
     class StateDict(TypedDict):
@@ -90,7 +90,7 @@ class CleanunetModel(Trainable, Validatable):
 
         predicted: Tensor2d = self._predict(reverb_batch)
         losses: dict[str, float]
-        _, losses = self._calculate_losses(rir_batch, predicted)
+        _, losses = self._calculate_losses(speech_batch, predicted)
 
         self.module.train()
         

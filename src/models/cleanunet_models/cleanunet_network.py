@@ -123,7 +123,7 @@ class CleanunetNetwork(torch.nn.Module):
         
         # normalization and padding
         std: Tensor = noisy_audio.std(dim=2, keepdim=True) + 1e-3
-        noisy_audio /= std
+        noisy_audio = noisy_audio / std
         x: Tensor = CleanunetNetwork.padding(noisy_audio, 
                                              self.encoder_n_layers, 
                                              self.kernel_size, 
@@ -149,12 +149,11 @@ class CleanunetNetwork(torch.nn.Module):
         x = x.permute(0, 2, 1)
         x = self.tsfm_conv2(x)  # C 512 -> 1024
 
-        # decoder
         i: int
         upsampling_block: torch.nn.Module
         for i, upsampling_block in enumerate(self.decoder):
-            skip_i = skip_connections[i]
-            x += skip_i[:, :, :x.shape[-1]]
+            skip_i: Tensor = skip_connections[i]
+            x = x + skip_i[:, :, :x.shape[-1]]
             x = upsampling_block(x)
 
         x = x[:, :, :L] * std

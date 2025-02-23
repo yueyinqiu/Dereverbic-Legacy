@@ -34,7 +34,7 @@ class CleanunetTransformerEncoder(torch.nn.Module):
 
         enc_output: Tensor = src_seq
         if self.scale_emb:
-            enc_output *= self.d_model ** 0.5
+            enc_output = enc_output * self.d_model ** 0.5
         enc_output = self.dropout(self.position_enc(enc_output))
         enc_output = self.layer_norm(enc_output)
 
