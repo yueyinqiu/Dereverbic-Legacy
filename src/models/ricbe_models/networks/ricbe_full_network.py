@@ -1,0 +1,18 @@
+from statictorch import Tensor3d
+import torch
+
+from models.ricbe_models.networks.ricbe_dereverb_network import RicbeDereverbNetwork
+from models.ricbe_models.networks.ricbe_ric_network import RicbeRicNetwork
+
+
+class RicbeFullNetwork(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.dereverb = RicbeDereverbNetwork()
+        self.ric = RicbeRicNetwork()
+
+    def forward(self, reverb: Tensor3d):
+        speech: Tensor3d = self.dereverb(reverb)
+        rir: Tensor3d = self.ric(reverb, speech)
+        return rir, speech
+    

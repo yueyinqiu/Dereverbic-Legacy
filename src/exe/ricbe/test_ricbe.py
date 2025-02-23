@@ -14,7 +14,7 @@ from inputs_and_outputs.data_providers.data_batch import DataBatch
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
 from metrics.kahan_accumulator import KahanAccumulator
 from metrics.stft_losses.mrstft_loss import MrstftLoss
-from models.ricbe_models.ricbe_model import RicbeModel
+from models.ricbe_models.ricbe_full_model import RicbeModel
 
 from torch.utils.data import DataLoader
 

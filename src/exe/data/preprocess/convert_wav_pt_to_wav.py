@@ -7,7 +7,7 @@ from inputs_and_outputs.tensor_audios.tensor_audios import TensorAudios
 
 
 def main():
-    from exe.data import convert_wav_pt_to_wav_config as config
+    from exe.data.preprocess import convert_wav_pt_to_wav_config as config
     input: Path
     output: Path
     for input, output in config.files:

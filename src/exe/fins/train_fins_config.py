@@ -2,7 +2,7 @@ import pathlib as _pathlib
 import torch as _torch
 
 from exe import common_configurations
-from exe.data import split_dataset_config
+from exe.data.preprocess import split_dataset_config
 
 
 device: _torch.device = \

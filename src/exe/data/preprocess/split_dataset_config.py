@@ -1,7 +1,7 @@
 import pathlib as _pathlib
 
 from exe import common_configurations
-from exe.data import convert_rir_to_tensor_config, convert_speech_to_tensor_config
+from exe.data.preprocess import convert_rir_to_tensor_config, convert_speech_to_tensor_config
 
 
 rir_contents: _pathlib.Path = \

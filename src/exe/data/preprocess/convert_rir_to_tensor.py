@@ -23,7 +23,7 @@ def _save_tensor(audio: Tensor1d,
 
 
 def main():
-    from exe.data import convert_rir_to_tensor_config as config
+    from exe.data.preprocess import convert_rir_to_tensor_config as config
 
     rand: Random = Random(config.random_seed)
     string_random: StringRandom = StringRandom(rand, 16)

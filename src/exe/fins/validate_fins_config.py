@@ -1,7 +1,7 @@
 import pathlib as _pathlib
 import torch as _torch
 
-from exe.data import split_dataset_config
+from exe.data.preprocess import split_dataset_config
 from exe.fins import train_fins_config
 
 

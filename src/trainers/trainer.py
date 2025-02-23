@@ -10,7 +10,7 @@ from basic_utilities.static_class import StaticClass
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
 from inputs_and_outputs.data_providers.train_data_provider import TrainDataProvider
-from trainers.rir_blind_estimation_model import Trainable
+from trainers.trainable import Trainable
 
 
 class Trainer(StaticClass):

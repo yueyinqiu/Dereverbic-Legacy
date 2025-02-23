@@ -4,7 +4,7 @@ import csdir
 
 
 def main():
-    from exe.data import download_bird_config as config
+    from exe.data.download import download_bird_config as config
 
     directory_compressed: Path = config.destination.joinpath("compressed")
     csdir.create_directory(directory_compressed)

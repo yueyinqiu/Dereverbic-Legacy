@@ -10,7 +10,7 @@ from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
 from inputs_and_outputs.data_providers.data_batch import DataBatch
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
 from metrics.kahan_accumulator import KahanAccumulator
-from models.ricbe_models.ricbe_model import RicbeModel
+from models.ricbe_models.ricbe_full_model import RicbeModel
 from trainers.trainer import Trainer
 
 from torch.utils.data import DataLoader
@@ -56,7 +56,7 @@ def main():
                 predicted: RicbeModel.Prediction = model.evaluate_on(batch.reverb)
                 
                 loss_l1_rir: Tensor0d = model.l1(predicted.rir, batch.rir)
-                loss_stft_rir: Tensor0d = model.rir_mrstft(predicted.rir, batch.rir).total()
+                loss_stft_rir: Tensor0d = model.mrstft(predicted.rir, batch.rir).total()
                 loss_rir: float = float(loss_l1_rir + loss_stft_rir)
 
                 loss_l1_speech: Tensor0d = model.l1(predicted.speech, batch.speech)

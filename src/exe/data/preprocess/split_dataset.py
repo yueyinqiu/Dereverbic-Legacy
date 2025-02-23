@@ -56,7 +56,7 @@ def save_reverb(rir_path: str,
 
 
 def main():
-    from exe.data import split_dataset_config as config
+    from exe.data.preprocess import split_dataset_config as config
     random: Random = Random(config.random_seed)
 
     print("Shuffling...")

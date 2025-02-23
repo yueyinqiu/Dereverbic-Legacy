@@ -1,11 +1,9 @@
-# Inspired by https://github.com/ksasso1028/audio-reverb-removal/blob/main/dereverb/auto_verb.py
-
-
 from typing import Iterator, Protocol
 from statictorch import Tensor3d, anify
 import torch
 
-from models.ricbe_models.ricbe_decoder_block import RicbeDecoderBlock
+from models.ricbe_models.submodules.ricbe_decoder_block import RicbeDecoderBlock
+
 
 
 class RicbeDecoder(torch.nn.Module):

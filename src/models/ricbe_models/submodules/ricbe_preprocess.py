@@ -1,5 +1,3 @@
-# Inspired by https://github.com/ksasso1028/audio-reverb-removal/blob/main/dereverb/auto_verb.py
-
 from statictorch import Tensor3d
 import torch
 

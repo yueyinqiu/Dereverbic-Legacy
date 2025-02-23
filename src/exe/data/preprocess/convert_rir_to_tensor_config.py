@@ -2,7 +2,7 @@ import pathlib as _pathlib
 import typing as _typing
 
 from exe import common_configurations
-from exe.data import download_bird_config
+from exe.data.download import download_bird_config
 
 
 inputs: _typing.Iterable[_pathlib.Path] = \

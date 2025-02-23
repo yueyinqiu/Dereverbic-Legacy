@@ -2,7 +2,7 @@ import pathlib as _pathlib
 import typing as _typing
 
 from exe import common_configurations
-from exe.data import download_ears_config
+from exe.data.download import download_ears_config
 
 
 inputs: _typing.Iterable[_pathlib.Path] = \

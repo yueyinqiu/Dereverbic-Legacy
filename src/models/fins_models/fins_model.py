@@ -7,7 +7,7 @@ from statictorch import Tensor0d, Tensor2d, Tensor3d
 import torch
 from models.fins_models.fins_network import FinsNetwork
 from metrics.stft_losses.mrstft_loss import MrstftLoss
-from trainers.rir_blind_estimation_model import Trainable
+from trainers.trainable import Trainable
 
 from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 
