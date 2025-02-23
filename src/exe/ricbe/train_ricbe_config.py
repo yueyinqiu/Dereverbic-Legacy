@@ -6,7 +6,7 @@ from exe.data import split_dataset_config
 
 
 device: _torch.device = \
-    _torch.device("cuda", 0) if _torch.cuda.is_available() else _torch.device("cpu")
+    _common_configurations.device
 
 
 checkpoint_interval: int = \

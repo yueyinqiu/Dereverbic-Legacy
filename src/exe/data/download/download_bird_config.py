@@ -1,6 +1,6 @@
 import pathlib as _pathlib
 
-from exe import common_configurations
+from exe import common_configurations as _common_configurations
 
 
 url_pattern: str = \
@@ -8,7 +8,7 @@ url_pattern: str = \
 
 
 destination: _pathlib.Path = \
-    common_configurations.data_directory / "raw/bird/"
+    _common_configurations.data_directory / "raw/bird/"
 
 
 start_index: int = \

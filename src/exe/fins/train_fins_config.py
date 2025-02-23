@@ -1,12 +1,12 @@
 import pathlib as _pathlib
 import torch as _torch
 
-from exe import common_configurations
-from exe.data.preprocess import split_dataset_config
+from exe import common_configurations as _common_configurations
+from exe.data.preprocess import split_dataset_config as _split_dataset_config
 
 
 device: _torch.device = \
-    _torch.device("cuda", 0) if _torch.cuda.is_available() else _torch.device("cpu")
+    _common_configurations.device
 
 
 checkpoint_interval: int = \
@@ -14,15 +14,15 @@ checkpoint_interval: int = \
 
 
 checkpoints_directory: _pathlib.Path = \
-    common_configurations.checkpoints_directory / "fins/"
+    _common_configurations.checkpoints_directory / "fins/"
 
 
 train_list_rir: _pathlib.Path = \
-    split_dataset_config.train_list_rir
+    _split_dataset_config.train_list_rir
 
 
 train_list_speech: _pathlib.Path = \
-    split_dataset_config.train_list_speech
+    _split_dataset_config.train_list_speech
 
 
 random_seed: str = \

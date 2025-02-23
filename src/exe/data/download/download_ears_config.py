@@ -1,6 +1,6 @@
 import pathlib as _pathlib
 
-from exe import common_configurations
+from exe import common_configurations as _common_configurations
 
 
 base_url: str = \
@@ -9,7 +9,7 @@ base_url: str = \
 
 
 destination: _pathlib.Path = \
-    common_configurations.data_directory / "raw/ears/"
+    _common_configurations.data_directory / "raw/ears/"
 
 
 # This is to continue downloading when it failed halfway.
