@@ -71,6 +71,7 @@ class CleanunetModel(Trainable, Validatable):
 
         self.optimizer.zero_grad()
         loss_total.backward()
+        torch.nn.utils.clip_grad_norm_(self.module.parameters(), 1e9)
         self.optimizer.step()
 
         return losses
