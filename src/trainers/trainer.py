@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 import sys
 import time
-from typing import Any
+from typing import Any, Callable, TypeVar
 
 import csfile
 from statictorch import Tensor2d
@@ -12,10 +12,12 @@ from torch.utils.data import DataLoader
 from basic_utilities.kahan_accumulator import KahanAccumulator
 from basic_utilities.static_class import StaticClass
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
+from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
 from inputs_and_outputs.data_providers.data_batch import DataBatch
 from inputs_and_outputs.data_providers.train_data_provider import TrainDataProvider
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
+from metrics.metric import Metric
 from trainers.trainable import Trainable
 
 
@@ -82,48 +84,49 @@ class Trainer(StaticClass):
                  validation_data: DataLoader, 
                  model: Trainable,
                  start_checkpoint: int):
-        batch_count: int = validation_data.__len__()
-        print(f"# Batch count: {batch_count}")
-        epoches_to_scores: dict[int, float] = {}
+        with torch.no_grad():
+            batch_count: int = validation_data.__len__()
+            print(f"# Batch count: {batch_count}")
+            epoches_to_scores: dict[int, float] = {}
 
-        csv_print: CsvWriter = csv.writer(sys.stdout)
-        csv_print.writerow(["epoch", "batch", "metric", "value"])
-        epoch_index: int
-        path: Path
-        for epoch_index, path in checkpoints.get_all():
-            if epoch_index < start_checkpoint:
-                continue
+            csv_print: CsvWriter = csv.writer(sys.stdout)
+            csv_print.writerow(["epoch", "batch", "metric", "value"])
+            epoch_index: int
+            path: Path
+            for epoch_index, path in checkpoints.get_all():
+                if epoch_index < start_checkpoint:
+                    continue
+                
+                Trainer.load_model(model, path)
             
-            Trainer.load_model(model, path)
-        
-            score_accumulator: KahanAccumulator = KahanAccumulator()
-            accumulators: dict[str, KahanAccumulator] = {}
+                score_accumulator: KahanAccumulator = KahanAccumulator()
+                accumulators: dict[str, KahanAccumulator] = {}
 
-            batch_index: int
-            batch: DataBatch
-            for batch_index, batch in enumerate(validation_data):
-                score: float
-                all_values: dict[str, float]
-                score, all_values = model.validate_on(batch.reverb, batch.rir, batch.speech)
+                batch_index: int
+                batch: DataBatch
+                for batch_index, batch in enumerate(validation_data):
+                    score: float
+                    all_values: dict[str, float]
+                    score, all_values = model.validate_on(batch.reverb, batch.rir, batch.speech)
 
-                score_accumulator.add(score)
-                csv_print.writerow([epoch_index, batch_index, "main", score])
+                    score_accumulator.add(score)
+                    csv_print.writerow([epoch_index, batch_index, "main", score])
 
-                key: str
+                    key: str
+                    for key in accumulators:
+                        if key not in accumulators:
+                            accumulators[key] = KahanAccumulator()
+                        accumulators[key].add(all_values[key])
+                        csv_print.writerow([epoch_index, batch_index, key, all_values[key]])
+
+                epoches_to_scores[epoch_index] = score_accumulator.value() / batch_count
+                csv_print.writerow([epoch_index, "average", "main", 
+                                    epoches_to_scores[epoch_index]])
                 for key in accumulators:
-                    if key not in accumulators:
-                        accumulators[key] = KahanAccumulator()
-                    accumulators[key].add(all_values[key])
-                    csv_print.writerow([epoch_index, batch_index, key, all_values[key]])
+                    csv_print.writerow([epoch_index, "average", key, 
+                                        accumulators[key].value() / batch_count])
 
-            epoches_to_scores[epoch_index] = score_accumulator.value() / batch_count
-            csv_print.writerow([epoch_index, "average", "main", 
-                                epoches_to_scores[epoch_index]])
-            for key in accumulators:
-                csv_print.writerow([epoch_index, "average", key, 
-                                    accumulators[key].value() / batch_count])
-
-        csfile.write_all_lines(
-            checkpoints.get_path(None) / "validation_rank.txt", 
-            [str(key) for key in sorted(epoches_to_scores.keys(), 
-                                        key=lambda key: epoches_to_scores[key])])
+            csfile.write_all_lines(
+                checkpoints.get_path(None) / "validation_rank.txt", 
+                [str(key) for key in sorted(epoches_to_scores.keys(), 
+                                            key=lambda key: epoches_to_scores[key])])
