@@ -1,12 +1,9 @@
-# The metric is modified from: 
-# https://github.com/kyungyunlee/fins/blob/main/fins/loss.py
-# Please respect the original license
-
 from typing import NamedTuple
 from statictorch import Tensor0d, Tensor2d
 import torch
-from metrics.stft_losses.mrstft_loss_module import MrstftLossModule
-from metrics.stft_losses.stft_window import StftWindow
+
+from criterions.stft_losses.mrstft_loss_module import MrstftLossModule
+from criterions.stft_losses.stft_window import StftWindow
 
 
 class MrstftLoss():
@@ -18,6 +15,22 @@ class MrstftLoss():
                  window: StftWindow) -> None:
         self._module = MrstftLossModule(fft_sizes, hop_sizes, win_lengths, window).to(device)
     
+    @staticmethod
+    def for_speech(device: torch.device):
+        return MrstftLoss(device, 
+                          fft_sizes=[512, 1024, 2048],
+                          hop_sizes=[50, 120, 240],
+                          win_lengths=[240, 600, 1200], 
+                          window="hann_window")
+    
+    @staticmethod
+    def for_rir(device: torch.device):
+        return MrstftLoss(device, 
+                          fft_sizes=[32, 256, 1024, 4096],
+                          hop_sizes=[16, 128, 512, 2048],
+                          win_lengths=[32, 256, 1024, 4096], 
+                          window="hann_window")
+
     class Return(NamedTuple):
         sc_loss: Tensor0d
         mag_loss: Tensor0d

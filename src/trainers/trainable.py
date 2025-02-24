@@ -19,3 +19,10 @@ class Trainable(abc.ABC):
                  rir_batch: Tensor2d, 
                  speech_batch: Tensor2d) -> dict[str, float]:
         ...
+
+    @abc.abstractmethod
+    def validate_on(self, 
+                    reverb_batch: Tensor2d, 
+                    rir_batch: Tensor2d, 
+                    speech_batch: Tensor2d) -> tuple[float, dict[str, float]]:
+        ...

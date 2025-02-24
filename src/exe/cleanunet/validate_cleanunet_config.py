@@ -1,0 +1,25 @@
+import pathlib as _pathlib
+import torch as _torch
+
+from exe.cleanunet import train_cleanunet_config as _train_cleanunet_config
+from exe.data.preprocess import split_dataset_config as _split_dataset_config
+
+
+device: _torch.device = \
+    _train_cleanunet_config.device
+
+
+checkpoints_directory: _pathlib.Path = \
+    _train_cleanunet_config.checkpoints_directory
+
+
+start_checkpoint: int = \
+    1
+
+
+validation_list: _pathlib.Path = \
+    _split_dataset_config.validation_list
+
+
+random_seed: str = \
+    "9B3B9458-2BFD-4102-9445-B59766606788"

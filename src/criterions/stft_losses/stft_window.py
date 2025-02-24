@@ -1,5 +1,5 @@
-# The metric is modified from: 
-# https://github.com/kyungyunlee/fins/blob/main/fins/loss.py
+# The criterion is modified from:
+# https://github.com/kyungyunlee/fins
 # Please respect the original license
 
 from typing import TypeAlias

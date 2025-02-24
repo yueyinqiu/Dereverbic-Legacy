@@ -5,7 +5,7 @@ from statictorch import Tensor0d, Tensor2d, Tensor3d
 import torch
 from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 
-from metrics.stft_losses.mrstft_loss import MrstftLoss
+from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.ricbe_models.networks.ricbe_dereverb_network import RicbeDereverbNetwork
 from trainers.trainable import Trainable
 from trainers.validatable import Validatable
@@ -19,11 +19,7 @@ class RicbeDereverbModel(Trainable, Validatable):
         self.module = RicbeDereverbNetwork().to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
 
-        self.mrstft = MrstftLoss(device, 
-                                 fft_sizes=[32, 256, 1024, 4096],
-                                 hop_sizes=[16, 128, 512, 2048],
-                                 win_lengths=[32, 256, 1024, 4096], 
-                                 window="hann_window")
+        self.mrstft = MrstftLoss.for_speech(device)
 
     class StateDict(TypedDict):
         model: dict[str, Any]

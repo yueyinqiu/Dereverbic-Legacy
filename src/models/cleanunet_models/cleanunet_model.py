@@ -7,13 +7,12 @@ from statictorch import Tensor0d, Tensor2d, Tensor3d
 import torch
 from torch.optim import Adam  # pyright: ignore [reportPrivateImportUsage]
 
-from metrics.stft_losses.mrstft_loss import MrstftLoss
+from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.cleanunet_models.cleanunet_network import CleanunetNetwork
 from trainers.trainable import Trainable
-from trainers.validatable import Validatable
 
 
-class CleanunetModel(Trainable, Validatable):
+class CleanunetModel(Trainable):
     def __init__(self, device: torch.device) -> None:
         super().__init__()
         self.device = device
@@ -21,11 +20,7 @@ class CleanunetModel(Trainable, Validatable):
         self.module = CleanunetNetwork().to(device)
         self.optimizer = Adam(self.module.parameters(), 2e-4)
 
-        self.mrstft = MrstftLoss(device, 
-                                 fft_sizes=[512, 1024, 2048],
-                                 hop_sizes=[50, 120, 240],
-                                 win_lengths=[240, 600, 1200], 
-                                 window="hann_window")
+        self.mrstft = MrstftLoss.for_speech(device)
 
     class StateDict(TypedDict):
         model: dict[str, Any]

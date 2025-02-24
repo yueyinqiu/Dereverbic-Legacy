@@ -1,12 +1,12 @@
-# The metric is modified from: 
-# https://github.com/kyungyunlee/fins/blob/main/fins/loss.py
+# The criterion is modified from:
+# https://github.com/kyungyunlee/fins
 # Please respect the original license
 
 from statictorch import Tensor2d
 from torch import Tensor
 import torch
 
-from metrics.stft_losses.stft_window import StftWindow
+from criterions.stft_losses.stft_window import StftWindow
 
 
 class StftLoss(torch.nn.Module):

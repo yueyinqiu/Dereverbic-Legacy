@@ -6,12 +6,12 @@ import sys
 import csfile
 from statictorch import Tensor2d
 import torch
+from criterions.stft_losses.mrstft_loss import MrstftLoss
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
 from inputs_and_outputs.data_providers.data_batch import DataBatch
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
-from metrics.kahan_accumulator import KahanAccumulator
-from metrics.stft_losses.mrstft_loss import MrstftLoss
+from basic_utilities.kahan_accumulator import KahanAccumulator
 from models.fins_models.fins_model import FinsModel
 from trainers.trainer import Trainer
 

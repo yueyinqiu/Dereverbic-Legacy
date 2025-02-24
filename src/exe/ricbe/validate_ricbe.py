@@ -9,7 +9,7 @@ from inputs_and_outputs.checkpoint_managers.checkpoints_directory import Checkpo
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
 from inputs_and_outputs.data_providers.data_batch import DataBatch
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
-from metrics.kahan_accumulator import KahanAccumulator
+from basic_utilities.kahan_accumulator import KahanAccumulator
 from models.ricbe_models.ricbe_full_model import RicbeModel
 from trainers.trainer import Trainer
 
