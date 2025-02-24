@@ -55,7 +55,7 @@ class Trainer(StaticClass):
         detail_keys: list[str] = list(details.keys())
         def print_details():
             print_csv.writerow((batch_index, 
-                                time.time(), 
+                                time.time_ns(), 
                                 *(details[key] for key in detail_keys)))
             sys.stdout.flush()
         print_csv.writerow(("batch", "time", *detail_keys))
