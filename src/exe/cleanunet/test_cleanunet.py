@@ -69,7 +69,7 @@ def test(model: CleanunetModel,
 
 
 def main():
-    from exe.fins import test_fins_config as config
+    from exe.cleanunet import test_cleanunet_config as config
 
     print("# Loading...")
     test(CleanunetModel(config.device), 

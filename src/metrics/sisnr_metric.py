@@ -26,7 +26,7 @@ class SisnrMetric(Metric):
         return torch.mean(result)
 
     def append(self, actual: Tensor2d, predicted: Tensor2d) -> dict[str, float]:
-        loss: float = float(self._loss(predicted, actual))
+        loss: float = float(self._loss(actual, predicted))
 
         self._accumulator.add(loss)
         self._count += 1

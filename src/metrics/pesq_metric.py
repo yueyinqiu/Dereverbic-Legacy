@@ -1,3 +1,4 @@
+from typing import Any
 import numpy
 import pesq
 from statictorch import Tensor2d
@@ -16,11 +17,15 @@ class PesqMetric(Metric):
         actual_numpy: numpy.ndarray = actual.detach().cpu().numpy()
         predicted_numpy: numpy.ndarray = predicted.detach().cpu().numpy()
 
-        values: list[float] = pesq.pesq_batch(self._sample_rate, 
+        values: list[float | Any] = pesq.pesq_batch(self._sample_rate, 
                                               actual_numpy, 
                                               predicted_numpy, 
-                                              "wb")
-        mean: float = float(numpy.mean(values))
+                                              "wb",
+                                              on_error=pesq.PesqError.RETURN_VALUES)
+        
+        mean: float = float(numpy.mean([value 
+                                        for value in values 
+                                        if isinstance(value, float)]))
         
         self._accumulator.add(mean)
         self._count += 1
