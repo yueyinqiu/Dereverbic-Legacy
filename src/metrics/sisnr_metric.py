@@ -39,3 +39,17 @@ class SisnrMetric(Metric):
         return {
             "value": self._accumulator.value() / self._count
         }
+
+
+def _test():
+    actual: Tensor2d = Tensor2d(torch.tensor([[3.0, -0.5, 2.0, 7.0], [3.0, -0.5, 2.0, 7.0]]))
+    predicted: Tensor2d = Tensor2d(torch.tensor([[2.5, 0.0, 2.0, 8.0], [2.5, 0.0, 2.0, 8.0]]))
+
+    metric: SisnrMetric = SisnrMetric()
+    print(metric.append(actual, predicted))
+    print(metric.append(predicted, actual))
+    print(metric.result())
+
+
+if __name__ == "__main__":
+    _test()
