@@ -16,8 +16,12 @@ from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
 from inputs_and_outputs.data_providers.data_batch import DataBatch
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
+from metrics.l1_loss_metric import L1LossMetric
 from metrics.metric import Metric
 from metrics.mrstft_loss_metric import MrstftLossMetric
+from metrics.pesq_metric import PesqMetric
+from metrics.sisnr_metric import SisnrMetric
+from metrics.stoi_metric import StoiMetric
 from models.cleanunet_models.cleanunet_model import CleanunetModel
 from trainers.trainer import Trainer
 
@@ -72,7 +76,11 @@ def main():
          CheckpointsDirectory(config.checkpoints_directory), 
          ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          {
-             "mrstft": MrstftLossMetric.for_speech(config.device)
+             "mrstft": MrstftLossMetric.for_speech(config.device),
+             "l1": L1LossMetric(config.device),
+             "sisnr": SisnrMetric(),
+             "pesq": PesqMetric(16000),
+             "stoi": StoiMetric(16000),
          })
 
 

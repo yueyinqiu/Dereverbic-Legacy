@@ -12,6 +12,7 @@ class MrstftLossMetric(Metric):
         self._criterion = criterion
         self._mag_loss = KahanAccumulator()
         self._sc_loss = KahanAccumulator()
+        self._count = 0
     
     @staticmethod
     def for_speech(device: torch.device):
@@ -28,6 +29,7 @@ class MrstftLossMetric(Metric):
 
         self._mag_loss.add(mag_loss)
         self._sc_loss.add(sc_loss)
+        self._count += 1
 
         return {
             "total": mag_loss + sc_loss,
@@ -36,8 +38,10 @@ class MrstftLossMetric(Metric):
         }
         
     def result(self) -> dict[str, float]:
+        mag: float = self._mag_loss.value() / self._count
+        sc: float = self._sc_loss.value() / self._count
         return {
-            "total": self._mag_loss.value() + self._sc_loss.value(),
-            "mag": self._mag_loss.value(),
-            "sc": self._sc_loss.value()
+            "total": mag + sc,
+            "mag": mag,
+            "sc": sc
         }
