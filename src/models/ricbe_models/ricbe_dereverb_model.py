@@ -8,10 +8,9 @@ from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.ricbe_models.networks.ricbe_dereverb_network import RicbeDereverbNetwork
 from trainers.trainable import Trainable
-from trainers.validatable import Validatable
 
 
-class RicbeDereverbModel(Trainable, Validatable):
+class RicbeDereverbModel(Trainable):
     def __init__(self, device: torch.device) -> None:
         super().__init__()
         self.device = device
@@ -44,12 +43,14 @@ class RicbeDereverbModel(Trainable, Validatable):
                           actual: Tensor2d,
                           predicted: Tensor2d) -> tuple[Tensor0d, dict[str, float]]:
         mrstft: MrstftLoss.Return = self.mrstft(actual, predicted)
+        l1: torch.Tensor = torch.nn.functional.l1_loss(predicted, actual)
+        total: Tensor0d = Tensor0d(mrstft.total() + l1)
 
-        total: Tensor0d = mrstft.total()
         return total, {
             "loss_total": float(total),
             "loss_mrstft_mag": float(mrstft.mag_loss),
-            "loss_mrstft_sc": float(mrstft.sc_loss)
+            "loss_mrstft_sc": float(mrstft.sc_loss),
+            "loss_l1": float(l1)
         }
 
     def train_on(self, 
