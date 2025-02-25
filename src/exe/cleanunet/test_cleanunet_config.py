@@ -15,7 +15,3 @@ checkpoints_directory: _pathlib.Path = \
 
 test_list: _pathlib.Path = \
     _split_dataset_config.test_list
-
-
-random_seed: str = \
-    "2AFC0115-D0E3-4C9F-847B-6E73EB79DACF"

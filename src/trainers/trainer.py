@@ -113,7 +113,7 @@ class Trainer(StaticClass):
                     csv_print.writerow([epoch_index, batch_index, "main", score])
 
                     key: str
-                    for key in accumulators:
+                    for key in all_values:
                         if key not in accumulators:
                             accumulators[key] = KahanAccumulator()
                         accumulators[key].add(all_values[key])
