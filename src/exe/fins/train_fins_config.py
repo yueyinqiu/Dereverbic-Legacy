@@ -10,7 +10,7 @@ device: _torch.device = \
 
 
 checkpoint_interval: int = \
-    1000
+    500
 
 
 checkpoints_directory: _pathlib.Path = \
