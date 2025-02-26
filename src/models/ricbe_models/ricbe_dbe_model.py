@@ -8,7 +8,7 @@ from models.ricbe_models.networks.ricbe_dbe_network import RicbeDbeNetwork
 from trainers.trainable import Trainable
 
 
-class RicbeDbeModel(Trainable, Validatable):
+class RicbeDbeModel(Trainable):
     def __init__(self, device: torch.device) -> None:
         super().__init__()
         self.device = device
