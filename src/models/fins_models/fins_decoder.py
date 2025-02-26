@@ -47,8 +47,10 @@ class FinsDecoder(torch.nn.Module):
         for layer in self.blocks:
             # Final: [32, 64, 16080]
             outputs = layer(outputs, condition)
+
         # [32, 64, 16000]
         outputs = outputs[:, :, :self.rir_length]
+        
         # [32, 11, 16000]
         outputs = self.postprocess(outputs)
 

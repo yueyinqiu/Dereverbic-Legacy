@@ -1,5 +1,6 @@
-# This model is modified from (without modification of its structure):
+# This model is modified from (without modification of its main structure):
 # https://github.com/kyungyunlee/fins
+# (The only structure change: The extra samples in decoder output are trimmed.)
 # The original repository does not explicitly state a license
 # Please also respect the original author's rights
 
@@ -60,13 +61,10 @@ class FinsNetwork(torch.nn.Module):
         self.noise_condition_length = noise_condition_length
         self.num_filters = num_filters
 
-        # Learned decoder input
         self.decoder_input = torch.nn.Parameter(torch.randn((1, 1, decoder_input_length)))
         self.encoder = FinsEncoder(channels_input)
-
         self.decoder = FinsDecoder(num_filters, noise_condition_length + z_size, rir_length)
 
-        # Learned "octave-band" like filter
         self.filter = torch.nn.Conv1d(
             num_filters,
             num_filters,
@@ -76,10 +74,8 @@ class FinsNetwork(torch.nn.Module):
             groups=num_filters,
             bias=False,
         )
-        # Octave band pass initialization
         self.filter.weight.data = torch.tensor(FinsNetwork._get_octave_filters(), dtype=torch.float32)
 
-        # Mask for direct and early part
         mask: Tensor3d = Tensor3d(torch.zeros((1, 1, rir_length)))
         mask[:, :, : early_length] = 1.0
         self.mask: Tensor3d
