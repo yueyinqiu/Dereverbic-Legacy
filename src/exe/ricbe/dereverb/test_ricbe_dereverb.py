@@ -22,7 +22,6 @@ from metrics.mrstft_loss_metric import MrstftLossMetric
 from metrics.pesq_metric import PesqMetric
 from metrics.sisnr_metric import SisnrMetric
 from metrics.stoi_metric import StoiMetric
-from models.cleanunet_models.cleanunet_model import CleanunetModel
 from models.ricbe_models.ricbe_dereverb_model import RicbeDereverbModel
 from trainers.trainer import Trainer
 
@@ -30,7 +29,7 @@ from trainers.trainer import Trainer
 def test(model: RicbeDereverbModel, 
          checkpoints: CheckpointsDirectory, 
          data: DataLoader, 
-         metrics: dict[str, Metric]):
+         metrics: dict[str, Metric[Tensor2d]]):
     with torch.no_grad():
         print(f"# Batch count: {data.__len__()}")
 
@@ -66,7 +65,7 @@ def test(model: RicbeDereverbModel,
         for metric in metrics:
             value: float
             for submetric, value in metrics[metric].result().items():
-                csv_print.writerow(["average", metric, submetric, value])
+                csv_print.writerow(["all", metric, submetric, value])
 
 
 def main():

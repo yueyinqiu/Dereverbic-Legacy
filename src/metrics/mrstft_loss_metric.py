@@ -7,7 +7,7 @@ from criterions.stft_losses.mrstft_loss import MrstftLoss
 from metrics.metric import Metric
 
 
-class MrstftLossMetric(Metric):
+class MrstftLossMetric(Metric[Tensor2d]):
     def __init__(self, criterion: MrstftLoss):
         self._criterion = criterion
         self._mag_loss = KahanAccumulator()

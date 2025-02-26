@@ -6,7 +6,7 @@ from basic_utilities.kahan_accumulator import KahanAccumulator
 from metrics.metric import Metric
 
 
-class PesqMetric(Metric):
+class PesqMetric(Metric[Tensor2d]):
     def __init__(self, sample_rate: int):
         self._sample_rate = sample_rate
 

@@ -6,7 +6,6 @@ from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.ricbe_models.networks.ricbe_dbe_network import RicbeDbeNetwork
 from trainers.trainable import Trainable
-from trainers.validatable import Validatable
 
 
 class RicbeDbeModel(Trainable, Validatable):

@@ -7,7 +7,7 @@ from basic_utilities.kahan_accumulator import KahanAccumulator
 from metrics.metric import Metric
 
 
-class SisnrMetric(Metric):
+class SisnrMetric(Metric[Tensor2d]):
     def __init__(self):
         self._accumulator = KahanAccumulator()
         self._count = 0

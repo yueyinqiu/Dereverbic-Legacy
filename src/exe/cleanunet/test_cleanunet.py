@@ -19,6 +19,7 @@ from inputs_and_outputs.data_providers.validation_or_test_dataset import Validat
 from metrics.l1_loss_metric import L1LossMetric
 from metrics.metric import Metric
 from metrics.mrstft_loss_metric import MrstftLossMetric
+from metrics.pearson_correlation_metric import PearsonCorrelationMetric
 from metrics.pesq_metric import PesqMetric
 from metrics.sisnr_metric import SisnrMetric
 from metrics.stoi_metric import StoiMetric
@@ -29,7 +30,7 @@ from trainers.trainer import Trainer
 def test(model: CleanunetModel, 
          checkpoints: CheckpointsDirectory, 
          data: DataLoader, 
-         metrics: dict[str, Metric]):
+         metrics: dict[str, Metric[Tensor2d]]):
     with torch.no_grad():
         print(f"# Batch count: {data.__len__()}")
 
@@ -65,7 +66,7 @@ def test(model: CleanunetModel,
         for metric in metrics:
             value: float
             for submetric, value in metrics[metric].result().items():
-                csv_print.writerow(["average", metric, submetric, value])
+                csv_print.writerow(["all", metric, submetric, value])
 
 
 def main():

@@ -9,6 +9,8 @@ import torch
 class CleanunetPositionalEncoding(torch.nn.Module):
     def __init__(self, d_hid, n_position=200):
         super().__init__()
+        
+        self.pos_table: torch.Tensor
         self.register_buffer('pos_table', self._get_sinusoid_encoding_table(n_position, d_hid))
 
     def _get_sinusoid_encoding_table(self, n_position, d_hid):

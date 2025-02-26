@@ -5,7 +5,7 @@ from basic_utilities.kahan_accumulator import KahanAccumulator
 from metrics.metric import Metric
 
 
-class StoiMetric(Metric):
+class StoiMetric(Metric[Tensor2d]):
     def __init__(self, sample_rate: int):
         self._sample_rate = sample_rate
 

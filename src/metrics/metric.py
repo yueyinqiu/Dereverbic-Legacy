@@ -1,11 +1,12 @@
 import abc
+from typing import Generic, TypeVar
 
-from statictorch import Tensor2d
 
+_T = TypeVar("_T", contravariant=True)   # pylint: disable=un-declared-variable
 
-class Metric(abc.ABC):
+class Metric(Generic[_T], abc.ABC):
     @abc.abstractmethod
-    def append(self, actual: Tensor2d, predicted: Tensor2d) -> dict[str, float]:
+    def append(self, actual: _T, predicted: _T) -> dict[str, float]:
         ...
     
     @abc.abstractmethod
