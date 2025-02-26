@@ -1,3 +1,8 @@
+# This network is based on (with modification of network structure):
+# https://github.com/ksasso1028/audio-reverb-removal/blob/main/dereverb/auto_verb.py
+# The original project does not explicitly state a license
+# Please also respect the original author's rights
+
 from statictorch import Tensor3d
 import torch
 

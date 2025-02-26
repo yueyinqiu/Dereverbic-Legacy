@@ -1,7 +1,3 @@
-# This model is modified from: 
-# https://github.com/kyungyunlee/fins
-# Please respect the original license
-
 import torch
 
 from models.fins_models.fins_conditional_batch_norm_1d import FinsConditionalBatchNorm1d

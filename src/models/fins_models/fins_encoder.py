@@ -1,7 +1,3 @@
-# This model is modified from: 
-# https://github.com/kyungyunlee/fins
-# Please respect the original license
-
 from statictorch import Tensor3d
 import torch
 
@@ -9,10 +5,11 @@ from models.fins_models.fins_encoder_block import FinsEncoderBlock
 
 
 class FinsEncoder(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, channels_input: int):
         super().__init__()
         block_list: list[FinsEncoderBlock] = []
-        channels: list[int] = [1, 32, 32, 64, 64, 64, 128, 128, 128, 256, 256, 256, 512, 512]
+        channels: list[int] = [channels_input, 
+                               32, 32, 64, 64, 64, 128, 128, 128, 256, 256, 256, 512, 512]
 
         i: int
         for i in range(0, len(channels) - 1):

@@ -6,10 +6,9 @@ from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.ricbe_models.networks.ricbe_ric_network import RicbeRicNetwork
 from trainers.trainable import Trainable
-from trainers.validatable import Validatable
 
 
-class RicbeRicModel(Trainable, Validatable):
+class RicbeRicModel(Trainable):
     def __init__(self, device: torch.device) -> None:
         super().__init__()
         self.device = device

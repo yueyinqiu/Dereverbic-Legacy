@@ -1,6 +1,7 @@
-# This model is modified from: 
+# This model is modified from (without modification of its structure):
 # https://github.com/kyungyunlee/fins
-# Please respect the original license
+# The original repository does not explicitly state a license
+# Please also respect the original author's rights
 
 import numpy
 import scipy.signal
@@ -44,7 +45,7 @@ class FinsNetwork(torch.nn.Module):
         firs_np = numpy.expand_dims(firs_np, 1)
         return firs_np
 
-    def __init__(self):
+    def __init__(self, channels_input: int = 1):
         super().__init__()
 
         rir_length: int = 16000
@@ -61,7 +62,7 @@ class FinsNetwork(torch.nn.Module):
 
         # Learned decoder input
         self.decoder_input = torch.nn.Parameter(torch.randn((1, 1, decoder_input_length)))
-        self.encoder = FinsEncoder()
+        self.encoder = FinsEncoder(channels_input)
 
         self.decoder = FinsDecoder(num_filters, noise_condition_length + z_size, rir_length)
 

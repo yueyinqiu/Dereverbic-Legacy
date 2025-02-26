@@ -1,7 +1,3 @@
-# This model is modified from: 
-# https://github.com/NVIDIA/CleanUNet
-# Please respect the original license
-
 import torch
 
 from models.cleanunet_models.cleanunet_multi_head_attention import CleanunetMultiHeadAttention

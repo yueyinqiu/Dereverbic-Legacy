@@ -1,7 +1,3 @@
-# This model is modified from: 
-# https://github.com/kyungyunlee/fins
-# Please respect the original license
-
 from typing import Any, TypedDict
 from statictorch import Tensor0d, Tensor2d, Tensor3d
 import torch

@@ -1,7 +1,3 @@
-# The criterion is modified from:
-# https://github.com/kyungyunlee/fins
-# Please respect the original license
-
 from statictorch import Tensor2d
 from torch import Tensor
 import torch

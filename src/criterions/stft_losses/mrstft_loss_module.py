@@ -1,6 +1,7 @@
-# The criterion is modified from:
+# This model is modified from (without modification of its function):
 # https://github.com/kyungyunlee/fins
-# Please respect the original license
+# The original repository does not explicitly state a license
+# Please also respect the original author's rights
 
 from statictorch import Tensor0d, Tensor2d
 import torch

@@ -1,7 +1,3 @@
-# This model is modified from: 
-# https://github.com/kyungyunlee/fins
-# Please respect the original license
-
 import torch
 
 from models.fins_models.fins_decoder_block import FinsDecoderBlock

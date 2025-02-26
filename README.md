@@ -56,3 +56,7 @@ Bird： https://github.com/FrancoisGrondin/BIRD
 Ears： https://github.com/facebookresearch/ears_dataset
 
 可以使用 `download_ears_exe` 下载。
+
+## 协议
+
+本项目以 MIT 协议开源。但一些模型、损失函数和指标等参考了其他项目，请同时遵循相应的协议。其中部分未明确声明许可证的，也请务必尊重原作者的权益。

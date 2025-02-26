@@ -1,7 +1,3 @@
-# The criterion is modified from:
-# https://github.com/kyungyunlee/fins
-# Please respect the original license
-
 from typing import TypeAlias
 from typing import Literal
 

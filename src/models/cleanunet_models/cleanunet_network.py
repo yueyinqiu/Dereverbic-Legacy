@@ -1,6 +1,7 @@
-# This model is modified from: 
+# This model is modified from (without modification of its structure):
 # https://github.com/NVIDIA/CleanUNet
-# Please respect the original license
+# The original repository is licensed under MIT
+# Please also respect the original author's rights
 
 from unittest import TestCase
 import numpy
