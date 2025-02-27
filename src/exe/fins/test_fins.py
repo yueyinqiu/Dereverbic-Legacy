@@ -22,10 +22,11 @@ from metrics.mrstft_loss_metric import MrstftLossMetric
 from metrics.pearson_correlation_metric import PearsonCorrelationMetric
 from metrics.rir_reverberation_time_metrics import RirReverberationTimeMetrics
 from models.cleanunet_models.cleanunet_model import CleanunetModel
+from models.fins_models.fins_model import FinsModel
 from trainers.trainer import Trainer
 
 
-def test(model: CleanunetModel, 
+def test(model: FinsModel, 
          checkpoints: CheckpointsDirectory, 
          data: DataLoader, 
          metrics: dict[str, Metric[Tensor2d]]):
@@ -68,10 +69,10 @@ def test(model: CleanunetModel,
 
 
 def main():
-    from exe.cleanunet import test_cleanunet_config as config
+    from exe.fins import test_fins_config as config
 
     print("# Loading...")
-    test(CleanunetModel(config.device), 
+    test(FinsModel(config.device, 0), 
          CheckpointsDirectory(config.checkpoints_directory), 
          ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          {

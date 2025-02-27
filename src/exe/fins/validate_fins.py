@@ -15,7 +15,7 @@ def main():
 
     data: ValidationOrTestDataset = ValidationOrTestDataset(
         config.validation_list, config.device)
-    model: FinsModel = FinsModel(config.device, random.randint(0, 1000))
+    model: FinsModel = FinsModel(config.device, 0)
 
     Trainer.validate(checkpoints, data.get_data_loader(32), model, config.start_checkpoint)
 
