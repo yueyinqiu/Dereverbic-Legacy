@@ -19,7 +19,3 @@ start_checkpoint: int = \
 
 validation_list: _pathlib.Path = \
     _split_dataset_config.validation_list
-
-
-random_seed: str = \
-    "D8BB8437-62E8-493D-AB7F-EA0A161142A0"
