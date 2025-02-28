@@ -8,7 +8,15 @@ from criterions.stft_losses.stft_window import StftWindow
 
 
 class RirEnergyDecayLoss():
+    @staticmethod
+    def energy_decay(rir: Tensor2d) -> Tensor2d:
+        energy: torch.Tensor = rir ** 2
+        energy = energy.flip(-1)
+        energy = energy.cumsum(-1)
+        energy = energy.clamp_min(1e-6)
+        return Tensor2d(10 * energy.log10())
+
     def __call__(self, actual: Tensor2d, predicted: Tensor2d):
-        actual_energy: torch.Tensor = (actual ** 2).flip(-1).cumsum(-1).flip(-1).log10()
-        predicted_energy: torch.Tensor = (actual ** 2).flip(-1).cumsum(-1).flip(-1).log10()
+        actual_energy: torch.Tensor = RirEnergyDecayLoss.energy_decay(actual)
+        predicted_energy: torch.Tensor = RirEnergyDecayLoss.energy_decay(predicted)
         return torch.nn.functional.l1_loss(predicted_energy, actual_energy)
