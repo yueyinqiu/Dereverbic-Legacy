@@ -14,7 +14,7 @@ class RirEnergyDecayLoss():
         energy = energy.flip(-1)
         energy = energy.cumsum(-1)
         energy = energy.clamp_min(1e-6)
-        return Tensor2d(10 * energy.log10())
+        return Tensor2d(energy.log10())
 
     def __call__(self, actual: Tensor2d, predicted: Tensor2d):
         actual_energy: torch.Tensor = RirEnergyDecayLoss.energy_decay(actual)
