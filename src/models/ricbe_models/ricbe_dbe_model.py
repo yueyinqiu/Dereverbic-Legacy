@@ -3,6 +3,7 @@ from statictorch import Tensor0d, Tensor2d, Tensor3d
 import torch
 from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 
+from criterions.rir_energy_decay_loss.rir_energy_decay_loss import RirEnergyDecayLoss
 from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.ricbe_models.networks.ricbe_dbe_network import RicbeDbeNetwork
 from trainers.trainable import Trainable
@@ -17,6 +18,8 @@ class RicbeDbeModel(Trainable):
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
 
         self.mrstft = MrstftLoss.for_rir(device)
+        self.l1 = torch.nn.L1Loss()
+        self.energy_decay = RirEnergyDecayLoss()
 
     class StateDict(TypedDict):
         model: dict[str, Any]
@@ -41,12 +44,16 @@ class RicbeDbeModel(Trainable):
                           actual: Tensor2d,
                           predicted: Tensor2d) -> tuple[Tensor0d, dict[str, float]]:
         mrstft: MrstftLoss.Return = self.mrstft(actual, predicted)
+        l1: torch.Tensor = self.l1(actual, predicted)
+        energy: torch.Tensor = self.energy_decay(actual, predicted)
 
         total: Tensor0d = mrstft.total()
         return total, {
             "loss_total": float(total),
             "loss_mrstft_mag": float(mrstft.mag_loss),
-            "loss_mrstft_sc": float(mrstft.sc_loss)
+            "loss_mrstft_sc": float(mrstft.sc_loss),
+            "loss_l1": float(l1),
+            "loss_energy_decay": float(energy)
         }
 
     def train_on(self, 
@@ -84,4 +91,8 @@ class RicbeDbeModel(Trainable):
 
         self.module.train()
         
-        return losses["loss_total"], losses
+        loss_main: float = losses["loss_mrstft_mag"]
+        loss_main += losses["loss_mrstft_sc"]
+        loss_main += 10 * losses["loss_l1"]
+        loss_main += 0.5 * losses["loss_energy_decay"]
+        return loss_main, losses

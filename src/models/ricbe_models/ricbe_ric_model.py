@@ -45,8 +45,8 @@ class RicbeRicModel(Trainable):
                           actual: Tensor2d,
                           predicted: Tensor2d) -> tuple[Tensor0d, dict[str, float]]:
         mrstft: MrstftLoss.Return = self.mrstft(actual, predicted)
-        l1: torch.Tensor | Literal[0] = self.l1(actual, predicted)
-        energy: torch.Tensor | Literal[0] = self.energy_decay(actual, predicted)
+        l1: torch.Tensor = self.l1(actual, predicted)
+        energy: torch.Tensor = self.energy_decay(actual, predicted)
 
         total: Tensor0d = Tensor0d(mrstft.total() + l1 + energy)
         return total, {
