@@ -70,7 +70,7 @@ def test(model: RicbeFullModel,
                     csv_print.writerow([batch_index, "rir", metric, submetric, current[submetric]])
 
             for metric in speech_metrics:
-                current = speech_metrics[metric].append(batch.rir, predicted.speech)
+                current = speech_metrics[metric].append(batch.speech, predicted.speech)
                 for submetric in current:
                     csv_print.writerow([batch_index, "speech", metric, submetric, current[submetric]])
 
@@ -85,7 +85,7 @@ def test(model: RicbeFullModel,
 
 
 def main():
-    from exe.ricbe.dbe import test_ricbe_dbe_config as config
+    from exe.ricbe.full import test_ricbe_full_config as config
 
     print("# Loading...")
     test(RicbeFullModel(config.device), 
