@@ -47,7 +47,7 @@ class RicbeDbeModel(Trainable):
         l1: torch.Tensor = self.l1(actual, predicted)
         energy: torch.Tensor = self.energy_decay(actual, predicted)
 
-        total: Tensor0d = mrstft.total()
+        total: Tensor0d = Tensor0d(mrstft.total() + l1 + energy)
         return total, {
             "loss_total": float(total),
             "loss_mrstft_mag": float(mrstft.mag_loss),
