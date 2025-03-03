@@ -36,9 +36,9 @@ class Trainer(StaticClass):
               train_data: TrainDataProvider, 
               model: Trainable,
               checkpoint_policy: CheckpointPolicy):
-        batch_index: int = 0
-        def save_checkpoint():
-            path: Path = checkpoints.get_path(batch_index)
+        batch_index: int = 1
+        def save_checkpoint() -> None:
+            path: Path = checkpoints.get_path(batch_index - 1)
             torch.save({
                 "model": model.get_state(),
                 "data": train_data.state_dict(),
@@ -50,16 +50,16 @@ class Trainer(StaticClass):
         else:
             checkpoint_path: Path
             batch_index, checkpoint_path = latest_checkpoint
+            batch_index += 1
             checkpoint: Any = torch.load(checkpoint_path, weights_only=True)
             model.set_state(checkpoint["model"])
             train_data.load_state_dict(checkpoint["data"])
             checkpoint_policy.set_state(checkpoint["checkpoint_policy"])
         
-        batch_index += 1
         rir_batch: Tensor2d
         speech_batch: Tensor2d
         reverb_batch: Tensor2d
-        rir_batch, speech_batch, reverb_batch = train_data.next_batch()
+        rir_batch, speech_batch, reverb_batch = train_data.get()
         details: dict[str, float] = model.prepare_train_on(reverb_batch, rir_batch, speech_batch)
         
         print_csv: CsvWriter = csv.writer(sys.stdout)
@@ -77,9 +77,10 @@ class Trainer(StaticClass):
                 save_checkpoint()
                 print(f"# Checkpoint saved at {batch_index}.")
             model.train_prepared()
+            train_data.next()
             
             batch_index += 1
-            rir_batch, speech_batch, reverb_batch = train_data.next_batch()
+            rir_batch, speech_batch, reverb_batch = train_data.get()
             details = model.prepare_train_on(reverb_batch, rir_batch, speech_batch)
     
     @classmethod
