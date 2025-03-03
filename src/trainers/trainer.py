@@ -38,7 +38,7 @@ class Trainer(StaticClass):
               checkpoint_policy: CheckpointPolicy):
         batch_index: int = 1
         def save_checkpoint() -> None:
-            path: Path = checkpoints.get_path(batch_index - 1)
+            path: Path = checkpoints.get_path(batch_index)
             torch.save({
                 "model": model.get_state(),
                 "data": train_data.state_dict(),
@@ -50,7 +50,6 @@ class Trainer(StaticClass):
         else:
             checkpoint_path: Path
             batch_index, checkpoint_path = latest_checkpoint
-            batch_index += 1
             checkpoint: Any = torch.load(checkpoint_path, weights_only=True)
             model.set_state(checkpoint["model"])
             train_data.load_state_dict(checkpoint["data"])
