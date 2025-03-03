@@ -27,7 +27,7 @@ def main():
 
     Trainer.train(checkpoints, train_data, model, 
                   CheckpointAtIntervalPolicy(config.checkpoint_interval) | 
-                  CheckpointBestAfterPolicy("loss_rir_energy_decay", 10000, 0.5))
+                  CheckpointBestAfterPolicy("loss_rir_energy_decay", 10000, 0.4))
 
 
 if __name__ == "__main__":
