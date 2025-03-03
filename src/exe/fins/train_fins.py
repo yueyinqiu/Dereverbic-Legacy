@@ -2,6 +2,7 @@ from random import Random
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.data_providers.train_data_provider import TrainDataProvider
 from models.fins_models.fins_model import FinsModel
+from trainers.checkpoint_policies.checkpoint_at_interval_policy import CheckpointAtIntervalPolicy
 from trainers.trainer import Trainer
 
 
@@ -22,7 +23,8 @@ def main():
 
     model: FinsModel = FinsModel(config.device, random.randint(0, 1000))
 
-    Trainer.train(checkpoints, train_data, model, config.checkpoint_interval)
+    Trainer.train(checkpoints, train_data, model, 
+                  CheckpointAtIntervalPolicy(config.checkpoint_interval))
 
 
 if __name__ == "__main__":

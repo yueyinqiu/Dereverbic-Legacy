@@ -21,6 +21,8 @@ class RicbeFullModel(Trainable):
         self.l1 = torch.nn.L1Loss()
         self.energy_decay = RirEnergyDecayLoss()
         self.speech_mrstft = MrstftLoss.for_speech(device)
+        
+        self.train_preparation: Tensor0d | None = None
 
     class StateDict(TypedDict):
         model: dict[str, Any]
@@ -69,23 +71,24 @@ class RicbeFullModel(Trainable):
             "loss_speech_mrstft_sc": float(speech_mrstft.sc_loss),
         }
 
-    def train_on(self, 
-                 reverb_batch: Tensor2d, 
-                 rir_batch: Tensor2d, 
-                 speech_batch: Tensor2d) -> dict[str, float]:
+    def prepare_train_on(self, 
+                         reverb_batch: Tensor2d, 
+                         rir_batch: Tensor2d,
+                         speech_batch: Tensor2d) -> dict[str, float]:
         predicted: RicbeFullModel.Prediction = self._predict(reverb_batch)
         
         losses: dict[str, float]
-        loss_total: Tensor0d
-        loss_total, losses = self._calculate_losses(rir_batch, 
-                                                    speech_batch, 
-                                                    predicted)
-
-        self.optimizer.zero_grad()
-        loss_total.backward()
-        self.optimizer.step()
+        self.train_preparation, losses = self._calculate_losses(rir_batch, 
+                                                                speech_batch, 
+                                                                predicted)
 
         return losses
+
+    def train_prepared(self):
+        assert self.train_preparation is not None
+        self.optimizer.zero_grad()
+        self.train_preparation.backward()
+        self.optimizer.step()
 
     def evaluate_on(self, 
                     reverb_batch: Tensor2d) -> Prediction:

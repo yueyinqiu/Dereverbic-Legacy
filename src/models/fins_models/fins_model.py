@@ -18,6 +18,8 @@ class FinsModel(Trainable):
         self.random = torch.Generator(device).manual_seed(seed)
         self.loss = MrstftLoss.for_rir(device)
 
+        self.train_preparation: Tensor0d | None = None
+
     class StateDict(TypedDict):
         model: dict[str, Any]
         optimizer: dict[str, Any]
@@ -72,22 +74,23 @@ class FinsModel(Trainable):
             "loss_sc": float(losses.sc_loss)
         }
 
-    def train_on(self, 
+    def prepare_train_on(self, 
                  reverb_batch: Tensor2d, 
                  rir_batch: Tensor2d, 
                  speech_batch: Tensor2d) -> dict[str, float]:
         predicted: Tensor2d = self._predict(reverb_batch, None, None)
 
-        total_loss: Tensor0d
         result: dict[str, float]
-        total_loss, result = self._calculate_losses(rir_batch, predicted)
-
-        self.optimizer.zero_grad()
-        total_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.module.parameters(), 5)
-        self.optimizer.step()
+        self.train_preparation, result = self._calculate_losses(rir_batch, predicted)
 
         return result
+
+    def train_prepared(self):
+        assert self.train_preparation is not None
+        self.optimizer.zero_grad()
+        self.train_preparation.backward()
+        torch.nn.utils.clip_grad_norm_(self.module.parameters(), 5)
+        self.optimizer.step()
 
     def evaluate_on(self, reverb_batch: Tensor2d) -> Tensor2d:
         self.module.eval()

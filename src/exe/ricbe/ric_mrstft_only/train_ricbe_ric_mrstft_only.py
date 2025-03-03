@@ -4,6 +4,7 @@ from inputs_and_outputs.checkpoint_managers.checkpoints_directory import Checkpo
 from inputs_and_outputs.data_providers.train_data_provider import TrainDataProvider
 from models.ricbe_models.ricbe_ric_model import RicbeRicModel
 from models.ricbe_models.ricbe_ric_model_mrstft_only import RicbeRicModelMrstftOnly
+from trainers.checkpoint_policies.checkpoint_at_interval_policy import CheckpointAtIntervalPolicy
 from trainers.trainer import Trainer
 
 
@@ -24,7 +25,8 @@ def main():
 
     model: RicbeRicModelMrstftOnly = RicbeRicModelMrstftOnly(config.device)
 
-    Trainer.train(checkpoints, train_data, model, config.checkpoint_interval)
+    Trainer.train(checkpoints, train_data, model, 
+                  CheckpointAtIntervalPolicy(config.checkpoint_interval))
 
 
 if __name__ == "__main__":

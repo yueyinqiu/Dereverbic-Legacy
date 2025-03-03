@@ -14,10 +14,14 @@ class Trainable(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def train_on(self, 
-                 reverb_batch: Tensor2d, 
-                 rir_batch: Tensor2d, 
-                 speech_batch: Tensor2d) -> dict[str, float]:
+    def prepare_train_on(self, 
+                         reverb_batch: Tensor2d, 
+                         rir_batch: Tensor2d, 
+                         speech_batch: Tensor2d) -> dict[str, float]:
+        ...
+
+    @abc.abstractmethod
+    def train_prepared(self):
         ...
 
     @abc.abstractmethod
