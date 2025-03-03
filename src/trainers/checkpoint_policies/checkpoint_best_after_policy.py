@@ -20,11 +20,13 @@ class CheckpointBestAfterPolicy(CheckpointPolicy):
         self._best = state["best"]
 
     def check(self, batch: int, details: dict[str, float]) -> bool:
+        if batch < self._start_batch:
+            return False
+
         if self._criterion_key not in details:
             return False
         
-        if self._best >= details[self._criterion_key]:
-            self._best = details[self._criterion_key]
-            return batch >= self._start_batch
-        
-        return False
+        if self._best < details[self._criterion_key]:
+            return False
+        self._best = details[self._criterion_key]
+        return True
