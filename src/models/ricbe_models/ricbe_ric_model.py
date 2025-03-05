@@ -95,9 +95,4 @@ class RicbeRicModel(Trainable):
         _, losses = self._calculate_losses(rir_batch, predicted)
 
         self.module.train()
-        
-        loss_main: float = losses["loss_mrstft_mag"]
-        loss_main += losses["loss_mrstft_sc"]
-        loss_main += 10 * losses["loss_l1"]
-        loss_main += 0.5 * losses["loss_energy_decay"]
-        return loss_main, losses
+        return losses["loss_total"], losses
