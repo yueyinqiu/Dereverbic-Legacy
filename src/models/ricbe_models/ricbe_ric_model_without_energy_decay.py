@@ -8,7 +8,7 @@ from models.ricbe_models.networks.ricbe_ric_network import RicbeRicNetwork
 from trainers.trainable import Trainable
 
 
-class RicbeRicModelMrstftOnly(Trainable):
+class RicbeRicModelWithoutEnergyDecay(Trainable):
     def __init__(self, device: torch.device) -> None:
         super().__init__()
         self.device = device
@@ -17,6 +17,7 @@ class RicbeRicModelMrstftOnly(Trainable):
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
 
         self.mrstft = MrstftLoss.for_rir(device)
+        self.l1 = torch.nn.L1Loss()
         
         self.train_preparation: Tensor0d | None = None
 
@@ -44,12 +45,14 @@ class RicbeRicModelMrstftOnly(Trainable):
                           actual: Tensor2d,
                           predicted: Tensor2d) -> tuple[Tensor0d, dict[str, float]]:
         mrstft: MrstftLoss.Return = self.mrstft(actual, predicted)
+        l1: torch.Tensor = self.l1(actual, predicted)
 
-        total: Tensor0d = mrstft.total()
+        total: Tensor0d = Tensor0d(mrstft.total() + l1)
         return total, {
             "loss_total": float(total),
             "loss_mrstft_mag": float(mrstft.mag_loss),
-            "loss_mrstft_sc": float(mrstft.sc_loss)
+            "loss_mrstft_sc": float(mrstft.sc_loss),
+            "loss_l1": float(l1)
         }
 
     def prepare_train_on(self, 
@@ -88,5 +91,4 @@ class RicbeRicModelMrstftOnly(Trainable):
         _, losses = self._calculate_losses(rir_batch, predicted)
 
         self.module.train()
-        
         return losses["loss_total"], losses
