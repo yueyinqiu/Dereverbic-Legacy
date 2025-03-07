@@ -24,10 +24,11 @@ from metrics.rir_reverberation_time_metrics import RirReverberationTimeMetrics
 from models.cleanunet_models.cleanunet_model import CleanunetModel
 from models.fins_models.fins_model import FinsModel
 from models.ricbe_models.ricbe_ric_model import RicbeRicModel
+from models.ricbe_models.ricbe_ric_model_without_energy_decay import RicbeRicModelWithoutEnergyDecay
 from trainers.trainer import Trainer
 
 
-def test(model: RicbeRicModel, 
+def test(model: RicbeRicModelWithoutEnergyDecay, 
          checkpoints: CheckpointsDirectory, 
          data: DataLoader, 
          metrics: dict[str, Metric[Tensor2d]]):
@@ -73,7 +74,7 @@ def main():
     from exe.ricbe.ric_without_energy_decay import test_ricbe_ric_without_energy_decay_config as config
 
     print("# Loading...")
-    test(RicbeRicModel(config.device), 
+    test(RicbeRicModelWithoutEnergyDecay(config.device), 
          CheckpointsDirectory(config.checkpoints_directory), 
          ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          {
