@@ -1,6 +1,6 @@
 from typing import TypeVar
 import matplotlib.pyplot
-from statictorch import Tensor0d, Tensor1d, Tensor2d, Tensor3d
+from statictorch import Tensor0d, Tensor1d, Tensor2d, Tensor3d, anify
 from torch import Tensor
 import torch
 from basic_utilities.static_class import StaticClass
@@ -18,7 +18,7 @@ class RirAcousticFeatures(StaticClass):
         energy = energy.flip(-1).cumsum(-1).flip(-1)
         energy = 10 * energy.log10()
         energy = energy - energy[..., 0:1]
-        return energy
+        return anify(energy)
 
     # With reference to https://zhuanlan.zhihu.com/p/430228694
     @classmethod
