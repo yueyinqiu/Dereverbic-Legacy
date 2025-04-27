@@ -2,7 +2,7 @@ from torch import Tensor
 import torch
 
 from models.cleanunet_models.cleanunet_positional_encoding import CleanunetPositionalEncoding
-from models.cleanunet_models.ricbe_encoder_layer import CleanunetEncoderLayer
+from models.cleanunet_models.cleanunet_encoder_layer import CleanunetEncoderLayer
 
 
 class CleanunetTransformerEncoder(torch.nn.Module):
