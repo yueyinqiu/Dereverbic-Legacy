@@ -16,7 +16,7 @@ class CleanunetDbeModel(Trainable):
         self.device = device
         
         self.module = torch.nn.Sequential(
-            CleanunetNetwork(channels_input=1, channels_output=96),
+            CleanunetNetwork(channels_input=2, channels_output=96),
             RicbePostprocess(96, 1, 1, 1, 5)).to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
 
@@ -41,8 +41,10 @@ class CleanunetDbeModel(Trainable):
         self.optimizer.load_state_dict(state["optimizer"])
 
     def _predict(self,
-                 reverb_batch: Tensor2d) -> Tensor2d:
-        rir: Tensor3d = self.module(reverb_batch.unsqueeze(1))
+                 reverb_batch: Tensor2d,
+                 speech_batch: Tensor2d) -> Tensor2d:
+        reverb_and_speech: torch.Tensor =torch.stack([reverb_batch, speech_batch], 1)
+        rir: Tensor3d = self.module(reverb_and_speech)
         return Tensor2d(rir.squeeze(1))
 
     def _calculate_losses(self, 
@@ -65,7 +67,7 @@ class CleanunetDbeModel(Trainable):
                          reverb_batch: Tensor2d, 
                          rir_batch: Tensor2d,
                          speech_batch: Tensor2d) -> dict[str, float]:
-        predicted: Tensor2d = self._predict(reverb_batch)
+        predicted: Tensor2d = self._predict(reverb_batch, speech_batch)
 
         losses: dict[str, float]
         self.train_preparation, losses = self._calculate_losses(rir_batch, predicted)
@@ -79,9 +81,10 @@ class CleanunetDbeModel(Trainable):
         self.optimizer.step()
 
     def evaluate_on(self, 
-                    reverb_batch: Tensor2d):
+                    reverb_batch: Tensor2d, 
+                    speech_batch: Tensor2d):
         self.module.eval()
-        predicted: Tensor2d = self._predict(reverb_batch)
+        predicted: Tensor2d = self._predict(reverb_batch, speech_batch)
         self.module.train()
         return predicted
     
@@ -91,7 +94,7 @@ class CleanunetDbeModel(Trainable):
                     speech_batch: Tensor2d) -> tuple[float, dict[str, float]]:
         self.module.eval()
 
-        predicted: Tensor2d = self._predict(reverb_batch)
+        predicted: Tensor2d = self._predict(reverb_batch, speech_batch)
         losses: dict[str, float]
         _, losses = self._calculate_losses(rir_batch, predicted)
 
