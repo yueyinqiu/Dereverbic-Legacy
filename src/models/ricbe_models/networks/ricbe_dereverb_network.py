@@ -16,7 +16,7 @@ class RicbeDereverbNetwork(torch.nn.Module):
 
         channels: int = 48
         self.preprocess_for_speech = RicbePreprocess(1, channels)
-        self.pair_for_speech = RicbeEncoderDecoderPair(channels, False)
+        self.pair_for_speech = RicbeEncoderDecoderPair(channels, False, False)
         self.postprocess_for_speech = RicbePostprocess(channels * 2, 1, 1, 1, 1)
 
     def forward(self, reverb: Tensor3d):

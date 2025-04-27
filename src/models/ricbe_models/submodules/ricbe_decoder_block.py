@@ -3,8 +3,10 @@ import torch
 
 
 class RicbeDecoderBlock(torch.nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, dilation: int):
+    def __init__(self, in_channels: int, out_channels: int, dilation: int, simple_decoder: bool):
         super().__init__()
+        self.with_skip = not simple_decoder
+
         kernel_size: int = 7
         stride: int = 1
         padding: int = ((kernel_size - 1) // 2) * dilation
@@ -40,4 +42,7 @@ class RicbeDecoderBlock(torch.nn.Module):
         y2: Tensor3d = self.conv2(y1)
         y2 = self.prelu2(y2)
         y2 = self.prelu3(self.conv3(y2))
-        return y1 + y2
+        if self.with_skip:
+            return y2
+        else:
+            return Tensor3d(y1 + y2)

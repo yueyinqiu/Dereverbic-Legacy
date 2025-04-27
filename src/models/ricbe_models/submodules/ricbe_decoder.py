@@ -16,13 +16,17 @@ class RicbeDecoder(torch.nn.Module):
                  channels_input: int,
                  channels_decrease_per_layer: int, 
                  dilation: int,
+                 simple_decoder: bool,
                  concatenate_last: bool = True):
         super().__init__()
         self.concatenate_last: bool = concatenate_last
         block_list: list[RicbeDecoderBlock] = []
         for _ in range(block_count):
             channels_next: int = channels_input - channels_decrease_per_layer
-            block_list.append(RicbeDecoderBlock(channels_input * 2, channels_next, dilation))
+            block_list.append(RicbeDecoderBlock(channels_input * 2, 
+                                                channels_next, 
+                                                dilation, 
+                                                simple_decoder))
             channels_input = channels_next
         self.blocks: RicbeDecoder.DecoderBlockList = anify(torch.nn.ModuleList(block_list))
 

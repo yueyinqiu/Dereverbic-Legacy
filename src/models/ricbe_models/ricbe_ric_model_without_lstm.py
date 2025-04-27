@@ -14,7 +14,7 @@ class RicbeRicModelWithoutLstm(Trainable):
         super().__init__()
         self.device = device
 
-        self.module = RicbeRicNetwork(True).to(device)
+        self.module = RicbeRicNetwork(True, False).to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
 
         self.mrstft = MrstftLoss.for_rir(device)
