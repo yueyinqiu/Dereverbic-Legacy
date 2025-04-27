@@ -14,7 +14,7 @@ checkpoint_interval: int = \
 
 
 checkpoints_directory: _pathlib.Path = \
-    _common_configurations.checkpoints_directory / "cleanunet/"
+    _common_configurations.checkpoints_directory / "ricbe_ric_without_lstm/"
 
 
 train_list_rir: _pathlib.Path = \
@@ -26,4 +26,4 @@ train_list_speech: _pathlib.Path = \
 
 
 random_seed: str = \
-    "948C2EC1-86CB-4789-B997-9A09F2DDCC50"
+    "EAEDC141-712E-48DF-A2A6-D5488E468DBD"

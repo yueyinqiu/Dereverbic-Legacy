@@ -9,12 +9,12 @@ from models.ricbe_models.networks.ricbe_ric_network import RicbeRicNetwork
 from trainers.trainable import Trainable
 
 
-class RicbeRicModel(Trainable):
+class RicbeRicModelWithoutLstm(Trainable):
     def __init__(self, device: torch.device) -> None:
         super().__init__()
         self.device = device
 
-        self.module = RicbeRicNetwork(False).to(device)
+        self.module = RicbeRicNetwork(True).to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
 
         self.mrstft = MrstftLoss.for_rir(device)

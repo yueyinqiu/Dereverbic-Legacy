@@ -6,10 +6,10 @@ from models.ricbe_models.networks.ricbe_ric_network import RicbeRicNetwork
 
 
 class RicbeFullNetwork(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, dereverb: RicbeDereverbNetwork, ric: RicbeRicNetwork):
         super().__init__()
-        self.dereverb = RicbeDereverbNetwork()
-        self.ric = RicbeRicNetwork()
+        self.dereverb = dereverb
+        self.ric = ric
 
     def forward(self, reverb: Tensor3d):
         speech: Tensor3d = self.dereverb(reverb)

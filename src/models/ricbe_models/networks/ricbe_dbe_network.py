@@ -12,7 +12,7 @@ class RicbeDbeNetwork(torch.nn.Module):
         channels: int = 48
 
         self.preprocess = RicbePreprocess(1, channels)
-        self.pair = RicbeEncoderDecoderPair(channels)
+        self.pair = RicbeEncoderDecoderPair(channels, False)
         self.postprocess = RicbePostprocess(channels * 2, 1, 1, 1, 5)
 
     def forward(self, reverb: Tensor3d):

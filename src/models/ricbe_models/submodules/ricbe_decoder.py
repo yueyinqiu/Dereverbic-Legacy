@@ -15,8 +15,10 @@ class RicbeDecoder(torch.nn.Module):
                  block_count: int, 
                  channels_input: int,
                  channels_decrease_per_layer: int, 
-                 dilation: int):
+                 dilation: int,
+                 concatenate_last: bool = True):
         super().__init__()
+        self.concatenate_last: bool = concatenate_last
         block_list: list[RicbeDecoderBlock] = []
         for _ in range(block_count):
             channels_next: int = channels_input - channels_decrease_per_layer
@@ -32,4 +34,7 @@ class RicbeDecoder(torch.nn.Module):
             x = Tensor3d(block(x))
             i = i - 1
             x = Tensor3d(x[:, :, :features[i].size(2)])
-        return Tensor3d(torch.cat([x, features[i]], dim=1))
+        if self.concatenate_last:
+            return Tensor3d(torch.cat([x, features[i]], dim=1))
+        else:
+            return Tensor3d(x)
