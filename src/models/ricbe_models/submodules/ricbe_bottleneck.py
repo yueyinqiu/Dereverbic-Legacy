@@ -27,7 +27,7 @@ class RicbeBottleneck(torch.nn.Module):
             channel_step: int = 48
             self.encoder = RicbeEncoder(block_count, channels, channel_step, 1)
             final_channels: int = block_count * channel_step + channels
-            self.decoder = RicbeDecoder(block_count, final_channels, channel_step, 1, False)
+            self.decoder = RicbeDecoder(block_count, final_channels, channel_step, 1, True, False)
             self.lstm = torch.nn.Sequential()
     
     def forward(self, x: Tensor3d):

@@ -17,7 +17,7 @@ class RicbeDecoder(torch.nn.Module):
                  channels_decrease_per_layer: int, 
                  dilation: int,
                  simple_decoder: bool,
-                 concatenate_last: bool = True):
+                 concatenate_last: bool):
         super().__init__()
         self.concatenate_last: bool = concatenate_last
         block_list: list[RicbeDecoderBlock] = []
