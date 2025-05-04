@@ -10,7 +10,7 @@ from models.ricbe_models.submodules.ricbe_postprocess import RicbePostprocess
 from trainers.trainable import Trainable
 
 
-class CleanunetDbeModel(Trainable):
+class CleanunetRicModel(Trainable):
     def __init__(self, device: torch.device) -> None:
         super().__init__()
         self.device = device

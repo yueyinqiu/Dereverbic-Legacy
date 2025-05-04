@@ -7,6 +7,7 @@ from criterions.rir_energy_decay_loss.rir_energy_decay_loss import RirEnergyDeca
 from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.cleanunet_models.cleanunet_network import CleanunetNetwork
 from models.ricbe_models.submodules.ricbe_postprocess import RicbePostprocess
+from models.ricbe_models.submodules.ricbe_preprocess import RicbePreprocess
 from trainers.trainable import Trainable
 
 
@@ -16,8 +17,9 @@ class CleanunetDbeModel(Trainable):
         self.device = device
         
         self.module = torch.nn.Sequential(
-            CleanunetNetwork(channels_input=1, channels_output=96),
-            RicbePostprocess(96, 1, 1, 1, 5)).to(device)
+            RicbePreprocess(1, 48),
+            CleanunetNetwork(channels_input=48, channels_output=48),
+            RicbePostprocess(48, 1, 1, 1, 5)).to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
 
         self.mrstft = MrstftLoss.for_rir(device)

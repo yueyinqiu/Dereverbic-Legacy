@@ -120,10 +120,11 @@ class CleanunetNetwork(torch.nn.Module):
         C: int
         L: int
         B, C, L = noisy_audio.shape
-        assert C == 1
+        # assert C == 1
         
         # normalization and padding
-        std: Tensor = noisy_audio.std(dim=2, keepdim=True) + 1e-3
+        std: Tensor = noisy_audio.std(dim=2, keepdim=True)
+        std = std.mean(dim=1, keepdim=True) + 1e-3
         noisy_audio = noisy_audio / std
         x: Tensor = CleanunetNetwork.padding(noisy_audio, 
                                              self.encoder_n_layers, 
