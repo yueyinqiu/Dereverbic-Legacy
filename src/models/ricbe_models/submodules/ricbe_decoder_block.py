@@ -43,6 +43,6 @@ class RicbeDecoderBlock(torch.nn.Module):
         y2 = self.prelu2(y2)
         y2 = self.prelu3(self.conv3(y2))
         if self.with_skip:
-            return y2
-        else:
             return Tensor3d(y1 + y2)
+        else:
+            return y2
