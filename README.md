@@ -14,8 +14,8 @@ To cite this:
   year         = 2025,
   publisher    = {Zenodo},
   version      = 20250617,
-  doi          = {10.5281/zenodo.15679580},
-  url          = {https://doi.org/10.5281/zenodo.15679580},
+  doi          = {10.5281/zenodo.15679579},
+  url          = {https://doi.org/10.5281/zenodo.15679579},
 }
 ```
 
