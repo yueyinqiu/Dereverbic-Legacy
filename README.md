@@ -6,6 +6,21 @@ This repository contains the implementation of the Ricbe (Room Impulse Response 
 
 The associated manuscript is still under development and has not been submitted yet. This repository will be updated as the research progresses.
 
+To cite this:
+
+```
+@misc{ricbe,
+  author       = {Lu, Jiaqi and Shen, Ying},
+  title        = {Room Impulse Response Inverse Convolution and Blind Estimation Based on Deep Learning},
+  month        = jun,
+  year         = 2025,
+  publisher    = {Zenodo},
+  version      = 20250617,
+  doi          = {10.5281/zenodo.15679580},
+  url          = {https://doi.org/10.5281/zenodo.15679580},
+}
+```
+
 ## Highlights
 
 - Dereverberation + Inverse Convolution: Simplifies the complex blind estimation task into two subtasks.
@@ -17,7 +32,7 @@ The associated manuscript is still under development and has not been submitted 
 
 ## License
 
-This project is open source under [CC BY]((https://creativecommons.org/licenses/by/4.0/)). However, some models, loss functions, and indicators refer to other projects. Please follow the corresponding licenses. For some of them which do not clearly state the license, please be sure to respect the rights of the original author.
+This project is open source under [CC BY](https://creativecommons.org/licenses/by/4.0/). However, some models, loss functions, and indicators refer to other projects. Please follow the corresponding licenses. For some of them which do not clearly state the license, please be sure to respect the rights of the original author.
 
 ## Environment
 
