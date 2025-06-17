@@ -1,4 +1,6 @@
-# Ricbe 基于深度学习的房间冲激响应逆卷积和盲估计
+# Ricbe: Deep-learning Based Inverse Convolution and Blind Estimation of Room Impulse Response 
+
+# 基于深度学习的房间冲激响应逆卷积和盲估计
 
 ## 环境
 
@@ -59,4 +61,4 @@ Ears： https://github.com/facebookresearch/ears_dataset
 
 ## 协议
 
-本项目以 MIT 协议开源。但一些模型、损失函数和指标等参考了其他项目，请同时遵循相应的协议。其中部分未明确声明许可证的，也请务必尊重原作者的权益。
+本项目以 [CC BY 协议](https://creativecommons.org/licenses/by/4.0/)开源。但一些模型、损失函数和指标等参考了其他项目，请同时遵循相应的协议。其中部分未明确声明许可证的，也请务必尊重原作者的权益。
