@@ -4,21 +4,6 @@
 
 This repository contains the implementation of the Ricbe (Room Impulse Response Inverse Convolution and Blind Estimation) model, a deep learning-based approach for blind estimation of room impulse responses (RIRs) from reverberant speech. Ricbe aims to provide a low-cost, practical solution for RIR measurement, overcoming limitations of traditional methods.
 
-To cite this:
-
-```
-@misc{ricbe,
-  author       = {Lu, Jiaqi and Shen, Ying},
-  title        = {Room Impulse Response Inverse Convolution and Blind Estimation Based on Deep Learning},
-  month        = jun,
-  year         = 2025,
-  publisher    = {Zenodo},
-  version      = 20250617,
-  doi          = {10.5281/zenodo.15679579},
-  url          = {https://doi.org/10.5281/zenodo.15679579},
-}
-```
-
 ## Highlights
 
 - Dereverberation + Inverse Convolution: Simplifies the complex blind estimation task into two subtasks.
