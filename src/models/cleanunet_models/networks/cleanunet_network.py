@@ -8,7 +8,7 @@ import numpy
 from torch import Tensor
 import torch
 
-from models.cleanunet_models.cleanunet_transformer_encoder import CleanunetTransformerEncoder
+from models.cleanunet_models.submodules.cleanunet_transformer_encoder import CleanunetTransformerEncoder
 
 
 class CleanunetNetwork(torch.nn.Module):

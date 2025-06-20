@@ -1,7 +1,7 @@
 from torch import Tensor
 import torch
 
-from models.cleanunet_models.cleanunet_scaled_dot_product_attention import CleanunetScaledDotProductAttention
+from models.cleanunet_models.submodules.cleanunet_scaled_dot_product_attention import CleanunetScaledDotProductAttention
 
 
 class CleanunetMultiHeadAttention(torch.nn.Module):

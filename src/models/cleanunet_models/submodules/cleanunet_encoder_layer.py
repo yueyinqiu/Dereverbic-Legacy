@@ -1,7 +1,7 @@
 import torch
 
-from models.cleanunet_models.cleanunet_multi_head_attention import CleanunetMultiHeadAttention
-from models.cleanunet_models.cleanunet_positionwise_feed_forward import CleanunetPositionwiseFeedForward
+from models.cleanunet_models.submodules.cleanunet_multi_head_attention import CleanunetMultiHeadAttention
+from models.cleanunet_models.submodules.cleanunet_positionwise_feed_forward import CleanunetPositionwiseFeedForward
 
 
 class CleanunetEncoderLayer(torch.nn.Module):

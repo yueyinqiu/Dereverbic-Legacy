@@ -5,7 +5,8 @@ from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 
 from criterions.rir_energy_decay_loss.rir_energy_decay_loss import RirEnergyDecayLoss
 from criterions.stft_losses.mrstft_loss import MrstftLoss
-from models.cleanunet_models.cleanunet_network import CleanunetNetwork
+from models.cleanunet_models.networks.cleanunet_dbe_network import CleanUNetDbeNetwork
+from models.cleanunet_models.networks.cleanunet_network import CleanunetNetwork
 from models.ricbe_models.submodules.ricbe_postprocess import RicbePostprocess
 from models.ricbe_models.submodules.ricbe_preprocess import RicbePreprocess
 from trainers.trainable import Trainable
@@ -16,10 +17,7 @@ class CleanunetDbeModel(Trainable):
         super().__init__()
         self.device = device
         
-        self.module = torch.nn.Sequential(
-            RicbePreprocess(1, 48),
-            CleanunetNetwork(channels_input=48, channels_output=48),
-            RicbePostprocess(48, 1, 1, 1, 5)).to(device)
+        self.module = CleanUNetDbeNetwork().to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
 
         self.mrstft = MrstftLoss.for_rir(device)

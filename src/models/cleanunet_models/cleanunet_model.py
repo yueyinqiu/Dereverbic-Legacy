@@ -4,7 +4,7 @@ import torch
 from torch.optim import Adam  # pyright: ignore [reportPrivateImportUsage]
 
 from criterions.stft_losses.mrstft_loss import MrstftLoss
-from models.cleanunet_models.cleanunet_network import CleanunetNetwork
+from models.cleanunet_models.networks.cleanunet_network import CleanunetNetwork
 from trainers.trainable import Trainable
 
 
