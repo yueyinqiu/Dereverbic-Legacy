@@ -2,12 +2,12 @@
 
 **The associated manuscript is still under development and has not been submitted yet. This repository will be updated as the research progresses.**
 
-This repository contains the implementation of the Ricbe (Room Impulse Response Inverse Convolution and Blind Estimation) model, a deep learning-based approach for blind estimation of room impulse responses (RIRs) from reverberant speech. Ricbe aims to provide a low-cost, practical solution for RIR measurement, overcoming limitations of traditional methods.
+This repository contains the implementation of the Ricbe (Room Impulse Response Inverse Convolution and Blind Estimation) / Dbre (Demucs-based Blind RIR Estimation) model, a deep learning-based approach for blind estimation of room impulse responses (RIRs) from reverberant speech. Ricbe aims to provide a low-cost, practical solution for RIR measurement, overcoming limitations of traditional methods.
 
 ## Highlights
 
-- Dereverberation + Inverse Convolution: Simplifies the complex blind estimation task into two subtasks.
-- Advanced Architecture: Combines convolutional layers and LSTM layers to extract audio features for both dereverberation and inverse convolution.
+- Dereverberation Followed by Inverse Convolution: Simplifies the complex blind estimation task into two subtasks.
+- Demucs-like Modules: Combines convolutional layers and LSTM layers to extract audio features for both dereverberation and inverse convolution.
 - RIR Energy Decay Loss: Custom loss function tailored for RIR characteristics, enhancing prediction accuracy.
 - Superior Performance: Experiments show Ricbe outperforms existing models in key metrics.
 
