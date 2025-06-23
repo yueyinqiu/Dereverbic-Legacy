@@ -12,8 +12,8 @@ class RirAcousticFeatures(StaticClass):
     
     # With reference to https://zhuanlan.zhihu.com/p/430228694
     @classmethod
-    def _energy_decay_curve_decibel(cls,
-                                    rir: _TensorNd) -> _TensorNd:
+    def energy_decay_curve_decibel(cls,
+                                   rir: _TensorNd) -> _TensorNd:
         energy: Tensor = rir ** 2
         energy = energy.flip(-1).cumsum(-1).flip(-1)
         energy = 10 * energy.log10()
@@ -23,45 +23,42 @@ class RirAcousticFeatures(StaticClass):
     # With reference to https://zhuanlan.zhihu.com/p/430228694
     @classmethod
     def get_reverberation_time(cls,
-                               rir: Tensor,
+                               energy_decay_curve_decibel: Tensor,
                                decay_decibel: float = 30.,
                                sample_rate: int = 1, 
                                headroom_decibel: float = -5.):
-        energy_decay: Tensor = cls._energy_decay_curve_decibel(rir)
         search: Tensor = torch.tensor([headroom_decibel, headroom_decibel - decay_decibel],
-                                      dtype=energy_decay.dtype,
-                                      device=energy_decay.device)
-        search_shape: list[int] = list(energy_decay.shape)
+                                      dtype=energy_decay_curve_decibel.dtype,
+                                      device=energy_decay_curve_decibel.device)
+        search_shape: list[int] = list(energy_decay_curve_decibel.shape)
         search_shape[-1] = 2
         search = search.expand(search_shape)
         
-        found: Tensor = torch.searchsorted(energy_decay.flip(-1), search)
+        found: Tensor = torch.searchsorted(energy_decay_curve_decibel.flip(-1), search)
         difference: Tensor = found[..., 0] - found[..., 1]
         return difference / sample_rate
-    
+
     @classmethod
     def get_reverberation_time_1d(cls,
-                                  rir: Tensor1d,
+                                  energy_decay_curve_decibel: Tensor1d,
                                   decay_decibel: float = 30.,
                                   sample_rate: int = 1, 
                                   headroom_decibel: float = -5.) -> Tensor0d:
-        return Tensor0d(cls.get_reverberation_time(rir, 
+        return Tensor0d(cls.get_reverberation_time(energy_decay_curve_decibel, 
                                                    decay_decibel, 
                                                    sample_rate, 
                                                    headroom_decibel))
 
     @classmethod
     def get_reverberation_time_2d(cls,
-                                  rir: Tensor2d,
+                                  energy_decay_curve_decibel: Tensor2d,
                                   decay_decibel: float = 30.,
                                   sample_rate: int = 1, 
                                   headroom_decibel: float = -5.) -> Tensor1d:
-        return Tensor1d(cls.get_reverberation_time(rir, 
+        return Tensor1d(cls.get_reverberation_time(energy_decay_curve_decibel, 
                                                    decay_decibel, 
                                                    sample_rate, 
                                                    headroom_decibel))
-    
-
 
 
 def _test():
@@ -71,7 +68,7 @@ def _test():
     matplotlib.pyplot.subplot(121)
     matplotlib.pyplot.plot(rir[0, :])
 
-    edc: Tensor2d = RirAcousticFeatures._energy_decay_curve_decibel(rir)
+    edc: Tensor2d = RirAcousticFeatures.energy_decay_curve_decibel(rir)
     matplotlib.pyplot.subplot(122)
     matplotlib.pyplot.plot(edc[0, :])
 
