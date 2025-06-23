@@ -19,10 +19,8 @@ class RirReverberationTimeMetrics(Metric[Tensor2d]):
         self._metrics = metrics_on_reverberation_time
     
     def append(self, actual: Tensor2d, predicted: Tensor2d) -> dict[str, float]:
-        actual = RirAcousticFeatures.energy_decay_curve_decibel(actual)
         actual_time: Tensor1d = RirAcousticFeatures.get_reverberation_time_2d(
             actual, self._decay_decibel, self._sample_rate)
-        predicted = RirAcousticFeatures.energy_decay_curve_decibel(predicted)
         predicted_time: Tensor1d = RirAcousticFeatures.get_reverberation_time_2d(
             predicted, self._decay_decibel, self._sample_rate)
 
