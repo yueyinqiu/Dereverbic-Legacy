@@ -104,7 +104,6 @@ def main():
          {
              "mrstft": MrstftLossMetric.for_speech(config.device),
              "l1": L1LossMetric(config.device),
-             "sisnr": SisnrMetric(),
              "pesq": PesqMetric(16000),
              "stoi": StoiMetric(16000),
          })
