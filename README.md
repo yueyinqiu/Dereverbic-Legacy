@@ -25,7 +25,7 @@ We use Anaconda on Linux to manage the environments, with CUDA 12.4. We use Visu
 conda create -n Ricbe python=3.12.8
 conda activate Ricbe
 conda install conda-forge::ffmpeg=7.1.0
-pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu124
+pip install torch==2.5.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu124
 pip install -r other_requirements.txt
 ```
 

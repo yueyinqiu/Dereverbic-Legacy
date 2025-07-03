@@ -57,7 +57,7 @@ def test(data: DataLoader,
 
 
 def main():
-    from exe.ricbe.ric import test_frequency_domain_division_config as config
+    from exe.frequency_domain_division import test_frequency_domain_division_config as config
 
     print("# Loading...")
     cpu: torch.device = torch.device("cpu")
