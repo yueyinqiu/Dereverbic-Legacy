@@ -4,16 +4,17 @@ from torch import Tensor
 
 
 class BerpSsirModel:
-    def __init__(self, mu_Th: float, seed: int, fs: int = 16000):
+    def __init__(self, mu_Th: float, seed: int, fs: int = 16000, rir_length: float = 1):
         super().__init__()
         self.mu_Th = mu_Th
         self.fs = fs
         self.seed = seed
+        self.rir_length = rir_length
 
     def __call__(self, Ti: float, Td: float, volume: float) -> Tensor:
         volume = int(round(volume, 0)) + 1
         early_reflection_range: Tensor = torch.arange(-Ti, -1 / self.fs, 1 / self.fs)
-        late_reverberation_range: Tensor = torch.arange(0, Td, 1 / self.fs)
+        late_reverberation_range: Tensor = torch.arange(0, self.rir_length - Ti, 1 / self.fs)
         early_reflection_part: Tensor = torch.exp(6.9 * (early_reflection_range / Ti))
         early_reflection_carrier: numpy.ndarray = numpy.random.default_rng(self.seed).normal(
             self.mu_Th, 1.0, size=len(early_reflection_range)
@@ -44,6 +45,3 @@ class BerpSsirModel:
         )
         b: Tensor = (1 / torch.trapz(synthesized_rir_envelope)).sqrt()
         return b * synthesized_rir
-
-q = BerpSsirModel(0.01887499913573265, 1234, 16000)(0.01887499913573265, 0.2881312668323517, 427.368256)
-print(q.shape)
