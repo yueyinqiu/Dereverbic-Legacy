@@ -14,6 +14,10 @@ rir_map: _pathlib.Path = \
     _split_dataset_config.rir_contents
 
 
+reverb_map: _pathlib.Path = \
+    _split_dataset_config.reverb_directory / "contents.csv"
+
+
 rir_information: _typing.Iterable[_pathlib.Path] = \
     _download_bird_config.destination.glob("**/*.csv")
 

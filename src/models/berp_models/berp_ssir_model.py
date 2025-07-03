@@ -10,11 +10,11 @@ class BerpSsirModel:
         self.fs = fs
         self.seed = seed
 
-    def __call__(self, Th: float, Tt: float, volume: float) -> Tensor:
+    def __call__(self, Ti: float, Td: float, volume: float) -> Tensor:
         volume = int(round(volume, 0)) + 1
-        early_reflection_range: Tensor = torch.arange(-Th, -1 / self.fs, 1 / self.fs)
-        late_reverberation_range: Tensor = torch.arange(0, Tt, 1 / self.fs)
-        early_reflection_part: Tensor = torch.exp(6.9 * (early_reflection_range / Th))
+        early_reflection_range: Tensor = torch.arange(-Ti, -1 / self.fs, 1 / self.fs)
+        late_reverberation_range: Tensor = torch.arange(0, Td, 1 / self.fs)
+        early_reflection_part: Tensor = torch.exp(6.9 * (early_reflection_range / Ti))
         early_reflection_carrier: numpy.ndarray = numpy.random.default_rng(self.seed).normal(
             self.mu_Th, 1.0, size=len(early_reflection_range)
         )
@@ -32,7 +32,7 @@ class BerpSsirModel:
 
         early_reflection: Tensor = early_reflection_part * torch.from_numpy(early_reflection_carrier).float()
 
-        late_reverberation_part: Tensor = torch.exp(-6.9 * (late_reverberation_range / Tt))
+        late_reverberation_part: Tensor = torch.exp(-6.9 * (late_reverberation_range / Td))
         late_reverberation_carrier: numpy.ndarray = numpy.random.default_rng(self.seed).normal(
             0.0, 1.0, size=len(late_reverberation_range)
         )
@@ -44,3 +44,6 @@ class BerpSsirModel:
         )
         b: Tensor = (1 / torch.trapz(synthesized_rir_envelope)).sqrt()
         return b * synthesized_rir
+
+q = BerpSsirModel(0.01887499913573265, 1234, 16000)(0.01887499913573265, 0.2881312668323517, 427.368256)
+print(q.shape)

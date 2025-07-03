@@ -24,11 +24,37 @@ from models.berp_models.berp_ssir_model import BerpSsirModel
 
 class _PathInputModel:
     @staticmethod
-    def load_tensor_path_to_raw_rir_id_map(contents_csv_path: Path):
+    def load_reverb_path_to_rir_path_map(reverb_contents_csv_path: Path):
+        print("# Mapping Reverb...")
+
         result: dict[str, str] = {}
 
         csv_file: io.TextIOWrapper
-        with open(contents_csv_path, newline="") as csv_file:
+        with open(reverb_contents_csv_path, newline="") as csv_file:
+            csv_reader: CsvReader = csv.reader(csv_file)
+
+            row_str: list[str]
+            for row_str in csv_reader:
+                assert tuple(row_str)[0] == "Reverb"
+                assert tuple(row_str)[1] == "Rir"
+                assert tuple(row_str)[2] == "Speech"
+                break
+
+            for row_str in csv_reader:
+                reverb_path: str = row_str[0]
+                rir_path: str = row_str[1]
+                result[reverb_path] = rir_path
+
+        return result
+
+    @staticmethod
+    def load_tensor_path_to_raw_rir_id_map(rir_contents_csv_path: Path):
+        print("# Mapping Rir...")
+
+        result: dict[str, str] = {}
+
+        csv_file: io.TextIOWrapper
+        with open(rir_contents_csv_path, newline="") as csv_file:
             csv_reader: CsvReader = csv.reader(csv_file)
 
             row_str: list[str]
@@ -47,6 +73,8 @@ class _PathInputModel:
 
     @staticmethod
     def load_rir_id_to_room_volume_map(fold02d_csv_paths: Iterable[Path]):
+        print("# Loading Room Volumes...")
+
         result: dict[str, float] = {}
 
         fold02d_csv_path: Path
@@ -76,9 +104,12 @@ class _PathInputModel:
         t_h: float
         t_t: float
 
-    def __init__(self, rir_map: Path, rir_information: Iterable[Path], test_list: list[str], seed: int) -> None:
+    def __init__(self, reverb_map: Path, rir_map: Path, rir_information: Iterable[Path], test_list: list[str], seed: int) -> None:
+        print("# Building Model...")
+
         cpu: torch.device = torch.device("cpu")
-    
+
+        reverb_to_rir_map: dict[str, str] = _PathInputModel.load_reverb_path_to_rir_path_map(reverb_map)
         id_map: dict[str, str] = _PathInputModel.load_tensor_path_to_raw_rir_id_map(rir_map)
         volume_map: dict[str, float] = _PathInputModel.load_rir_id_to_room_volume_map(rir_information)
         self.rir_information: dict[str, _PathInputModel.RirInformation] = {}
@@ -89,11 +120,12 @@ class _PathInputModel:
             item: ValidationOrTestDataset.DatasetItem = torch.load(rir_path, 
                                                                 weights_only=True, 
                                                                 map_location=cpu)
-            volume: float = volume_map[id_map[rir_path]]
+            volume: float = volume_map[id_map[reverb_to_rir_map[rir_path]]]
             t_h: float = float(BerpRirUtilities.getTh(item["rir"], 16000))
             t_t: float = float(BerpRirUtilities.getTt(item["rir"], 16000))
             self.rir_information[rir_path] = _PathInputModel.RirInformation(volume, t_h, t_t)
             t_h_accumulator.add(t_h)
+            print(f"# {rir_path}: volume={volume} t_h={t_h} t_t={t_t}")
 
         self.model: BerpSsirModel = BerpSsirModel(t_h_accumulator.value() / test_list.__len__(), seed)
     
@@ -137,7 +169,8 @@ def main():
     random: Random = Random(config.random_seed)
     test_list: list[str] = csfile.read_all_lines(config.test_list)
     
-    model: _PathInputModel = _PathInputModel(config.rir_map, 
+    model: _PathInputModel = _PathInputModel(config.reverb_map,
+                                             config.rir_map, 
                                              config.rir_information, 
                                              test_list, 
                                              random.randint(0, 1000))

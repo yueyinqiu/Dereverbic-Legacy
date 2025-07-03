@@ -1,5 +1,6 @@
 import torch
 import scipy
+from audio_processors.rir_acoustic_features import RirAcousticFeatures
 from basic_utilities.static_class import StaticClass
 from models.berp_models.berp_temporal_envelope import BerpTemporalEnvelope
 
@@ -46,7 +47,7 @@ class BerpRirUtilities(StaticClass):
         return y
 
     @staticmethod
-    def getTt(h, fs):
+    def getTt(h, fs, fallback: bool = True):
         # Actually it's just T60,
         # but there is a slight difference between 
         # the BERP's implemention here and 
@@ -88,6 +89,9 @@ class BerpRirUtilities(StaticClass):
             else:
                 xT_60 = 3.3 * torch.where(fittedline <= -18.2)[0][0]
         except:
-            raise ValueError("T60 does not exist, the signal is not an RIR.")
+            if fallback:
+                edc: torch.Tensor = RirAcousticFeatures.energy_decay_curve_decibel(h)
+                return RirAcousticFeatures.get_reverberation_time(edc, sample_rate=fs) * (60 / 30)
+            raise ValueError("# T60 does not exist, the signal is not an RIR.")
         
         return xT_60 / fs
