@@ -1,4 +1,4 @@
-# This model is modified from (without modification of its structure):
+# This model is modified from (without modification of its behavior):
 # https://github.com/NVIDIA/CleanUNet
 # The original repository is licensed under MIT
 # Please also respect the original author's rights

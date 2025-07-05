@@ -4,5 +4,7 @@ matplotlib==3.10.0
 pesq==0.0.4
 batch-pystoi==0.0.3
 statictorch
+einops==0.8.1
+nnAudio==0.3.3
 
 variable-declaration-checker

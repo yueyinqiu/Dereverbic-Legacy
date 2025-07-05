@@ -1,15 +1,18 @@
+from statictorch import Tensor0d, Tensor1d, anify
 import torch
 import scipy
 from audio_processors.rir_acoustic_features import RirAcousticFeatures
 from basic_utilities.static_class import StaticClass
-from models.berp_models.berp_temporal_envelope import BerpTemporalEnvelope
+from models.berp_models.networks.berp_temporal_envelope import BerpTemporalEnvelope
 
 
 class BerpRirUtilities(StaticClass):
     @staticmethod
-    def getTh(h, fs):
+    def get_t_h(h: Tensor1d, fs = 16000) -> Tensor0d:
+        h_cpu: torch.Tensor = h.to("cpu")
+
         temporal_env: BerpTemporalEnvelope = BerpTemporalEnvelope(dim=0, fc=20, fs=fs, mode="TAE")
-        eh: torch.Tensor = temporal_env(h)
+        eh: torch.Tensor = temporal_env(h_cpu)
 
         Pks: torch.Tensor = torch.max(eh)
         I_t0: torch.Tensor = torch.argmax(eh)
@@ -33,7 +36,7 @@ class BerpRirUtilities(StaticClass):
             fit = [0.0000, t0]  # Th does not exist
             # print("Th does not exist. Set to t0.")
 
-        return torch.as_tensor(fit[1])
+        return Tensor0d(torch.as_tensor(fit[1]).to(h))
 
     @staticmethod
     def _polyval(p, x) -> torch.Tensor:
@@ -47,14 +50,16 @@ class BerpRirUtilities(StaticClass):
         return y
 
     @staticmethod
-    def getTt(h, fs, fallback: bool = True):
+    def get_t_t(h: Tensor1d, fs = 16000, fallback: bool = True) -> Tensor0d:
+        h_cpu: torch.Tensor = h.to("cpu")
+
         # Actually it's just T60,
         # but there is a slight difference between 
         # the BERP's implemention here and 
         # our RirAcousticFeatures.get_reverberation_time
         # To ensure the result meet the SSIR's theory, we use this implemention in their model.
 
-        x: torch.Tensor = torch.cumulative_trapezoid(h.flip(0) ** 2).double()
+        x: torch.Tensor = torch.cumulative_trapezoid(h_cpu.flip(0) ** 2).double()
         x = x.flip(0)
 
         EDC: torch.Tensor = 10 * torch.log10(x)
@@ -90,8 +95,8 @@ class BerpRirUtilities(StaticClass):
                 xT_60 = 3.3 * torch.where(fittedline <= -18.2)[0][0]
         except:
             if fallback:
-                edc: torch.Tensor = RirAcousticFeatures.energy_decay_curve_decibel(h)
-                return RirAcousticFeatures.get_reverberation_time(edc, sample_rate=fs) * (60 / 30)
+                edc: Tensor1d = RirAcousticFeatures.energy_decay_curve_decibel(h)
+                return Tensor0d(RirAcousticFeatures.get_reverberation_time_1d(edc, sample_rate=fs) * (60 / 30))
             raise ValueError("# T60 does not exist, the signal is not an RIR.")
         
-        return xT_60 / fs
+        return Tensor0d((xT_60 / fs).to(h))

@@ -1,3 +1,7 @@
+from sre_parse import State
+from typing import TypedDict
+
+
 class KahanAccumulator:
     def __init__(self, initial_value: float = 0.):
         self._value: float = initial_value
@@ -15,6 +19,20 @@ class KahanAccumulator:
         self._compensation = next_value - self._value - compensated
         self._value = next_value
         return self
+    
+    class StateDict(TypedDict):
+        value: float
+        compensation: float
+
+    def get_state(self) -> StateDict:
+        return {
+            "value": self._value,
+            "compensation": self._compensation
+        }
+
+    def set_state(self, state: StateDict):
+        self._value = state["value"]
+        self._compensation = state["compensation"]
 
 
 def _test():

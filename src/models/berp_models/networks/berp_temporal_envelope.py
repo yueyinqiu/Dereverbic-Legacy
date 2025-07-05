@@ -1,8 +1,8 @@
 import torch
 import torchaudio
 
-from models.berp_models.berp_butter_worth_filter import BerpButterWorthFilter
-from models.berp_models.berp_hilbert_transform import BerpHilbertTransform
+from models.berp_models.networks.berp_butter_worth_filter import BerpButterWorthFilter
+from models.berp_models.networks.berp_hilbert_transform import BerpHilbertTransform
 
 
 class BerpTemporalEnvelope(torch.nn.Module):

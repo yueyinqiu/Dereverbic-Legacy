@@ -1,6 +1,6 @@
-# This model is modified from (without modification of its main structure):
+# This model is modified from (without modification of its main behavior):
 # https://github.com/kyungyunlee/fins
-# (The only structure change: The extra samples in decoder output are trimmed.)
+# (The only behavior change: The extra samples in decoder output are trimmed.)
 # The original repository does not explicitly state a license
 # Please also respect the original author's rights
 

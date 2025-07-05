@@ -1,4 +1,4 @@
-# This model is modified from (without modification of its function):
+# This model is modified from (without modification of its behavior):
 # https://github.com/kyungyunlee/fins
 # The original repository does not explicitly state a license
 # Please also respect the original author's rights

@@ -20,7 +20,3 @@ reverb_map: _pathlib.Path = \
 
 rir_information: _typing.Iterable[_pathlib.Path] = \
     _download_bird_config.destination.glob("**/*.csv")
-
-
-random_seed: str = \
-    "F009CD5A-CEA8-4D6D-AED6-2693370CB6CE"

@@ -1,10 +1,16 @@
+# This model is modified from (without modification of its main behavior):
+# https://github.com/Alizeded/BERP
+# (The only behavior change: The returned RIRs will be of the given length exactly.)
+# The original repository is licensed under GPL-3.0
+# Please also respect the original author's rights
+
 import numpy
 import torch
 from torch import Tensor
 
 
-class BerpSsirModel:
-    def __init__(self, mu_Th: float, seed: int, fs: int = 16000, rir_length: float = 1):
+class BerpSparseStochasticIr:
+    def __init__(self, mu_Th: float, seed: int, fs: int = 16000, rir_length: int = 16000):
         super().__init__()
         self.mu_Th = mu_Th
         self.fs = fs
@@ -14,7 +20,9 @@ class BerpSsirModel:
     def __call__(self, Ti: float, Td: float, volume: float) -> Tensor:
         volume = int(round(volume, 0)) + 1
         early_reflection_range: Tensor = torch.arange(-Ti, -1 / self.fs, 1 / self.fs)
-        late_reverberation_range: Tensor = torch.arange(0, self.rir_length - Ti, 1 / self.fs)
+        late_reverberation_range: Tensor = torch.linspace(0, 
+                                                          self.rir_length / self.fs - Ti, 
+                                                          self.rir_length - len(early_reflection_range))
         early_reflection_part: Tensor = torch.exp(6.9 * (early_reflection_range / Ti))
         early_reflection_carrier: numpy.ndarray = numpy.random.default_rng(self.seed).normal(
             self.mu_Th, 1.0, size=len(early_reflection_range)
