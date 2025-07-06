@@ -9,13 +9,16 @@ from basic_utilities.static_class import StaticClass
 class RirAcousticFeatures(StaticClass):
     _TensorNd = TypeVar("_TensorNd",   # pylint: disable=un-declared-variable
                         Tensor, Tensor1d, Tensor2d, Tensor3d)
-    
+    @classmethod
+    def instantaneous_energy(cls, rir: _TensorNd) -> _TensorNd:
+        energy: Tensor = rir ** 2
+        return anify(energy)
+
     # With reference to https://zhuanlan.zhihu.com/p/430228694
     @classmethod
     def energy_decay_curve_decibel(cls,
-                                   rir: _TensorNd) -> _TensorNd:
-        energy: Tensor = rir ** 2
-        energy = energy.flip(-1).cumsum(-1).flip(-1)
+                                   instantaneous_energy: _TensorNd) -> _TensorNd:
+        energy: Tensor = instantaneous_energy.flip(-1).cumsum(-1).flip(-1)
         energy = 10 * energy.log10()
         energy = energy - energy[..., 0:1]
         return anify(energy)
@@ -61,6 +64,7 @@ class RirAcousticFeatures(StaticClass):
                                                    headroom_decibel))
 
 
+
 def _test():
     t: Tensor2d = Tensor2d(torch.arange(15000).expand([32, 15000]) / 16000)
     rir: Tensor2d = Tensor2d(torch.exp(-t / 0.1) * torch.sin(10000 * t))
@@ -68,7 +72,8 @@ def _test():
     matplotlib.pyplot.subplot(121)
     matplotlib.pyplot.plot(rir[0, :])
 
-    edc: Tensor2d = RirAcousticFeatures.energy_decay_curve_decibel(rir)
+    energy: Tensor2d = RirAcousticFeatures.instantaneous_energy(rir)
+    edc: Tensor2d = RirAcousticFeatures.energy_decay_curve_decibel(energy)
     matplotlib.pyplot.subplot(122)
     matplotlib.pyplot.plot(edc[0, :])
 

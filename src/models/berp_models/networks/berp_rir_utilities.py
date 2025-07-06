@@ -95,7 +95,8 @@ class BerpRirUtilities(StaticClass):
                 xT_60 = 3.3 * torch.where(fittedline <= -18.2)[0][0]
         except:
             if fallback:
-                edc: Tensor1d = RirAcousticFeatures.energy_decay_curve_decibel(h)
+                energy: Tensor1d = RirAcousticFeatures.instantaneous_energy(h)
+                edc: Tensor1d = RirAcousticFeatures.energy_decay_curve_decibel(energy)
                 return Tensor0d(RirAcousticFeatures.get_reverberation_time_1d(edc, sample_rate=fs) * (60 / 30))
             raise ValueError("# T60 does not exist, the signal is not an RIR.")
         
