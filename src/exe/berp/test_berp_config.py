@@ -4,6 +4,15 @@ import torch as _torch
 
 from exe.data.download import download_bird_config as _download_bird_config
 from exe.data.preprocess import split_dataset_config as _split_dataset_config
+from exe.berp import validate_berp_config as _validate_berp_config
+
+
+device: _torch.device = \
+    _validate_berp_config.device
+
+
+checkpoints_directory: _pathlib.Path = \
+    _validate_berp_config.checkpoints_directory
 
 
 test_list: _pathlib.Path = \

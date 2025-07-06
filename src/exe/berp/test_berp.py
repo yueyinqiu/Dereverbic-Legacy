@@ -1,16 +1,19 @@
 import csv
 import io
 from pathlib import Path
-from random import Random
 import sys
-from typing import Iterable, NamedTuple
+from turtle import st
+from typing import Iterable, TypedDict
 import csfile
-from statictorch import Tensor2d
+from networkx import volume
+from statictorch import Tensor1d, Tensor2d, anify
 import torch
 
-from basic_utilities.kahan_accumulator import KahanAccumulator
+from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
+from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath
 from inputs_and_outputs.csv_accessors.csv_reader import CsvReader
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
+from inputs_and_outputs.data_providers.data_batch import DataBatch
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
 from metrics.bias_metric import BiasMetric
 from metrics.l1_loss_metric import L1LossMetric
@@ -18,11 +21,10 @@ from metrics.metric import Metric
 from metrics.mrstft_loss_metric import MrstftLossMetric
 from metrics.pearson_correlation_metric import PearsonCorrelationMetric
 from metrics.rir_reverberation_time_metrics import RirReverberationTimeMetrics
-from models.berp_models.berp_rir_utilities import BerpRirUtilities
-from models.berp_models.berp_ssir_model import BerpSsirModel
+from models.berp_models.berp_hybrid_model import BerpHybridModel
+from trainers.trainer import Trainer
 
-
-class _PathInputModel:
+class _TestDatasetWithVolume(torch.utils.data.Dataset):
     @staticmethod
     def load_reverb_path_to_rir_path_map(reverb_contents_csv_path: Path):
         print("# Mapping Reverb...")
@@ -98,91 +100,118 @@ class _PathInputModel:
 
         return result
 
+    def __init__(self, 
+                 reverb_map: Path, rir_map: Path, rir_information: Iterable[Path],
+                 data_list: Path, 
+                 device: torch.device):
+        self._paths = csfile.read_all_lines(data_list)
+        self._device = device
 
-    class RirInformation(NamedTuple):
-        volume: float
-        t_h: float
-        t_t: float
+        self._rir_volume: dict[str, float] = {}
+        
+        reverb_to_rir_map: dict[str, str] = _TestDatasetWithVolume.load_reverb_path_to_rir_path_map(reverb_map)
+        id_map: dict[str, str] = _TestDatasetWithVolume.load_tensor_path_to_raw_rir_id_map(rir_map)
+        volume_map: dict[str, float] = _TestDatasetWithVolume.load_rir_id_to_room_volume_map(rir_information)
 
-    def __init__(self, reverb_map: Path, rir_map: Path, rir_information: Iterable[Path], test_list: list[str], seed: int) -> None:
-        print("# Building Model...")
-
-        cpu: torch.device = torch.device("cpu")
-
-        reverb_to_rir_map: dict[str, str] = _PathInputModel.load_reverb_path_to_rir_path_map(reverb_map)
-        id_map: dict[str, str] = _PathInputModel.load_tensor_path_to_raw_rir_id_map(rir_map)
-        volume_map: dict[str, float] = _PathInputModel.load_rir_id_to_room_volume_map(rir_information)
-        self.rir_information: dict[str, _PathInputModel.RirInformation] = {}
-
-        t_h_accumulator: KahanAccumulator = KahanAccumulator()
         rir_path: str
-        for rir_path in test_list:
-            item: ValidationOrTestDataset.DatasetItem = torch.load(rir_path, 
-                                                                weights_only=True, 
-                                                                map_location=cpu)
+        for rir_path in self._paths:
             volume: float = volume_map[id_map[reverb_to_rir_map[rir_path]]]
-            t_h: float = float(BerpRirUtilities.getTh(item["rir"], 16000))
-            t_t: float = float(BerpRirUtilities.getTt(item["rir"], 16000))
-            self.rir_information[rir_path] = _PathInputModel.RirInformation(volume, t_h, t_t)
-            t_h_accumulator.add(t_h)
-            print(f"# {rir_path}: volume={volume} t_h={t_h} t_t={t_t}")
+            self._rir_volume[rir_path] = volume
 
-        self.model: BerpSsirModel = BerpSsirModel(t_h_accumulator.value() / test_list.__len__(), seed)
-    
-    def __call__(self, path: str):
-        information: _PathInputModel.RirInformation = self.rir_information[path]
-        return self.model(information.t_h, information.t_t, information.volume)
+    def __len__(self):
+        return self._paths.__len__()
+
+    class DatasetItem(TypedDict):
+        rir: Tensor1d
+        speech: Tensor1d
+        reverb: Tensor1d
+
+    def __getitem__(self, i: int) -> tuple[DatasetItem, float]:
+        path: str = self._paths[i]
+        return torch.load(path, weights_only=True, map_location=self._device), self._rir_volume[path]
+
+    def get_data_loader(self, batch_size: int) -> torch.utils.data.DataLoader:
+        def collate(data: list[tuple[ValidationOrTestDataset.DatasetItem, float]]) -> tuple[DataBatch, Tensor1d]:
+            rirs: list[Tensor1d] = []
+            speeches: list[Tensor1d] = []
+            reverbs: list[Tensor1d] = []
+            volumes: list[float] = []
+
+            item: ValidationOrTestDataset.DatasetItem
+            volume: float
+            for item, volume in data:
+                rirs.append(item["rir"])
+                speeches.append(item["speech"])
+                reverbs.append(item["reverb"])
+                volumes.append(volume)
+            
+            result: DataBatch = DataBatch(Tensor2d(torch.stack(anify(rirs))), 
+                                          Tensor2d(torch.stack(anify(speeches))), 
+                                          Tensor2d(torch.stack(anify(reverbs))))
+            return result, Tensor1d(torch.tensor(volumes, device=self._device))
+
+        return torch.utils.data.DataLoader(self, batch_size, False, collate_fn=collate)
 
 
-def test(model: _PathInputModel, 
-         data: list[str], 
+def test(model: BerpHybridModel, 
+         checkpoints: CheckpointsDirectory,
+         data: torch.utils.data.DataLoader, 
          metrics: dict[str, Metric[Tensor2d]]):
-    print(f"# Batch count: {data.__len__()}")
+    with torch.no_grad():
+        print(f"# Batch count: {data.__len__()}")
 
-    csv_print: CsvWriter = csv.writer(sys.stdout)
-    csv_print.writerow(["batch", "metric", "submetric", "value"])
+        rank_file: Path = checkpoints.get_path(None) / "validation_rank.txt"
+        if rank_file.exists():
+            epoch: int = int(csfile.read_all_lines(rank_file)[0])
+            path: Path = checkpoints.get_path(epoch)
+            print(f"# Rank file found. The best checkpoint {epoch} will be used.")
+        else:
+            latest: EpochAndPath | None = checkpoints.get_latest()
+            if not latest:
+                raise FileNotFoundError("Failed to find any checkpoint in the checkpoints directory.")
+            epoch, path = latest
+            print(f"# Failed to find the rank file. The latest checkpoint {epoch} will be used.")
 
-    cpu: torch.device = torch.device("cpu")
-    batch_index: int
-    rir_path: str
-    for batch_index, rir_path in enumerate(data):
-        predicted: torch.Tensor = model(rir_path)
-        actual: ValidationOrTestDataset.DatasetItem = torch.load(rir_path, 
-                                                                 weights_only=True, 
-                                                                 map_location=cpu)
-        metric: str
+        csv_print: CsvWriter = csv.writer(sys.stdout)
+        csv_print.writerow(["batch", "metric", "submetric", "value"])
+
+        Trainer.load_model(model, path)
+
+        batch_index: int
+        batch: tuple[DataBatch, Tensor1d]
+        for batch_index, batch in enumerate(data):
+            predicted: Tensor2d = model.evaluate_rir_on(batch[0].reverb, batch[1])
+
+            metric: str
+            for metric in metrics:
+                current: dict[str, float] = metrics[metric].append(batch[0].rir, predicted)
+                submetric: str
+                for submetric in current:
+                    csv_print.writerow([batch_index, metric, submetric, current[submetric]])
+
         for metric in metrics:
-            current: dict[str, float] = metrics[metric].append(Tensor2d(actual["rir"].unsqueeze(0)), 
-                                                               Tensor2d(predicted.unsqueeze(0)))
-            submetric: str
-            for submetric in current:
-                csv_print.writerow([batch_index, metric, submetric, current[submetric]])
-
-    for metric in metrics:
-        value: float
-        for submetric, value in metrics[metric].result().items():
-            csv_print.writerow(["all", metric, submetric, value])
+            value: float
+            for submetric, value in metrics[metric].result().items():
+                csv_print.writerow(["all", metric, submetric, value])
 
 
 def main():
-    from exe.ssir import test_ssir_config as config
-    random: Random = Random(config.random_seed)
-    test_list: list[str] = csfile.read_all_lines(config.test_list)
+    from exe.berp import test_berp_config as config
     
-    model: _PathInputModel = _PathInputModel(config.reverb_map,
-                                             config.rir_map, 
-                                             config.rir_information, 
-                                             test_list, 
-                                             random.randint(0, 1000))
-    cpu: torch.device = torch.device("cpu")
-    test(model, 
-         test_list,
+    data: _TestDatasetWithVolume = _TestDatasetWithVolume(config.reverb_map, 
+                                                          config.rir_map, 
+                                                          config.rir_information, 
+                                                          config.test_list,
+                                                          config.device)
+    test(BerpHybridModel(config.device),
+         CheckpointsDirectory(config.checkpoints_directory),
+         data.get_data_loader(32),
          {
-             "mrstft": MrstftLossMetric.for_rir(cpu),
-             "l1": L1LossMetric(cpu),
+             "mrstft": MrstftLossMetric.for_rir(config.device),
+             "l1": L1LossMetric(config.device),
              "rt30": RirReverberationTimeMetrics(30, 16000, {
                  "bias": BiasMetric(),
-                 "l1": L1LossMetric(cpu),
+                 "l1": L1LossMetric(config.device),
                  "pearson": PearsonCorrelationMetric()
              })
          })
