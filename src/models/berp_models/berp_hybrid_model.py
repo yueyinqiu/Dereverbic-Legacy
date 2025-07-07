@@ -137,7 +137,7 @@ class BerpHybridModel(Trainable):
         t_t: torch.Tensor
         volume: torch.Tensor
         for t_h, t_t, volume in zip(t_h_batch, t_t_batch, volume_batch, strict=True):
-            result.append(ssir(float(t_h), float(t_t), float(volume)))
+            result.append(ssir(float(t_h), float(t_t), float(volume)).to(reverb_batch))
         
         return Tensor2d(torch.stack(result))
     
