@@ -1,35 +1,49 @@
-from typing import TypeVar
+from typing import Generic, TypeVar
+import typing
 import matplotlib.pyplot
 from statictorch import Tensor0d, Tensor1d, Tensor2d, Tensor3d, anify
 from torch import Tensor
 import torch
-from basic_utilities.static_class import StaticClass
 
+_T = TypeVar("_T", Tensor1d, Tensor2d, Tensor3d)   # pylint: disable=un-declared-variable
+_TMinusOne = TypeVar("_TMinusOne", Tensor0d, Tensor1d, Tensor2d)   # pylint: disable=un-declared-variable
 
-class RirAcousticFeatures(StaticClass):
-    _TensorNd = TypeVar("_TensorNd",   # pylint: disable=un-declared-variable
-                        Tensor, Tensor1d, Tensor2d, Tensor3d)
-    @classmethod
-    def instantaneous_energy(cls, rir: _TensorNd) -> _TensorNd:
-        energy: Tensor = rir ** 2
-        return anify(energy)
-
+class _RirAcousticFeatures(Generic[_T, _TMinusOne]):
+    def __init__(self, rir: _T) -> None:
+        self._rir: _T = rir
+        self._instantaneous_energy: _T | None = None
+        self._energy_decay_curve: _T | None = None
+        self._energy_decay_curve_decibel: _T | None = None
+        self._direct_sound_indices: _TMinusOne | None = None
+    
+    def rir(self) -> _T:
+        return self._rir
+    
+    def instantaneous_energy(self) -> _T:
+        if self._instantaneous_energy is None:
+            self._instantaneous_energy = typing.cast(_T, self.rir() ** 2)
+        return self._instantaneous_energy
+    
+    def energy_decay_curve(self):
+        if self._energy_decay_curve is None:
+            self._energy_decay_curve = typing.cast(_T, 
+                                                   self.instantaneous_energy().flip(-1).cumsum(-1).flip(-1))
+        return self._energy_decay_curve
+    
     # With reference to https://zhuanlan.zhihu.com/p/430228694
-    @classmethod
-    def energy_decay_curve_decibel(cls,
-                                   instantaneous_energy: _TensorNd) -> _TensorNd:
-        energy: Tensor = instantaneous_energy.flip(-1).cumsum(-1).flip(-1)
-        energy = 10 * energy.log10()
-        energy = energy - energy[..., 0:1]
-        return anify(energy)
-
+    def energy_decay_curve_decibel(self):
+        if self._energy_decay_curve_decibel is None:
+            energy: Tensor = 10 * self.energy_decay_curve().log10()
+            self._energy_decay_curve_decibel = typing.cast(_T, energy - energy[..., 0:1])
+        return self._energy_decay_curve_decibel
+    
     # With reference to https://zhuanlan.zhihu.com/p/430228694
-    @classmethod
-    def get_reverberation_time(cls,
-                               energy_decay_curve_decibel: Tensor,
-                               decay_decibel: float = 30.,
-                               sample_rate: int = 1, 
-                               headroom_decibel: float = -5.):
+    def reverberation_time(self,
+                           decay_decibel: float = 30.,
+                           sample_rate: int = 1, 
+                           headroom_decibel: float = -5.) -> _TMinusOne:
+        energy_decay_curve_decibel: Tensor = self.energy_decay_curve_decibel()
+
         search: Tensor = torch.tensor([headroom_decibel, headroom_decibel - decay_decibel],
                                       dtype=energy_decay_curve_decibel.dtype,
                                       device=energy_decay_curve_decibel.device)
@@ -39,45 +53,45 @@ class RirAcousticFeatures(StaticClass):
         
         found: Tensor = torch.searchsorted(energy_decay_curve_decibel.flip(-1), search)
         difference: Tensor = found[..., 0] - found[..., 1]
-        return difference / sample_rate
+        return anify(difference / sample_rate)
+    
+    def direct_sound_indices(self) -> _TMinusOne:
+        if self._direct_sound_indices is None:
+            self._direct_sound_indices = typing.cast(_TMinusOne, 
+                                                     self.instantaneous_energy().argmax(dim=-1))
+        return self._direct_sound_indices
 
-    @classmethod
-    def get_reverberation_time_1d(cls,
-                                  energy_decay_curve_decibel: Tensor1d,
-                                  decay_decibel: float = 30.,
-                                  sample_rate: int = 1, 
-                                  headroom_decibel: float = -5.) -> Tensor0d:
-        return Tensor0d(cls.get_reverberation_time(energy_decay_curve_decibel, 
-                                                   decay_decibel, 
-                                                   sample_rate, 
-                                                   headroom_decibel))
-
-    @classmethod
-    def get_reverberation_time_2d(cls,
-                                  energy_decay_curve_decibel: Tensor2d,
-                                  decay_decibel: float = 30.,
-                                  sample_rate: int = 1, 
-                                  headroom_decibel: float = -5.) -> Tensor1d:
-        return Tensor1d(cls.get_reverberation_time(energy_decay_curve_decibel, 
-                                                   decay_decibel, 
-                                                   sample_rate, 
-                                                   headroom_decibel))
+    # With reference to https://zhuanlan.zhihu.com/p/430228694
+    def direct_to_reverberant_energy_ratio(self, split_point: _TMinusOne | None = None) -> _TMinusOne:
+        if split_point is None:
+            split_point = typing.cast(_TMinusOne, self.direct_sound_indices() + 1)
+        energy_decay_curve: Tensor = self.energy_decay_curve()
+        reverberant: Tensor = energy_decay_curve[..., split_point]
+        total: Tensor = energy_decay_curve[..., 0]
+        direct: Tensor = total - reverberant
+        return anify(10 * torch.log10(direct / reverberant))
 
 
+class RirAcousticFeatures1d(_RirAcousticFeatures[Tensor1d, Tensor0d]):
+    pass
 
-def _test():
+
+class RirAcousticFeatures2d(_RirAcousticFeatures[Tensor2d, Tensor1d]):
+    pass
+
+
+def _t60_test():
     t: Tensor2d = Tensor2d(torch.arange(15000).expand([32, 15000]) / 16000)
     rir: Tensor2d = Tensor2d(torch.exp(-t / 0.1) * torch.sin(10000 * t))
     rir = Tensor2d(torch.cat([torch.zeros([32, 500]), rir, torch.zeros([32, 500])], dim=1))
     matplotlib.pyplot.subplot(121)
     matplotlib.pyplot.plot(rir[0, :])
 
-    energy: Tensor2d = RirAcousticFeatures.instantaneous_energy(rir)
-    edc: Tensor2d = RirAcousticFeatures.energy_decay_curve_decibel(energy)
+    features: RirAcousticFeatures2d = RirAcousticFeatures2d(rir)
     matplotlib.pyplot.subplot(122)
-    matplotlib.pyplot.plot(edc[0, :])
+    matplotlib.pyplot.plot(features.energy_decay_curve_decibel()[0, :])
 
-    t60: Tensor1d = RirAcousticFeatures.get_reverberation_time_2d(edc, 60, 16000)
+    t60: Tensor1d = features.reverberation_time(60, 16000)
     print(t60)
     # for such ideal rir, expected result: 60 / 20 * 0.1 * ln(10) = 0.6908
     # but due to the lack of "t > (15000 / 16000)" part, it will not be the exact value
@@ -86,4 +100,4 @@ def _test():
 
 
 if __name__ == "__main__":
-    _test()
+    _t60_test()

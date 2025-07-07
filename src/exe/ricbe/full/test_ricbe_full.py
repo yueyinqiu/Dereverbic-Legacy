@@ -8,7 +8,7 @@ from statictorch import Tensor1d, Tensor2d
 import torch
 from torch.utils.data import DataLoader
 
-from audio_processors.rir_acoustic_features import RirAcousticFeatures
+from audio_processors.rir_acoustic_features import RirAcousticFeatures2d
 from basic_utilities.kahan_accumulator import KahanAccumulator
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath
@@ -21,6 +21,7 @@ from metrics.metric import Metric
 from metrics.mrstft_loss_metric import MrstftLossMetric
 from metrics.pearson_correlation_metric import PearsonCorrelationMetric
 from metrics.pesq_metric import PesqMetric
+from metrics.rir_direct_to_reverberant_energy_ratio_metrics import RirDirectToReverberantEnergyRatioMetrics
 from metrics.rir_reverberation_time_metrics import RirReverberationTimeMetrics
 from metrics.sisnr_metric import SisnrMetric
 from metrics.stoi_metric import StoiMetric
@@ -36,6 +37,7 @@ def test(model: RicbeFullModel,
          checkpoints: CheckpointsDirectory, 
          data: DataLoader, 
          rir_metrics: dict[str, Metric[Tensor2d]],
+         rir_feature_metrics: dict[str, Metric[RirAcousticFeatures2d]],
          speech_metrics: dict[str, Metric[Tensor2d]]):
     with torch.no_grad():
         print(f"# Batch count: {data.__len__()}")
@@ -69,6 +71,13 @@ def test(model: RicbeFullModel,
                 for submetric in current:
                     csv_print.writerow([batch_index, "rir", metric, submetric, current[submetric]])
 
+            actual_features: RirAcousticFeatures2d = RirAcousticFeatures2d(batch.rir)
+            predicted_features: RirAcousticFeatures2d = RirAcousticFeatures2d(predicted.rir)
+            for metric in rir_feature_metrics:
+                current = rir_feature_metrics[metric].append(actual_features, predicted_features)
+                for submetric in current:
+                    csv_print.writerow([batch_index, "rir", metric, submetric, current[submetric]])
+
             for metric in speech_metrics:
                 current = speech_metrics[metric].append(batch.speech, predicted.speech)
                 for submetric in current:
@@ -76,6 +85,10 @@ def test(model: RicbeFullModel,
 
         for metric in rir_metrics:
             value: float
+            for submetric, value in rir_metrics[metric].result().items():
+                csv_print.writerow(["all", "rir", metric, submetric, value])
+
+        for metric in rir_feature_metrics:
             for submetric, value in rir_metrics[metric].result().items():
                 csv_print.writerow(["all", "rir", metric, submetric, value])
 
@@ -94,11 +107,18 @@ def main():
          {
              "mrstft": MrstftLossMetric.for_rir(config.device),
              "l1": L1LossMetric(config.device),
+         },
+         {
              "rt30": RirReverberationTimeMetrics(30, 16000, {
                  "bias": BiasMetric(),
                  "l1": L1LossMetric(config.device),
                  "pearson": PearsonCorrelationMetric()
-             })
+             }),
+             "drr": RirDirectToReverberantEnergyRatioMetrics({
+                 "bias": BiasMetric(),
+                 "l1": L1LossMetric(config.device),
+                 "pearson": PearsonCorrelationMetric()
+             }),
          },
          {
              "mrstft": MrstftLossMetric.for_speech(config.device),

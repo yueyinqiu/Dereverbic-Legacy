@@ -9,6 +9,7 @@ from networkx import volume
 from statictorch import Tensor1d, Tensor2d, anify
 import torch
 
+from audio_processors.rir_acoustic_features import RirAcousticFeatures2d
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath
 from inputs_and_outputs.csv_accessors.csv_reader import CsvReader
@@ -20,6 +21,7 @@ from metrics.l1_loss_metric import L1LossMetric
 from metrics.metric import Metric
 from metrics.mrstft_loss_metric import MrstftLossMetric
 from metrics.pearson_correlation_metric import PearsonCorrelationMetric
+from metrics.rir_direct_to_reverberant_energy_ratio_metrics import RirDirectToReverberantEnergyRatioMetrics
 from metrics.rir_reverberation_time_metrics import RirReverberationTimeMetrics
 from models.berp_models.berp_hybrid_model import BerpHybridModel
 from trainers.trainer import Trainer
@@ -156,7 +158,8 @@ class _TestDatasetWithVolume(torch.utils.data.Dataset):
 def test(model: BerpHybridModel, 
          checkpoints: CheckpointsDirectory,
          data: torch.utils.data.DataLoader, 
-         metrics: dict[str, Metric[Tensor2d]]):
+         rir_metrics: dict[str, Metric[Tensor2d]],
+         feature_metrics: dict[str, Metric[RirAcousticFeatures2d]]):
     with torch.no_grad():
         print(f"# Batch count: {data.__len__()}")
 
@@ -183,15 +186,26 @@ def test(model: BerpHybridModel,
             predicted: Tensor2d = model.evaluate_rir_on(batch[0].reverb, batch[1])
 
             metric: str
-            for metric in metrics:
-                current: dict[str, float] = metrics[metric].append(batch[0].rir, predicted)
+            for metric in rir_metrics:
+                current: dict[str, float] = rir_metrics[metric].append(batch[0].rir, predicted)
                 submetric: str
                 for submetric in current:
                     csv_print.writerow([batch_index, metric, submetric, current[submetric]])
 
-        for metric in metrics:
+            actual_features: RirAcousticFeatures2d = RirAcousticFeatures2d(batch[0].rir)
+            predicted_features: RirAcousticFeatures2d = RirAcousticFeatures2d(predicted)
+            for metric in feature_metrics:
+                current = feature_metrics[metric].append(actual_features, predicted_features)
+                for submetric in current:
+                    csv_print.writerow([batch_index, metric, submetric, current[submetric]])
+
+        for metric in rir_metrics:
             value: float
-            for submetric, value in metrics[metric].result().items():
+            for submetric, value in rir_metrics[metric].result().items():
+                csv_print.writerow(["all", metric, submetric, value])
+
+        for metric in feature_metrics:
+            for submetric, value in feature_metrics[metric].result().items():
                 csv_print.writerow(["all", metric, submetric, value])
 
 
@@ -209,11 +223,18 @@ def main():
          {
              "mrstft": MrstftLossMetric.for_rir(config.device),
              "l1": L1LossMetric(config.device),
-             "rt30": RirReverberationTimeMetrics(30, 16000, {
+         },
+         {
+             "rt60": RirReverberationTimeMetrics(30, 16000, {
                  "bias": BiasMetric(),
                  "l1": L1LossMetric(config.device),
                  "pearson": PearsonCorrelationMetric()
-             })
+             }),
+             "drr": RirDirectToReverberantEnergyRatioMetrics({
+                 "bias": BiasMetric(),
+                 "l1": L1LossMetric(config.device),
+                 "pearson": PearsonCorrelationMetric()
+             }),
          })
 
 

@@ -9,7 +9,6 @@ from statictorch import Tensor1d, Tensor2d
 import torch
 from torch.utils.data import DataLoader
 
-from audio_processors.rir_acoustic_features import RirAcousticFeatures
 from basic_utilities.kahan_accumulator import KahanAccumulator
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath

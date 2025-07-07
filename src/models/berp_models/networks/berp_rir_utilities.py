@@ -1,7 +1,7 @@
 from statictorch import Tensor0d, Tensor1d, anify
 import torch
 import scipy
-from audio_processors.rir_acoustic_features import RirAcousticFeatures
+from audio_processors.rir_acoustic_features import RirAcousticFeatures1d
 from basic_utilities.static_class import StaticClass
 from models.berp_models.networks.berp_temporal_envelope import BerpTemporalEnvelope
 
@@ -95,9 +95,7 @@ class BerpRirUtilities(StaticClass):
                 xT_60 = 3.3 * torch.where(fittedline <= -18.2)[0][0]
         except:
             if fallback:
-                energy: Tensor1d = RirAcousticFeatures.instantaneous_energy(h)
-                edc: Tensor1d = RirAcousticFeatures.energy_decay_curve_decibel(energy)
-                return Tensor0d(RirAcousticFeatures.get_reverberation_time_1d(edc, sample_rate=fs) * (60 / 30))
+                return Tensor0d(RirAcousticFeatures1d(h).reverberation_time(sample_rate=fs) * (60 / 30))
             raise ValueError("# T60 does not exist, the signal is not an RIR.")
         
         return Tensor0d((xT_60 / fs).to(h))
