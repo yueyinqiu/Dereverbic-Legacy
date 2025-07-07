@@ -10,8 +10,8 @@ class RirDirectToReverberantEnergyRatioMetrics(Metric[RirAcousticFeatures2d]):
         self._metrics = metrics_on_direct_to_reverberant_energy_ratio
     
     def append(self, actual: RirAcousticFeatures2d, predicted: RirAcousticFeatures2d) -> dict[str, float]:
-        actual_value: Tensor1d = actual.direct_to_reverberant_energy_ratio()
-        predicted_value: Tensor1d = predicted.direct_to_reverberant_energy_ratio()
+        actual_value: Tensor1d = actual.direct_to_reverberant_energy_ratio_db()
+        predicted_value: Tensor1d = predicted.direct_to_reverberant_energy_ratio_db()
 
         result: dict[str, float] = {}
 

@@ -5,8 +5,8 @@ from statictorch import Tensor0d, Tensor1d, Tensor2d, Tensor3d, anify
 from torch import Tensor
 import torch
 
-_T = TypeVar("_T", Tensor1d, Tensor2d, Tensor3d)   # pylint: disable=un-declared-variable
-_TMinusOne = TypeVar("_TMinusOne", Tensor0d, Tensor1d, Tensor2d)   # pylint: disable=un-declared-variable
+_T = TypeVar("_T", Tensor, Tensor1d, Tensor2d, Tensor3d)   # pylint: disable=un-declared-variable
+_TMinusOne = TypeVar("_TMinusOne", Tensor, Tensor0d, Tensor1d, Tensor2d)   # pylint: disable=un-declared-variable
 
 class _RirAcousticFeatures(Generic[_T, _TMinusOne]):
     def __init__(self, rir: _T) -> None:
@@ -62,11 +62,16 @@ class _RirAcousticFeatures(Generic[_T, _TMinusOne]):
         return self._direct_sound_indices
 
     # With reference to https://zhuanlan.zhihu.com/p/430228694
-    def direct_to_reverberant_energy_ratio(self, split_point: _TMinusOne | None = None) -> _TMinusOne:
+    def direct_to_reverberant_energy_ratio_db(self, split_point: _TMinusOne | None = None) -> _TMinusOne:
         if split_point is None:
-            split_point = typing.cast(_TMinusOne, self.direct_sound_indices() + 1)
+            indices: Tensor = self.direct_sound_indices() + 1
+        else:
+            indices = split_point
+        indices = indices.unsqueeze(-1)
+
         energy_decay_curve: Tensor = self.energy_decay_curve()
-        reverberant: Tensor = energy_decay_curve[..., split_point]
+        reverberant: Tensor = energy_decay_curve.gather(-1, indices)
+        reverberant = reverberant.squeeze(-1)
         total: Tensor = energy_decay_curve[..., 0]
         direct: Tensor = total - reverberant
         return anify(10 * torch.log10(direct / reverberant))
@@ -99,5 +104,32 @@ def _t60_test():
     matplotlib.pyplot.savefig("RirAcousticFeatureExtractor.gitignored.png")
 
 
+def _drr_test():
+    rir: Tensor = torch.tensor([
+        [
+            [0, 8, 10, 7, 5, 3, 2, 1, 0, 0],
+            # energy: 0 64 100 49 25 9 4 1 0 0
+            # direct sound index: 2 (10)
+            # split point: 3
+            # drr: (64 + 100) / (49 + 25 + 9 + 4 + 1) = 1.8636363
+            # drr_db: 10 lg(1.8636363) = 2.704
+            [0, 6, 8, 10, 2, 1, 0, 0, 0, 0]
+            # energy: 0 36 64 100 4 1 0 0 0 0
+            # direct sound index: 3 (10)
+            # split point: 4
+            # drr: (36 + 64 + 100) / (4 + 1) = 40
+            # drr_db: 10 log(40) = 16.021
+        ],
+        [
+            [0, 8, 10, 7, 5, 3, 2, 1, 0, 0],
+            [0, 6, 8, 10, 2, 1, 0, 0, 0, 0]
+        ]
+    ], dtype=torch.float)
+    features: _RirAcousticFeatures = _RirAcousticFeatures(rir)
+    print(features.direct_sound_indices())
+    print(features.direct_to_reverberant_energy_ratio_db())
+
+
 if __name__ == "__main__":
     _t60_test()
+    _drr_test()
