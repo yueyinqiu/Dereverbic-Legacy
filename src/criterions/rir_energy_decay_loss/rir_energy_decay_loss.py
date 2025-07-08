@@ -11,18 +11,21 @@ import torch
 class RirEnergyDecayLoss():
     _TensorNd = TypeVar("_TensorNd",   # pylint: disable=un-declared-variable
                         torch.Tensor, Tensor1d, Tensor2d, Tensor3d)
-    @staticmethod
-    def _energy_decay(rir: _TensorNd) -> _TensorNd:
+    def __init__(self, decibel: bool = True):
+        self._decibel = decibel
+        
+    def _energy_decay(self, rir: _TensorNd) -> _TensorNd:
         energy: torch.Tensor = rir ** 2
         energy = energy.flip(-1)
         energy = energy.cumsum(-1)
-        energy = energy.clamp_min(1e-8)
-        energy = energy.log10()
+        if self._decibel:
+            energy = energy.clamp_min(1e-8)
+            energy = energy.log10()
         return anify(energy)
 
     def __call__(self, actual: Tensor2d, predicted: Tensor2d) -> Tensor0d:
-        actual_energy: torch.Tensor = RirEnergyDecayLoss._energy_decay(actual)
-        predicted_energy: torch.Tensor = RirEnergyDecayLoss._energy_decay(predicted)
+        actual_energy: torch.Tensor = self._energy_decay(actual)
+        predicted_energy: torch.Tensor = self._energy_decay(predicted)
         return Tensor0d(torch.nn.functional.l1_loss(predicted_energy, actual_energy))
     
 
@@ -37,7 +40,7 @@ def _test():
     matplotlib.pyplot.savefig(outputs / "rir.png")
     matplotlib.pyplot.clf()
 
-    ed: torch.Tensor = RirEnergyDecayLoss._energy_decay(rir)
+    ed: torch.Tensor = RirEnergyDecayLoss()._energy_decay(rir)
     matplotlib.pyplot.xlim(16000, 0)
     matplotlib.pyplot.plot(ed)
     matplotlib.pyplot.savefig(outputs / "ed.png")

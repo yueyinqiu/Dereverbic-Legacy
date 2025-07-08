@@ -89,7 +89,7 @@ def test(model: RicbeFullModel,
                 csv_print.writerow(["all", "rir", metric, submetric, value])
 
         for metric in rir_feature_metrics:
-            for submetric, value in rir_metrics[metric].result().items():
+            for submetric, value in rir_feature_metrics[metric].result().items():
                 csv_print.writerow(["all", "rir", metric, submetric, value])
 
         for metric in speech_metrics:
