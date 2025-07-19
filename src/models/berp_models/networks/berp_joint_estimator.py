@@ -91,12 +91,6 @@ class BerpJointEstimator(torch.nn.Module):
     def parametric_predictor_forward(self, x: torch.Tensor):
         Th_hat: torch.Tensor = self.parametric_predictor_Th(x)
         Tt_hat: torch.Tensor = self.parametric_predictor_Tt(x)
-
-        Th_hat, Tt_hat = (
-            Th_hat.squeeze(),
-            Tt_hat.squeeze()
-        )
-
         return Th_hat, Tt_hat
 
     def forward(self, source: torch.Tensor):

@@ -6,13 +6,8 @@
 		"explorer.fileNesting.patterns": {
 			"*.py": "${capture}_config.py"
 		},
-		"python.analysis.exclude": [
-			"**/__pycache__",
-			".git",
-			".vscode",
-			"data",
-			"checkpoints",
-			".slurm"
+		"python.analysis.include": [
+			"src"
 		],
 		"files.exclude": {
 			"**/__pycache__": true
@@ -29,7 +24,8 @@
 			"--enable=un-declared-variable",
 			"--enable=re-declared-variable"
 		],
-		"python.envFile": "${workspaceFolder}/python.env"
+		"python.envFile": "${workspaceFolder}/python.env",
+		"search.useIgnoreFiles": false
 	},
 	"folders": [
 		{
