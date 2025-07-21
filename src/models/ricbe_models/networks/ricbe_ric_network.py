@@ -5,6 +5,7 @@ from models.ricbe_models.submodules.ricbe_encoder_decoder_pair import RicbeEncod
 from models.ricbe_models.submodules.ricbe_postprocess import RicbePostprocess
 from models.ricbe_models.submodules.ricbe_preprocess import RicbePreprocess
 
+# RIC Module
 class RicbeRicNetwork(torch.nn.Module):
     def __init__(self, replace_lstm_with_encoder_decoder: bool, simple_decoder: bool):
         super().__init__()

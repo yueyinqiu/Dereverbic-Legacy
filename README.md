@@ -1,15 +1,12 @@
-# Room Impulse Response Inverse Convolution and Blind Estimation Based on Deep Learning 
+# RICBE 
 
-**The associated manuscript is still under development and has not been submitted yet. This repository will be updated as the research progresses.**
-
-This repository contains the implementation of the Ricbe (Room Impulse Response Inverse Convolution and Blind Estimation) / Dbre (Demucs-based Blind RIR Estimation) model, a deep learning-based approach for blind estimation of room impulse responses (RIRs) from reverberant speech. Ricbe aims to provide a low-cost, practical solution for RIR measurement, overcoming limitations of traditional methods.
+This repository contains the implementation of the RICBE model, a deep learning-based approach for blind estimation of room impulse responses (RIRs) from reverberant speech.
 
 ## Highlights
 
-- Dereverberation Followed by Inverse Convolution: Simplifies the complex blind estimation task into two subtasks.
-- Demucs-like Modules: Combines convolutional layers and LSTM layers to extract audio features for both dereverberation and inverse convolution.
-- RIR Energy Decay Loss: Custom loss function tailored for RIR characteristics, enhancing prediction accuracy.
-- Superior Performance: Experiments show Ricbe outperforms existing models in key metrics.
+- Dereverberation Followed By Inverse Convolution Framework
+- RIC Module
+- RIR Energy Decay Loss
 
 ![](./readme_img/dic.png)
 
@@ -19,7 +16,11 @@ This project is open source under [CC BY](https://creativecommons.org/licenses/b
 
 ## Environment
 
-We use Anaconda on Linux to manage the environments, with CUDA 12.4. We use Visual Studio Code for developpment, and highly recommend you to use it as well.
+Here listed the software and hardware environment we use, but it should work on other environments including Windows or even other GPUs.
+
+### Software
+
+We use Anaconda on Linux (Anolis OS 8.6) to manage the environments, with CUDA 12.4. We use Visual Studio Code for developpment, and highly recommend you to use it as well.
 
 ```shell
 conda create -n Ricbe python=3.12.8
@@ -28,6 +29,15 @@ conda install conda-forge::ffmpeg=7.1.0
 pip install torch==2.5.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu124
 pip install -r other_requirements.txt
 ```
+
+### Hardware
+
+The hardware we use is as follows (Not all resources are occupied):
+
+- CPU: 7x Intel(R) Xeon(R) Gold 6348 CPU @ 2.60GHz
+    - Memory: 128800M
+- GPU: 1x NVIDIA L40
+    - Memory: 46068MiB
 
 ## Project Structure
 
@@ -50,3 +60,9 @@ You could use `download_bird_exe` to download it.
 Ears： https://github.com/facebookresearch/ears_dataset
 
 You could use `download_ears_exe` to download it.
+
+## Trained Models
+
+Each model are trained for about a day and the best ones are selected based on their performance on the validation set considering their loss functions. (Actual numbers of trained epoches are suggested by their file name.)
+
+> THIS PART IS HIDDEN FOR DOUBLE BLIND REVIEW BUT AVAILABLE ON OPENREVIEW.
