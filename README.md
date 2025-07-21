@@ -65,4 +65,12 @@ You could use `download_ears_exe` to download it.
 
 Each model are trained for about a day and the best ones are selected based on their performance on the validation set considering their loss functions. (Actual numbers of trained epoches are suggested by their file name.)
 
+If you don't tend to change the path of checkpoints, simply merge the existing `checkpoints/` directory and the downloaded ones.
+
+### Ours
+
+> THIS PART IS HIDDEN FOR DOUBLE BLIND REVIEW BUT AVAILABLE ON OPENREVIEW.
+
+### Others
+
 > THIS PART IS HIDDEN FOR DOUBLE BLIND REVIEW BUT AVAILABLE ON OPENREVIEW.
