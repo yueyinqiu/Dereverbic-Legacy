@@ -99,7 +99,7 @@ def test(model: RicbeFullModelWithoutEnergyDecay,
 
 
 def main():
-    from exe.ricbe.full import test_ricbe_full_config as config
+    from exe.ricbe.full_without_energy_decay import test_ricbe_full_without_energy_decay_config as config
 
     print("# Loading...")
     test(RicbeFullModelWithoutEnergyDecay(config.device), 
