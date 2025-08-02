@@ -1,4 +1,4 @@
-from statictorch import Tensor0d, Tensor1d, anify
+from statictorch import Tensor0d, Tensor1d
 import torch
 import scipy
 from audio_processors.rir_acoustic_features import RirAcousticFeatures1d

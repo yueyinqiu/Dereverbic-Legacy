@@ -4,8 +4,6 @@
 # The original repository is licensed under GPL-3.0
 # Please also respect the original author's rights
 
-import nnAudio
-import nnAudio.features
 import torch
 
 from models.berp_models.networks.berp_parametric_predictor import BerpParametricPredictor

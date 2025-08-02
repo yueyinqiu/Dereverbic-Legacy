@@ -1,5 +1,4 @@
-from typing import NamedTuple
-from statictorch import Tensor0d, Tensor2d
+from statictorch import Tensor2d
 import torch
 
 from basic_utilities.kahan_accumulator import KahanAccumulator

@@ -1,5 +1,4 @@
-from typing import NamedTuple
-from statictorch import Tensor0d, Tensor2d
+from statictorch import Tensor2d
 from torch import Tensor
 import torch
 

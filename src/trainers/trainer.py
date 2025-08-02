@@ -2,22 +2,18 @@ import csv
 from pathlib import Path
 import sys
 import time
-from typing import Any, Callable, TypeVar
+from typing import Any
 
 import csfile
 from statictorch import Tensor2d
-from tomlkit import value
 import torch
 from torch.utils.data import DataLoader
 from basic_utilities.kahan_accumulator import KahanAccumulator
 from basic_utilities.static_class import StaticClass
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
-from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
 from inputs_and_outputs.data_providers.data_batch import DataBatch
 from inputs_and_outputs.data_providers.train_data_provider import TrainDataProvider
-from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
-from metrics.metric import Metric
 from trainers.checkpoint_policies.checkpoint_policy import CheckpointPolicy
 from trainers.trainable import Trainable
 

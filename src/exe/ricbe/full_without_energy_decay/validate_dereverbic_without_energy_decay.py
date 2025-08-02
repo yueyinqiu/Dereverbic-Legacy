@@ -1,6 +1,5 @@
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
-from models.ricbe_models.dereverbic_model import DereverbicModel
 from models.ricbe_models.dereverbic_model_without_energy_decay import DereverbicModelWithoutEnergyDecay
 from trainers.trainer import Trainer
 

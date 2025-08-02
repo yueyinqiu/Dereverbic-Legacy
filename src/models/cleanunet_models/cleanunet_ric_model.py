@@ -1,4 +1,4 @@
-from typing import Any, Literal, TypedDict
+from typing import Any, TypedDict
 from statictorch import Tensor0d, Tensor2d, Tensor3d
 import torch
 from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
@@ -6,7 +6,6 @@ from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 from criterions.rir_energy_decay_loss.rir_energy_decay_loss import RirEnergyDecayLoss
 from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.cleanunet_models.networks.cleanunet_ric_network import CleanUNetRicNetwork
-from models.ricbe_models.networks.tdunet_ric_network import TdunetRicNetwork
 from trainers.trainable import Trainable
 
 

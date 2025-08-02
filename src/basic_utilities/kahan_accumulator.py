@@ -1,4 +1,3 @@
-from sre_parse import State
 from typing import TypedDict
 
 

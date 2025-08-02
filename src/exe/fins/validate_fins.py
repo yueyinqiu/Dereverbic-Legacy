@@ -1,4 +1,3 @@
-import random
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
 from models.fins_models.fins_model import FinsModel

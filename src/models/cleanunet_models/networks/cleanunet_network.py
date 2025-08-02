@@ -3,7 +3,6 @@
 # The original repository is licensed under MIT
 # Please also respect the original author's rights
 
-from unittest import TestCase
 import numpy
 from torch import Tensor
 import torch

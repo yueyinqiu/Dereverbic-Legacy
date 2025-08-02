@@ -1,4 +1,4 @@
-from typing import Any, Literal, TypedDict
+from typing import Any, TypedDict
 from statictorch import Tensor0d, Tensor2d, Tensor3d
 import torch
 from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]

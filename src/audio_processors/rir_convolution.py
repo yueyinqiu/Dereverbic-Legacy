@@ -1,6 +1,6 @@
 from typing import Literal, TypeVar
 import numpy
-from statictorch import Tensor0d, Tensor1d, Tensor2d, Tensor3d, anify
+from statictorch import Tensor1d, Tensor2d, Tensor3d, anify
 from torch import Tensor
 import torch
 

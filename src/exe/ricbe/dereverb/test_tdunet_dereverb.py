@@ -1,15 +1,11 @@
 import csv
 from pathlib import Path
-from random import Random
-from re import sub
 import sys
-from typing import Callable
 import csfile
-from statictorch import Tensor1d, Tensor2d
+from statictorch import Tensor2d
 import torch
 from torch.utils.data import DataLoader
 
-from basic_utilities.kahan_accumulator import KahanAccumulator
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.checkpoint_managers.epoch_and_path import EpochAndPath
 from inputs_and_outputs.csv_accessors.csv_writer import CsvWriter
@@ -19,7 +15,6 @@ from metrics.l1_loss_metric import L1LossMetric
 from metrics.metric import Metric
 from metrics.mrstft_loss_metric import MrstftLossMetric
 from metrics.pesq_metric import PesqMetric
-from metrics.sisnr_metric import SisnrMetric
 from metrics.stoi_metric import StoiMetric
 from models.ricbe_models.tdunet_dereverb_model import TdunetDereverbModel
 from trainers.trainer import Trainer

@@ -1,7 +1,6 @@
 import numpy
 import torch
 
-from models.berp_models.networks.berp_rel_pos_encoding import BerpRelPosEncoding
 from models.berp_models.networks.berp_room_feature_encoder_layer import BerpRoomFeatureEncoderLayer
 from models.berp_models.networks.berp_xpos_multi_headed_attention import BerpXposMultiHeadedAttention
 
