@@ -4,11 +4,11 @@ This repository contains the implementation of DeReverbIC, a deep learning-based
 
 ## Environment
 
-Here listed the software and hardware environment we use. It should work on other environments as well, including other GPUs and other operation systems, like Windows.
+Here is the software and hardware environment we used. It should also work on other environments, including other GPUs and operating systems like Windows.
 
 ### Software
 
-We use Anaconda on Linux (Anolis OS 8.6) to manage the environments, with CUDA 12.4. Visual Studio Code is used for our remote development, and is strongly recommended for anyone that would like to reproduce this project to provide a more consistent experience.
+We use Anaconda to manage the environments on Linux (Anolis OS 8.6), with CUDA 12.4. Visual Studio Code is used for our remote development and is highly recommended for anyone who wants to reproduce this project to ensure a more consistent experience.
 
 ```shell
 conda create -n Dereverbic python=3.12.8
@@ -20,7 +20,7 @@ pip install -r other_requirements.txt
 
 ### Hardware
 
-The hardware we use is as follows (Not all resources are occupied):
+The hardware we used is as follows (not all resources are occupied):
 
 - CPU: 7x Intel(R) Xeon(R) Gold 6348 CPU @ 2.60GHz
     - Memory: 128800M
@@ -31,59 +31,72 @@ The hardware we use is as follows (Not all resources are occupied):
 
 ### Project Structure
 
-To make module importing more consistent, we regard `src/` as the root directory. So `PYTHONPATH` should be set to `src/` , otherwise the modules may not be correctly imported. If you use Visual Studio Code, there is no need to modify it manually, since we have configured `python.envFile` in the workspace. (Only take effect for the Python extension. To run in terminal, an extra set of `PYTHONPATH` is still required.)
+To ensure consistent module importing, we treat `src/` as the root directory. Therefore, `PYTHONPATH` should be set to `src/`, otherwise the modules may not be imported correctly. If you use Visual Studio Code, there is no need to modify it manually, as we have configured `python.envFile` in the workspace. (This only takes effect for the Python extension. An additional setting of PYTHONPATH is still required when running in the terminal.)
 
-We put all executable scripts under the `src/exe/` directory. Other scripts will be imported by these executables to complete the corresponding tasks. A `common_configurations.py` exists in `src/exe/` to allow 更方便地修改那些可能在不同设备上需要修改的设置，包括数据集和checkpoint的储存位置，以及所使用的GPU。后文指定要运行某个脚本时，简单起见，会略去 `src/exe/` 部分（这可能和其他目录混淆，如 `src/exe/data/` 和 `data/`）。
+All executable scripts are placed under the `src/exe/` directory. Other scripts will be imported by these executables to complete the corresponding tasks. A `common_configurations.py` exists in `src/exe/` to allow more convenient modification of settings that may need to be changed on different devices, including the storage locations for datasets and checkpoints, as well as the GPUs to be used. When referring to a script to be run later, for simplicity, the `src/exe/` part will be omitted (which may cause confusion with other directories, such as `src/exe/data/` and `data/`).
 
-Besides them, each executable script owns a `_config.py` to store the configurations. Using python scripts for configuration allows the options be easily reused and located. If you use Visual Studio Code, those configurations will be nested accroding to the `explorer.fileNesting` configuration. 所有设置文件都尽可能和先前的配置文件相关联，例如在 `train_*_config` 修改checkpoint的储存位置后，`validate_*_config`所提供的值也会随之改变。
+In addition, each executable script has a corresponding `_config.py` to store its configurations. Using Python scripts for configuration allows options to be easily reused and located. If you use Visual Studio Code, these configurations will be nested according to the `explorer.fileNesting` configuration. All configuration files are designed to be interrelated with previous ones. For example, if you modify the checkpoint storage location in `train_*_config`, the value provided in `validate_*_config` will also change accordingly.
 
-### 数据准备
+### Data Preparation
 
-#### RIR 数据集下载
+#### Downloading RIR Dataset
 
-我们使用 BIRD 数据集以提供 RIR ：https://github.com/FrancoisGrondin/BIRD
+We use the BIRD dataset to provide RIRs: https://github.com/FrancoisGrondin/BIRD
 
-为方便起见，可以使用 `data/download/download_bird` 下载 BIRD 数据集。其储存位置由 `data/download/download_bird_config` 指定，默认为 `data/raw/bird/` 。
+For convenience, you can download the BIRD dataset using `data/download/download_bird`. The storage location is specified by `data/download/download_bird_config`, with the default being `data/raw/bird/`.
 
-#### 语音数据集下载
+#### Downloading Speech Dataset
 
-我们使用 EARS 数据集提供干净（a开头那个词）语音： https://github.com/facebookresearch/ears_dataset
+We use the EARS dataset to provide clean speech: https://github.com/facebookresearch/ears_dataset
 
-同样可以使用 `data/download/download_ears` 下载 EARS 数据集，储存位置默认为 `data/raw/ears/` 。
+Similarly, you can download the EARS dataset using `data/download/download_ears`, with the default storage location being `data/raw/ears/`.
 
-#### 数据预处理
+#### Data Preprocessing
 
-下载得到的数据需要进行处理，并生成 `.wav.pt` 文件以供后续的训练和测试使用。
+The downloaded data needs to be processed and converted into `.wav.pt` files for subsequent training and testing.
 
-- RIR预处理：`data/convert_rir_to_tensor`
-- 语音预处理：`data/convert_speech_to_tensor`
+- RIR preprocessing: `data/convert_rir_to_tensor`
+- Speech preprocessing: `data/convert_speech_to_tensor`
 
-上述预处理中的部分步骤可能依赖于对数据集的某些特点。例如假定 RIR 数据集中所有数据长度统一，而无需进行裁剪等操作。在更换数据集后，这些预处理脚本可能不适用。
+Some steps in the above preprocessing may depend on certain characteristics of the datasets. For example, it is assumed that all data in the RIR dataset have a uniform length and do not require trimming. These preprocessing scripts may not be applicable if you switch to a different dataset.
 
-接下来我们可以使用 `data/split_dataset` 分割数据集。这个脚本是通用的，只要上述预处理脚本生成的文件符合其要求的格式。
+Next, you can use `data/split_dataset` to split the dataset. This script is generic as long as the files generated by the above preprocessing scripts meet its required format.
 
-如果需要将生成的 `wav.pt` 转换回音频文件，可以使用 `data/convert_wav_pt_to_wav`。
+If you need to convert the generated `wav.pt` files back to audio files, you can use `data/convert_wav_pt_to_wav`.
 
-### 模型训练和测试
+### Model Training and Testing
 
 #### DeReverbIC
 
-以我们提出的 DeReverbIC 模型为例，运行 `dereverbic/full/train_derevrbic` 即可开始训练，checkpoint默认保存到 `checkpoints/` 目录下。训练会持续运行，直到进程被关闭。
+Taking our proposed DeReverbIC model as an example, you can start training by running `dereverbic/dereverbic/train_dereverbic`. Checkpoints are saved by default to the `checkpoints/dereverbic/` directory. Training will continue until the process is terminated.
 
-完成训练后可以使用 `dereverbic/full/validate_dereverbic` 在验证集上进行验证。验证完成后，一个 `validation_rank.txt` 会被自动存放在checkpoint的目录下，记录了各checkpoint按验证集上表现的排序。在使用 `dereverbic/full/test_dereverbic` 进行测试时，会自动使用最佳的checkpoint。验证和测试在相应数据集上运行一次后就自动结束。
+After training is complete, you can validate the model on the validation set using `dereverbic/dereverbic/validate_dereverbic`. Once validation is finished, a `validation_rank.txt` file will be automatically placed in the checkpoint directory, recording the ranking of checkpoints based on their performance on the validation set. When running `dereverbic/dereverbic/test_dereverbic` for testing, the best checkpoint will be used automatically. Validation and testing will automatically stop after running once on the respective datasets.
 
-#### 其他模型
+#### Other Models
 
-其他模型的训练和测试和 DeReverbIC 是一致的。我们将所有基线模型都包括在了这个仓库中，包括在正文中涉及的：
+Training and testing for other models are consistent with DeReverbIC. We have included all baseline models in this repository, including the RIR blind estimation methods mentioned in the main text:
+- FiNS: `fins/`
+- BERP: `berp/`
+- CleanUNet: `cleanunet/dbe/`
+- CleanUNet w/ Two Stage: `cleanunet/two_stage/`
+- DeReverbIC w/o Two Stage: `dereverbic/tdunet_dbe/`
 
+As well as the dereverberation solutions mentioned in the appendix:
+- CleanUNet: `cleanunet/cleanunet/`
+- TDUNET: `dereverbic/tdunet_dereverb/`
 
-## 术语差异
+And the inverse convolution solutions:
+- CleanUNet: `cleanunet/ric/`
+- TDUNET w/o $\mathcal{F}_\mathrm{ed}$: `dereverbic/tdunet_ric_without_energy_decay/`
+- TDUNET: `dereverbic/tdunet_ric/`
 
-为了简化代码，部分术语可能与论文或者一般使用的术语有差异，包括但不限于以下：
-- `speech` 仅指代干净语音。
-- `reverb` 指代带混响语音。
-- `epoch` 由于数据量非常大，每次迭代时是随机选取而不按既定的顺序，在训练时， epoch 、 batch 、iteration 的概念是混用的。
+## Terminology Differences
+
+To simplify the code, some terminology may differ from that in the paper or commonly used terms, including but not limited to the following:
+- `speech`: It only refers to clean speech.
+- `reverb`: It refers to reverberant speech.
+- `epoch`: Since the dataset is very large, each iteration randomly selects data rather than following a predetermined order. During training, the concepts of epoch, batch, and iteration are used interchangeably.
 
 ## License
 
-This repository is open source under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). However, some models, loss functions, and indicators refer to other projects. Please follow the corresponding licenses. For some of them which do not clearly state the license, please be sure to respect the rights of the original author.
+This repository is open source under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). However, some models, loss functions, and indicators refer to other projects. Please follow the corresponding licenses. For some that do not clearly state the license, please be sure to respect the rights of the original authors.
