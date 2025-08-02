@@ -3,7 +3,7 @@ from random import Random
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.data_providers.train_data_provider import TrainDataProvider
 from models.cleanunet_models.cleanunet_dbe_model import CleanunetDbeModel
-from models.ricbe_models.ricbe_dbe_model import RicbeDbeModel
+from models.ricbe_models.tdunet_dbe_model import TdunetDbeModel
 from trainers.checkpoint_policies.checkpoint_at_interval_policy import CheckpointAtIntervalPolicy
 from trainers.checkpoint_policies.checkpoint_best_after_policy import CheckpointBestAfterPolicy
 from trainers.trainer import Trainer

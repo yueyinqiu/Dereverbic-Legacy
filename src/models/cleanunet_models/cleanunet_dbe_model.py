@@ -7,8 +7,8 @@ from criterions.rir_energy_decay_loss.rir_energy_decay_loss import RirEnergyDeca
 from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.cleanunet_models.networks.cleanunet_dbe_network import CleanUNetDbeNetwork
 from models.cleanunet_models.networks.cleanunet_network import CleanunetNetwork
-from models.ricbe_models.submodules.ricbe_postprocess import RicbePostprocess
-from models.ricbe_models.submodules.ricbe_preprocess import RicbePreprocess
+from models.ricbe_models.submodules.dereverbic_postprocess import DereverbicPostprocess
+from models.ricbe_models.submodules.dereverbic_preprocess import DereverbicPreprocess
 from trainers.trainable import Trainable
 
 

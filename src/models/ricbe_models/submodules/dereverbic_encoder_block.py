@@ -1,7 +1,7 @@
 import torch
 
 
-class RicbeEncoderBlock(torch.nn.Module):
+class DereverbicEncoderBlock(torch.nn.Module):
     def __init__(self, 
                  in_channels: int, 
                  out_channels: int, 

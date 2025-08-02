@@ -3,9 +3,9 @@ import torch
 
 from models.cleanunet_models.networks.cleanunet_network import CleanunetNetwork
 from models.cleanunet_models.networks.cleanunet_ric_network import CleanUNetRicNetwork
-from models.ricbe_models.networks.ricbe_ric_network import RicbeRicNetwork
-from models.ricbe_models.submodules.ricbe_postprocess import RicbePostprocess
-from models.ricbe_models.submodules.ricbe_preprocess import RicbePreprocess
+from models.ricbe_models.networks.tdunet_ric_network import TdunetRicNetwork
+from models.ricbe_models.submodules.dereverbic_postprocess import DereverbicPostprocess
+from models.ricbe_models.submodules.dereverbic_preprocess import DereverbicPreprocess
 
 
 class CleanUNetFullbeNetwork(torch.nn.Module):

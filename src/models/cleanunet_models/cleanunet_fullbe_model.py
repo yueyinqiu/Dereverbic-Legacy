@@ -6,9 +6,9 @@ from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 from criterions.rir_energy_decay_loss.rir_energy_decay_loss import RirEnergyDecayLoss
 from criterions.stft_losses.mrstft_loss import MrstftLoss
 from models.cleanunet_models.networks.cleanunet_fullbe_network import CleanUNetFullbeNetwork
-from models.ricbe_models.networks.ricbe_dereverb_network import RicbeDereverbNetwork
-from models.ricbe_models.networks.ricbe_full_network import RicbeFullNetwork
-from models.ricbe_models.networks.ricbe_ric_network import RicbeRicNetwork
+from models.ricbe_models.networks.tdunet_dereverb_network import TdunetDereverbNetwork
+from models.ricbe_models.networks.dereverbic_network import DereverbicNetwork
+from models.ricbe_models.networks.tdunet_ric_network import TdunetRicNetwork
 from trainers.trainable import Trainable
 
 

@@ -1,7 +1,7 @@
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
 from models.cleanunet_models.cleanunet_ric_model import CleanunetRicModel
-from models.ricbe_models.ricbe_ric_model import RicbeRicModel
+from models.ricbe_models.tdunet_ric_model import TdunetRicModel
 from trainers.trainer import Trainer
 
 

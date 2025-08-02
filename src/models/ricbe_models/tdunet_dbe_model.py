@@ -1,26 +1,26 @@
-from typing import Any, Literal, TypedDict
+from typing import Any, TypedDict
 from statictorch import Tensor0d, Tensor2d, Tensor3d
 import torch
 from torch.optim import AdamW  # pyright: ignore [reportPrivateImportUsage]
 
 from criterions.rir_energy_decay_loss.rir_energy_decay_loss import RirEnergyDecayLoss
 from criterions.stft_losses.mrstft_loss import MrstftLoss
-from models.ricbe_models.networks.ricbe_ric_network import RicbeRicNetwork
+from models.ricbe_models.networks.tdunet_dbe_network import TdunetDbeNetwork
 from trainers.trainable import Trainable
 
 
-class RicbeRicModel(Trainable):
+class TdunetDbeModel(Trainable):
     def __init__(self, device: torch.device) -> None:
         super().__init__()
         self.device = device
 
-        self.module = RicbeRicNetwork(False, False).to(device)
+        self.module = TdunetDbeNetwork().to(device)
         self.optimizer = AdamW(self.module.parameters(), 0.0001)
 
         self.mrstft = MrstftLoss.for_rir(device)
         self.l1 = torch.nn.L1Loss()
         self.energy_decay = RirEnergyDecayLoss()
-        
+
         self.train_preparation: Tensor0d | None = None
 
     class StateDict(TypedDict):
@@ -38,9 +38,8 @@ class RicbeRicModel(Trainable):
         self.optimizer.load_state_dict(state["optimizer"])
 
     def _predict(self,
-                 reverb_batch: Tensor2d,
-                 speech_batch: Tensor2d) -> Tensor2d:
-        rir: Tensor3d = self.module(reverb_batch.unsqueeze(1), speech_batch.unsqueeze(1))
+                 reverb_batch: Tensor2d) -> Tensor2d:
+        rir: Tensor3d = self.module(reverb_batch.unsqueeze(1))
         return Tensor2d(rir.squeeze(1))
 
     def _calculate_losses(self, 
@@ -61,10 +60,10 @@ class RicbeRicModel(Trainable):
 
     def prepare_train_on(self, 
                          reverb_batch: Tensor2d, 
-                         rir_batch: Tensor2d,
+                         rir_batch: Tensor2d, 
                          speech_batch: Tensor2d) -> dict[str, float]:
-        predicted: Tensor2d = self._predict(reverb_batch, speech_batch)
-
+        predicted: Tensor2d = self._predict(reverb_batch)
+        
         losses: dict[str, float]
         self.train_preparation, losses = self._calculate_losses(rir_batch, predicted)
 
@@ -75,12 +74,11 @@ class RicbeRicModel(Trainable):
         self.optimizer.zero_grad()
         self.train_preparation.backward()
         self.optimizer.step()
-
+    
     def evaluate_on(self, 
-                    reverb_batch: Tensor2d, 
-                    speech_batch: Tensor2d):
+                    reverb_batch: Tensor2d):
         self.module.eval()
-        predicted: Tensor2d = self._predict(reverb_batch, speech_batch)
+        predicted: Tensor2d = self._predict(reverb_batch)
         self.module.train()
         return predicted
     
@@ -90,9 +88,10 @@ class RicbeRicModel(Trainable):
                     speech_batch: Tensor2d) -> tuple[float, dict[str, float]]:
         self.module.eval()
 
-        predicted: Tensor2d = self._predict(reverb_batch, speech_batch)
+        predicted: Tensor2d = self._predict(reverb_batch)
         losses: dict[str, float]
         _, losses = self._calculate_losses(rir_batch, predicted)
 
         self.module.train()
+        
         return losses["loss_total"], losses

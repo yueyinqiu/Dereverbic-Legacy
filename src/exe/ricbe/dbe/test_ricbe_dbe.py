@@ -24,12 +24,12 @@ from metrics.rir_direct_to_reverberant_energy_ratio_metrics import RirDirectToRe
 from metrics.rir_reverberation_time_metrics import RirReverberationTimeMetrics
 from models.cleanunet_models.cleanunet_model import CleanunetModel
 from models.fins_models.fins_model import FinsModel
-from models.ricbe_models.ricbe_dbe_model import RicbeDbeModel
-from models.ricbe_models.ricbe_ric_model import RicbeRicModel
+from models.ricbe_models.tdunet_dbe_model import TdunetDbeModel
+from models.ricbe_models.tdunet_ric_model import TdunetRicModel
 from trainers.trainer import Trainer
 
 
-def test(model: RicbeDbeModel, 
+def test(model: TdunetDbeModel, 
          checkpoints: CheckpointsDirectory, 
          data: DataLoader, 
          rir_metrics: dict[str, Metric[Tensor2d]],
@@ -87,7 +87,7 @@ def main():
     from exe.ricbe.dbe import test_ricbe_dbe_config as config
 
     print("# Loading...")
-    test(RicbeDbeModel(config.device), 
+    test(TdunetDbeModel(config.device), 
          CheckpointsDirectory(config.checkpoints_directory), 
          ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          {

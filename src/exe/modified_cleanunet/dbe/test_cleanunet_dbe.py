@@ -25,8 +25,8 @@ from metrics.rir_reverberation_time_metrics import RirReverberationTimeMetrics
 from models.cleanunet_models.cleanunet_dbe_model import CleanunetDbeModel
 from models.cleanunet_models.cleanunet_model import CleanunetModel
 from models.fins_models.fins_model import FinsModel
-from models.ricbe_models.ricbe_dbe_model import RicbeDbeModel
-from models.ricbe_models.ricbe_ric_model import RicbeRicModel
+from models.ricbe_models.tdunet_dbe_model import TdunetDbeModel
+from models.ricbe_models.tdunet_ric_model import TdunetRicModel
 from trainers.trainer import Trainer
 
 

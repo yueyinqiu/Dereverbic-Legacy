@@ -2,13 +2,13 @@ from typing import Iterator, Protocol
 from statictorch import Tensor3d, anify
 import torch
 
-from models.ricbe_models.submodules.ricbe_decoder_block import RicbeDecoderBlock
+from models.ricbe_models.submodules.dereverbic_decoder_block import DereverbicDecoderBlock
 
 
 
-class RicbeDecoder(torch.nn.Module):
+class DereverbicDecoder(torch.nn.Module):
     class DecoderBlockList(Protocol):
-        def __iter__(self) -> Iterator[RicbeDecoderBlock]:
+        def __iter__(self) -> Iterator[DereverbicDecoderBlock]:
             raise RuntimeError()
         
     def __init__(self, 
@@ -20,19 +20,19 @@ class RicbeDecoder(torch.nn.Module):
                  concatenate_last: bool):
         super().__init__()
         self.concatenate_last: bool = concatenate_last
-        block_list: list[RicbeDecoderBlock] = []
+        block_list: list[DereverbicDecoderBlock] = []
         for _ in range(block_count):
             channels_next: int = channels_input - channels_decrease_per_layer
-            block_list.append(RicbeDecoderBlock(channels_input * 2, 
+            block_list.append(DereverbicDecoderBlock(channels_input * 2, 
                                                 channels_next, 
                                                 dilation, 
                                                 simple_decoder))
             channels_input = channels_next
-        self.blocks: RicbeDecoder.DecoderBlockList = anify(torch.nn.ModuleList(block_list))
+        self.blocks: DereverbicDecoder.DecoderBlockList = anify(torch.nn.ModuleList(block_list))
 
     def forward(self, x: Tensor3d, features: list[Tensor3d]):
         i: int = -1
-        block: RicbeDecoderBlock
+        block: DereverbicDecoderBlock
         for block in self.blocks:
             x = Tensor3d(torch.cat([x, features[i]], dim=1))
             x = Tensor3d(block(x))

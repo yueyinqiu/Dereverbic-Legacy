@@ -28,9 +28,9 @@ from metrics.stoi_metric import StoiMetric
 from models.cleanunet_models.cleanunet_fullbe_model import CleanUNetFullbeModel
 from models.cleanunet_models.cleanunet_model import CleanunetModel
 from models.fins_models.fins_model import FinsModel
-from models.ricbe_models.ricbe_dbe_model import RicbeDbeModel
-from models.ricbe_models.ricbe_full_model import RicbeFullModel
-from models.ricbe_models.ricbe_ric_model import RicbeRicModel
+from models.ricbe_models.tdunet_dbe_model import TdunetDbeModel
+from models.ricbe_models.dereverbic_model import DereverbicModel
+from models.ricbe_models.tdunet_ric_model import TdunetRicModel
 from trainers.trainer import Trainer
 
 

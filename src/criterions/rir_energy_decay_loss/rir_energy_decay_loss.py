@@ -6,7 +6,7 @@ import matplotlib.pyplot
 from statictorch import Tensor0d, Tensor1d, Tensor2d, Tensor3d, anify
 import torch
 
-# RIR Energy Decay Loss
+# The Proposed RIR Energy Decay Loss
 class RirEnergyDecayLoss():
     _TensorNd = TypeVar("_TensorNd",   # pylint: disable=un-declared-variable
                         torch.Tensor, Tensor1d, Tensor2d, Tensor3d)

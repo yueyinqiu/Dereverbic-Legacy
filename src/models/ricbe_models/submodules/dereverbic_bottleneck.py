@@ -1,11 +1,11 @@
 from statictorch import Tensor3d
 import torch
 
-from models.ricbe_models.submodules.ricbe_decoder import RicbeDecoder
-from models.ricbe_models.submodules.ricbe_encoder import RicbeEncoder
+from models.ricbe_models.submodules.dereverbic_decoder import DereverbicDecoder
+from models.ricbe_models.submodules.dereverbic_encoder import DereverbicEncoder
 
 
-class RicbeBottleneck(torch.nn.Module):
+class DereverbicBottleneck(torch.nn.Module):
     def __init__(self, channels: int, dilation: int, replace_lstm_with_encoder_decoder: bool) -> None:
         super().__init__()        
         kernel_size: int = 3
@@ -25,9 +25,9 @@ class RicbeBottleneck(torch.nn.Module):
             self.use_lstm = False
             block_count: int = 3
             channel_step: int = 48
-            self.encoder = RicbeEncoder(block_count, channels, channel_step, 1)
+            self.encoder = DereverbicEncoder(block_count, channels, channel_step, 1)
             final_channels: int = block_count * channel_step + channels
-            self.decoder = RicbeDecoder(block_count, final_channels, channel_step, 1, True, False)
+            self.decoder = DereverbicDecoder(block_count, final_channels, channel_step, 1, True, False)
             self.lstm = torch.nn.Sequential()
     
     def forward(self, x: Tensor3d):

@@ -27,13 +27,13 @@ from metrics.sisnr_metric import SisnrMetric
 from metrics.stoi_metric import StoiMetric
 from models.cleanunet_models.cleanunet_model import CleanunetModel
 from models.fins_models.fins_model import FinsModel
-from models.ricbe_models.ricbe_dbe_model import RicbeDbeModel
-from models.ricbe_models.ricbe_full_model import RicbeFullModel
-from models.ricbe_models.ricbe_ric_model import RicbeRicModel
+from models.ricbe_models.tdunet_dbe_model import TdunetDbeModel
+from models.ricbe_models.dereverbic_model import DereverbicModel
+from models.ricbe_models.tdunet_ric_model import TdunetRicModel
 from trainers.trainer import Trainer
 
 
-def test(model: RicbeFullModel, 
+def test(model: DereverbicModel, 
          checkpoints: CheckpointsDirectory, 
          data: DataLoader, 
          rir_metrics: dict[str, Metric[Tensor2d]],
@@ -62,7 +62,7 @@ def test(model: RicbeFullModel,
         batch_index: int
         batch: DataBatch
         for batch_index, batch in enumerate(data):
-            predicted: RicbeFullModel.Prediction = model.evaluate_on(batch.reverb)
+            predicted: DereverbicModel.Prediction = model.evaluate_on(batch.reverb)
 
             metric: str
             for metric in rir_metrics:
@@ -101,7 +101,7 @@ def main():
     from exe.ricbe.full import test_ricbe_full_config as config
 
     print("# Loading...")
-    test(RicbeFullModel(config.device), 
+    test(DereverbicModel(config.device), 
          CheckpointsDirectory(config.checkpoints_directory), 
          ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          {

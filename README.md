@@ -79,9 +79,10 @@ Besides them, each executable script owns a `_config.py` to store the configurat
 
 ## 术语差异
 
-为了简化代码，部分术语可能与论文中的术语有差异，包括但不限于以下：
-- `speech` 仅指代干净语音
-- `reverb` 指代带混响语音
+为了简化代码，部分术语可能与论文或者一般使用的术语有差异，包括但不限于以下：
+- `speech` 仅指代干净语音。
+- `reverb` 指代带混响语音。
+- `epoch` 由于数据量非常大，每次迭代时是随机选取而不按既定的顺序，在训练时， epoch 、 batch 、iteration 的概念是混用的。
 
 ## License
 

@@ -2,7 +2,7 @@ from statictorch import Tensor3d
 import torch
 
 
-class RicbePreprocess(torch.nn.Module):
+class DereverbicPreprocess(torch.nn.Module):
     def __init__(self, 
                  channels_input: int, 
                  channels_output: int):

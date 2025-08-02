@@ -21,11 +21,11 @@ from metrics.mrstft_loss_metric import MrstftLossMetric
 from metrics.pesq_metric import PesqMetric
 from metrics.sisnr_metric import SisnrMetric
 from metrics.stoi_metric import StoiMetric
-from models.ricbe_models.ricbe_dereverb_model import RicbeDereverbModel
+from models.ricbe_models.tdunet_dereverb_model import TdunetDereverbModel
 from trainers.trainer import Trainer
 
 
-def test(model: RicbeDereverbModel, 
+def test(model: TdunetDereverbModel, 
          checkpoints: CheckpointsDirectory, 
          data: DataLoader, 
          metrics: dict[str, Metric[Tensor2d]]):
@@ -71,7 +71,7 @@ def main():
     from exe.ricbe.dereverb import test_ricbe_dereverb_config as config
 
     print("# Loading...")
-    test(RicbeDereverbModel(config.device), 
+    test(TdunetDereverbModel(config.device), 
          CheckpointsDirectory(config.checkpoints_directory), 
          ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          {

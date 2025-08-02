@@ -1,6 +1,6 @@
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
-from models.ricbe_models.ricbe_full_model import RicbeFullModel
+from models.ricbe_models.dereverbic_model import DereverbicModel
 from trainers.trainer import Trainer
 
 
@@ -14,7 +14,7 @@ def main():
 
     data: ValidationOrTestDataset = ValidationOrTestDataset(
         config.validation_list, config.device)
-    model: RicbeFullModel = RicbeFullModel(config.device)
+    model: DereverbicModel = DereverbicModel(config.device)
 
     Trainer.validate(checkpoints, data.get_data_loader(32), model, config.start_checkpoint)
 

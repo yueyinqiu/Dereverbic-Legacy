@@ -1,23 +1,23 @@
 from statictorch import Tensor3d
 import torch
 
-from models.cleanunet_models.networks.cleanunet_network import CleanunetNetwork
-from models.cleanunet_models.networks.cleanunet_ric_network import CleanUNetRicNetwork
+from models.ricbe_models.submodules.dereverbic_tdunet import DereverbicTdunet
 from models.ricbe_models.submodules.dereverbic_postprocess import DereverbicPostprocess
 from models.ricbe_models.submodules.dereverbic_preprocess import DereverbicPreprocess
 
-
-class CleanUNetDbeNetwork(torch.nn.Module):
-    def __init__(self) -> None:
+class TdunetDbeNetwork(torch.nn.Module):
+    def __init__(self):
         super().__init__()
 
         channels: int = 48
+
         self.preprocess = DereverbicPreprocess(1, channels)
-        self.cleanunet = CleanunetNetwork(channels, channels * 2)
+        self.pair = DereverbicTdunet(channels, False, False)
         self.postprocess = DereverbicPostprocess(channels * 2, 1, 1, 1, 5)
 
     def forward(self, reverb: Tensor3d):
-        reverb = self.preprocess(reverb)
-        rir: Tensor3d = self.cleanunet(reverb)
+        rev: Tensor3d = self.preprocess(reverb)
+        rir: Tensor3d = self.pair(rev)
         rir = self.postprocess(rir)
         return rir
+    

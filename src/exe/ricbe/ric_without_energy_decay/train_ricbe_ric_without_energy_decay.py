@@ -2,8 +2,8 @@ from random import Random
 
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.data_providers.train_data_provider import TrainDataProvider
-from models.ricbe_models.ricbe_ric_model import RicbeRicModel
-from models.ricbe_models.ricbe_ric_model_without_energy_decay import RicbeRicModelWithoutEnergyDecay
+from models.ricbe_models.tdunet_ric_model import TdunetRicModel
+from models.ricbe_models.tdunet_ric_model_without_energy_decay import TdunetRicModelWithoutEnergyDecay
 from trainers.checkpoint_policies.checkpoint_at_interval_policy import CheckpointAtIntervalPolicy
 from trainers.checkpoint_policies.checkpoint_best_after_policy import CheckpointBestAfterPolicy
 from trainers.trainer import Trainer
@@ -24,7 +24,7 @@ def main():
                                                       config.device,
                                                       random.randint(0, 1000))
 
-    model: RicbeRicModelWithoutEnergyDecay = RicbeRicModelWithoutEnergyDecay(config.device)
+    model: TdunetRicModelWithoutEnergyDecay = TdunetRicModelWithoutEnergyDecay(config.device)
 
     Trainer.train(checkpoints, train_data, model, 
                   CheckpointAtIntervalPolicy(config.checkpoint_interval))

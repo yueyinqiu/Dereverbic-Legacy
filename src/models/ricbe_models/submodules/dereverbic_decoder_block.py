@@ -2,7 +2,7 @@ from statictorch import Tensor3d
 import torch
 
 
-class RicbeDecoderBlock(torch.nn.Module):
+class DereverbicDecoderBlock(torch.nn.Module):
     def __init__(self, in_channels: int, out_channels: int, dilation: int, simple_decoder: bool):
         super().__init__()
         self.with_skip = not simple_decoder
