@@ -25,16 +25,16 @@ from metrics.rir_direct_to_reverberant_energy_ratio_metrics import RirDirectToRe
 from metrics.rir_reverberation_time_metrics import RirReverberationTimeMetrics
 from metrics.sisnr_metric import SisnrMetric
 from metrics.stoi_metric import StoiMetric
-from models.cleanunet_models.cleanunet_two_stage_model import CleanUNetTwoStageModel
 from models.cleanunet_models.cleanunet_model import CleanunetModel
 from models.fins_models.fins_model import FinsModel
 from models.ricbe_models.tdunet_dbe_model import TdunetDbeModel
 from models.ricbe_models.dereverbic_model import DereverbicModel
+from models.ricbe_models.dereverbic_model_without_energy_decay import DereverbicModelWithoutEnergyDecay
 from models.ricbe_models.tdunet_ric_model import TdunetRicModel
 from trainers.trainer import Trainer
 
 
-def test(model: CleanUNetTwoStageModel, 
+def test(model: DereverbicModelWithoutEnergyDecay, 
          checkpoints: CheckpointsDirectory, 
          data: DataLoader, 
          rir_metrics: dict[str, Metric[Tensor2d]],
@@ -63,7 +63,7 @@ def test(model: CleanUNetTwoStageModel,
         batch_index: int
         batch: DataBatch
         for batch_index, batch in enumerate(data):
-            predicted: CleanUNetTwoStageModel.Prediction = model.evaluate_on(batch.reverb)
+            predicted: DereverbicModelWithoutEnergyDecay.Prediction = model.evaluate_on(batch.reverb)
 
             metric: str
             for metric in rir_metrics:
@@ -99,18 +99,18 @@ def test(model: CleanUNetTwoStageModel,
 
 
 def main():
-    from exe.modified_cleanunet.full import test_cleanunet_full_config as config
+    from exe.ricbe.full_without_energy_decay import test_dereverbic_without_energy_decay_config as config
 
     print("# Loading...")
-    test(CleanUNetTwoStageModel(config.device), 
+    test(DereverbicModelWithoutEnergyDecay(config.device), 
          CheckpointsDirectory(config.checkpoints_directory), 
          ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          {
              "mrstft": MrstftLossMetric.for_rir(config.device),
-             "l1": L1LossMetric(config.device)
+             "l1": L1LossMetric(config.device),
          },
          {
-             "rt60": RirReverberationTimeMetrics(30, 16000, {
+             "rt30": RirReverberationTimeMetrics(30, 16000, {
                  "bias": BiasMetric(),
                  "l1": L1LossMetric(config.device),
                  "pearson": PearsonCorrelationMetric()
