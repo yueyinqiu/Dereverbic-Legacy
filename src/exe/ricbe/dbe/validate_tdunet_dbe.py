@@ -1,6 +1,6 @@
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.data_providers.validation_or_test_dataset import ValidationOrTestDataset
-from models.ricbe_models.tdunet_dbe_model import TdunetDbeModel
+from models.dereverbic_models.tdunet_dbe_model import TdunetDbeModel
 from trainers.trainer import Trainer
 
 

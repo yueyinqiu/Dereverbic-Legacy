@@ -1,9 +1,9 @@
 from statictorch import Tensor3d
 import torch
 
-from models.ricbe_models.submodules.dereverbic_tdunet import DereverbicTdunet
-from models.ricbe_models.submodules.dereverbic_postprocess import DereverbicPostprocess
-from models.ricbe_models.submodules.dereverbic_preprocess import DereverbicPreprocess
+from models.dereverbic_models.submodules.dereverbic_tdunet import DereverbicTdunet
+from models.dereverbic_models.submodules.dereverbic_postprocess import DereverbicPostprocess
+from models.dereverbic_models.submodules.dereverbic_preprocess import DereverbicPreprocess
 
 class TdunetDbeNetwork(torch.nn.Module):
     def __init__(self):

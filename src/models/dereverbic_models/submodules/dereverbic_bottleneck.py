@@ -1,8 +1,8 @@
 from statictorch import Tensor3d
 import torch
 
-from models.ricbe_models.submodules.dereverbic_decoder import DereverbicDecoder
-from models.ricbe_models.submodules.dereverbic_encoder import DereverbicEncoder
+from models.dereverbic_models.submodules.dereverbic_decoder import DereverbicDecoder
+from models.dereverbic_models.submodules.dereverbic_encoder import DereverbicEncoder
 
 
 class DereverbicBottleneck(torch.nn.Module):

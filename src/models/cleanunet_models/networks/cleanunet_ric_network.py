@@ -2,8 +2,8 @@ from statictorch import Tensor3d
 import torch
 
 from models.cleanunet_models.networks.cleanunet_network import CleanunetNetwork
-from models.ricbe_models.submodules.dereverbic_postprocess import DereverbicPostprocess
-from models.ricbe_models.submodules.dereverbic_preprocess import DereverbicPreprocess
+from models.dereverbic_models.submodules.dereverbic_postprocess import DereverbicPostprocess
+from models.dereverbic_models.submodules.dereverbic_preprocess import DereverbicPreprocess
 
 
 class CleanUNetRicNetwork(torch.nn.Module):

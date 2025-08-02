@@ -2,7 +2,7 @@ from typing import Iterator, Protocol
 from statictorch import Tensor3d, anify
 import torch
 
-from models.ricbe_models.submodules.dereverbic_decoder_block import DereverbicDecoderBlock
+from models.dereverbic_models.submodules.dereverbic_decoder_block import DereverbicDecoderBlock
 
 
 

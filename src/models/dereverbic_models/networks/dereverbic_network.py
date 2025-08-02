@@ -1,8 +1,8 @@
 from statictorch import Tensor3d
 import torch
 
-from models.ricbe_models.networks.tdunet_dereverb_network import TdunetDereverbNetwork
-from models.ricbe_models.networks.tdunet_ric_network import TdunetRicNetwork
+from models.dereverbic_models.networks.tdunet_dereverb_network import TdunetDereverbNetwork
+from models.dereverbic_models.networks.tdunet_ric_network import TdunetRicNetwork
 
 # The Proposed DeReverbIC Model
 class DereverbicNetwork(torch.nn.Module):

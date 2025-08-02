@@ -2,7 +2,7 @@ from random import Random
 
 from inputs_and_outputs.checkpoint_managers.checkpoints_directory import CheckpointsDirectory
 from inputs_and_outputs.data_providers.train_data_provider import TrainDataProvider
-from models.ricbe_models.tdunet_dereverb_model import TdunetDereverbModel
+from models.dereverbic_models.tdunet_dereverb_model import TdunetDereverbModel
 from trainers.checkpoint_policies.checkpoint_at_interval_policy import CheckpointAtIntervalPolicy
 from trainers.trainer import Trainer
 

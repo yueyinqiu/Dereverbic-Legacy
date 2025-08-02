@@ -16,7 +16,7 @@ from metrics.metric import Metric
 from metrics.mrstft_loss_metric import MrstftLossMetric
 from metrics.pesq_metric import PesqMetric
 from metrics.stoi_metric import StoiMetric
-from models.ricbe_models.tdunet_dereverb_model import TdunetDereverbModel
+from models.dereverbic_models.tdunet_dereverb_model import TdunetDereverbModel
 from trainers.trainer import Trainer
 
 

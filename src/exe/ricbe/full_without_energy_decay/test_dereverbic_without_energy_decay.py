@@ -21,7 +21,7 @@ from metrics.pesq_metric import PesqMetric
 from metrics.rir_direct_to_reverberant_energy_ratio_metrics import RirDirectToReverberantEnergyRatioMetrics
 from metrics.rir_reverberation_time_metrics import RirReverberationTimeMetrics
 from metrics.stoi_metric import StoiMetric
-from models.ricbe_models.dereverbic_model_without_energy_decay import DereverbicModelWithoutEnergyDecay
+from models.dereverbic_models.dereverbic_model_without_energy_decay import DereverbicModelWithoutEnergyDecay
 from trainers.trainer import Trainer
 
 
