@@ -90,7 +90,7 @@ def test(model: CleanUNetTwoStageModel,
 
 
 def main():
-    from exe.modified_cleanunet.full import test_cleanunet_full_config as config
+    from exe.cleanunet.two_stage import test_cleanunet_two_stage_config as config
 
     print("# Loading...")
     test(CleanUNetTwoStageModel(config.device), 

@@ -2,7 +2,7 @@ import pathlib as _pathlib
 import torch as _torch
 
 from exe.data.preprocess import split_dataset_config as _split_dataset_config
-from exe.modified_cleanunet.dbe import train_cleanunet_dbe_config as _train_cleanunet_dbe_config
+from exe.cleanunet.dbe import train_cleanunet_dbe_config as _train_cleanunet_dbe_config
 
 
 device: _torch.device = \

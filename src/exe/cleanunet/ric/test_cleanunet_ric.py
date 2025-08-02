@@ -78,7 +78,7 @@ def test(model: CleanunetRicModel,
 
 
 def main():
-    from exe.modified_cleanunet.ric import test_cleanunet_ric_config as config
+    from exe.cleanunet.ric import test_cleanunet_ric_config as config
 
     print("# Loading...")
     test(CleanunetRicModel(config.device), 

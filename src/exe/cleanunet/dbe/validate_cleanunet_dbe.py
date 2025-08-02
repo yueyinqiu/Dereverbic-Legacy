@@ -5,7 +5,7 @@ from trainers.trainer import Trainer
 
 
 def main():
-    from exe.modified_cleanunet.dbe import validate_cleanunet_dbe_config as config
+    from exe.cleanunet.dbe import validate_cleanunet_dbe_config as config
     
     print("# Loading...")
     

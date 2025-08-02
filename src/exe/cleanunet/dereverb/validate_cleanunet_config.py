@@ -1,7 +1,7 @@
 import pathlib as _pathlib
 import torch as _torch
 
-from exe.cleanunet import train_cleanunet_config as _train_cleanunet_config
+from exe.cleanunet.dereverb import train_cleanunet_config as _train_cleanunet_config
 from exe.data.preprocess import split_dataset_config as _split_dataset_config
 
 

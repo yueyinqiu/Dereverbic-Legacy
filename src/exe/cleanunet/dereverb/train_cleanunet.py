@@ -8,7 +8,7 @@ from trainers.trainer import Trainer
 
 
 def main():
-    from exe.cleanunet import train_cleanunet_config as config
+    from exe.cleanunet.dereverb import train_cleanunet_config as config
 
     print("# Loading...")
     random: Random = Random(config.random_seed)

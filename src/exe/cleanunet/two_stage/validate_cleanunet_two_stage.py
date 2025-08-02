@@ -5,7 +5,7 @@ from trainers.trainer import Trainer
 
 
 def main():
-    from exe.modified_cleanunet.full import validate_cleanunet_full_config as config
+    from exe.cleanunet.two_stage import validate_cleanunet_two_stage_config as config
     
     print("# Loading...")
     

@@ -5,7 +5,7 @@ from trainers.trainer import Trainer
 
 
 def main():
-    from exe.modified_cleanunet.ric import validate_cleanunet_ric_config as config
+    from exe.cleanunet.ric import validate_cleanunet_ric_config as config
     
     print("# Loading...")
     
