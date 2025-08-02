@@ -1,10 +1,11 @@
-csharp-like-file
+batch-pystoi==0.0.3
+csharp-like-file==0.0.6
+einops==0.8.1
 librosa==0.10.2
 matplotlib==3.10.0
-pesq==0.0.4
-batch-pystoi==0.0.3
-statictorch
-einops==0.8.1
 nnAudio==0.3.3
+pesq==0.0.4
+statictorch==0.0.4
 
+# PyLint
 variable-declaration-checker
