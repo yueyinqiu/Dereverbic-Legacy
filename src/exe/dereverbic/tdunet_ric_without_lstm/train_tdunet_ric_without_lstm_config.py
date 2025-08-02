@@ -14,7 +14,7 @@ checkpoint_interval: int = \
 
 
 checkpoints_directory: _pathlib.Path = \
-    _common_configurations.checkpoints_directory / "ricbe_ric_without_lstm/"
+    _common_configurations.checkpoints_directory / "tdunet_ric_without_lstm/"
 
 
 train_list_rir: _pathlib.Path = \

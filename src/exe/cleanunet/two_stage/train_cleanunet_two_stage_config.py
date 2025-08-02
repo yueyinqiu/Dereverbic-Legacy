@@ -14,7 +14,7 @@ checkpoint_interval: int = \
 
 
 checkpoints_directory: _pathlib.Path = \
-    _common_configurations.checkpoints_directory / "cleanunet_fullbe/"
+    _common_configurations.checkpoints_directory / "cleanunet_two_stage/"
 
 
 train_list_rir: _pathlib.Path = \
