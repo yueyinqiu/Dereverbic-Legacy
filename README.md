@@ -76,7 +76,7 @@ After training is complete, the model can be validated with the validation set u
 
 #### Model List
 
-Training and testing for other models are consistent with DeReverbIC. We have included all baseline models in this repository, including the RIR blind estimation approaches mentioned in the main text:
+Training and testing for other models are consistent with DeReverbIC. We have included all baseline models in this repository, including the RIR blind estimation approaches mentioned in the main paper:
 - FiNS: `./src/exe/fins/`
 - BERP: `./src/exe/berp/`
 - CleanUNet: `./src/exe/cleanunet/dbe/`
