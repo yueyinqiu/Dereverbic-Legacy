@@ -31,66 +31,67 @@ The hardware used is as follows (not all resources are occupied):
 
 ### Project Structure
 
-To ensure consistent module importing, `./src/` is treated as the root directory. Therefore, `PYTHONPATH` should be set to `./src/`, otherwise the modules may not be imported correctly. When using Visual Studio Code, there is no need to modify it manually, as `python.envFile` has been configured in the workspace. (This only takes effect for the Python extension. An additional setting of `PYTHONPATH` is still required when running in the terminal.)
+To ensure consistent module importing, `./src/` is treated as the root directory. Therefore, `PYTHONPATH` should be set to `./src/`, otherwise the modules may not be imported correctly. When using Visual Studio Code, there is no need to modify it manually, as `python.envFile` has been configured in the workspace. (This only takes effect for the Python extension. An additional setting of `PYTHONPATH` is still required when running in the terminal.) Note that relative paths are used in the project, so it is recommended to keep the working directory at `Dereverbic--RirBlindEstimation/` to ensure consistency across all scripts.
 
-All executable scripts are placed under the `./src/exe/` directory. For simplicity, the `./src/exe/` part will be omitted when referring to a script to be run later. Other scripts will be imported by these executables to complete the corresponding tasks. A `common_configurations.py` exists in `./src/exe/` to allow convenient modification of settings that may need to be changed on different devices, including the storage locations for datasets and checkpoints, as well as the GPU to be used.
+All executable scripts are placed under the `./src/exe/` directory. Other scripts will be imported by these executables to complete the corresponding tasks. A `common_configurations.py` exists in `./src/exe/` to allow convenient modification of settings that may need to be changed on different devices, including the storage locations for datasets and checkpoints, as well as the GPU to be used.
 
-In addition, each executable script has a corresponding `_config.py` to store its configurations. Using Python scripts for configuration allows options to be easily reused and located. When using Visual Studio Code, these configuration scripts will be nested according to the `explorer.fileNesting`. All configuration scripts are designed to be interrelated with previous ones. For example, when the checkpoint location is modified in `dereverbic/dereverbic/train_dereverbic_config`, the value provided in `dereverbic/dereverbic/validate_dereverbic_config` will also change accordingly.
+In addition, each executable script has a corresponding `_config.py` to store its configurations. Using Python scripts for configuration allows options to be easily reused and located. When using Visual Studio Code, these configuration scripts will be nested according to the `explorer.fileNesting`. All configuration scripts are designed to be interrelated with previous ones. For example, when the checkpoint location is modified in `train_dereverbic_config.py`, the value provided in `validate_dereverbic_config.py` will also change accordingly.
 
 ### Data Preparation
 
-#### Downloading RIR Dataset
+#### Downloading the RIR Dataset
 
 [The BIRD dataset](https://arxiv.org/abs/2010.09930) is used to provide RIRs: https://github.com/FrancoisGrondin/BIRD
 
-For convenience, the BIRD dataset can be downloaded using `data/download/download_bird`. The storage location is specified by `data/download/download_bird_config`, with the default being `./data/raw/bird/`.
+For convenience, the BIRD dataset can be downloaded using `./src/exe/data/download/download_bird.py`. The storage location is specified by `./src/exe/data/download/download_bird_config.py`, with the default being `./data/raw/bird/`.
 
-#### Downloading Speech Dataset
+#### Downloading the Speech Dataset
 
 [The EARS dataset](https://www.isca-archive.org/interspeech_2024/richter24_interspeech.html) is used to provide anechoic speech: https://github.com/facebookresearch/ears_dataset
 
-Similarly, the EARS dataset can be downloaded using `data/download/download_ears`, with the default storage location being `./data/raw/ears/`.
+Similarly, the EARS dataset can be downloaded using `./src/exe/data/download/download_ears.py`, with the default storage location being `./data/raw/ears/`.
 
 #### Data Preprocessing
 
 The downloaded data needs to be processed and converted into `.wav.pt` files for subsequent training and testing.
 
-- RIR preprocessing: `data/preprocess/convert_rir_to_tensor`
-- Speech preprocessing: `data/preprocess/convert_speech_to_tensor`
+- RIR preprocessing: `./src/exe/data/preprocess/convert_rir_to_tensor.py`
+- Speech preprocessing: `./src/exe/data/preprocess/convert_speech_to_tensor.py`
 
 These preprocessing scripts may not be applicable for other datasets, as some steps may depend on certain characteristics of the datasets. For example, it is assumed that all data in the RIR dataset have a uniform length and thus do not require trimming.
 
-Next, `data/preprocess/split_dataset` can be used to split the dataset. This script is generic as long as the files generated by the above preprocessing scripts meet its required format.
+Next, `./src/exe/data/preprocess/split_dataset.py` can be used to split the dataset. This script is generic as long as the files generated by the above preprocessing scripts meet its required format.
 
-`data/preprocess/convert_wav_pt_to_wav` can be used to convert the generated `.wav.pt` files back to `.wav` files.
+`./src/exe/data/preprocess/convert_wav_pt_to_wav.py` can be used to convert the generated `.wav.pt` files back to `.wav` files.
 
 ### Model Training and Testing
 
-#### Train DeReverbIC
+#### Training DeReverbIC
 
-Taking our proposed DeReverbIC model as an example, training can be started by `dereverbic/dereverbic/train_dereverbic`. Checkpoints are saved by default to the `checkpoints/dereverbic/` directory. Training will not stop until the process is terminated.
+Taking our proposed DeReverbIC model as an example, training can be started by `train_dereverbic.py` in `./src/exe/dereverbic/dereverbic/`. Checkpoints are saved by default to the `./checkpoints/dereverbic/` directory. Training will not stop until the process is terminated.
 
-#### Validate and Test DeReverbIC
+#### Validating and Testing DeReverbIC
 
-After training is complete, the model can be validated with the validation set using `dereverbic/dereverbic/validate_dereverbic`. Once validation is finished, a `validation_rank.txt` file will be automatically placed in the checkpoint directory, recording the ranking of checkpoints based on their performance on the validation set. When running `dereverbic/dereverbic/test_dereverbic` for testing, the best checkpoint will be used automatically. Validation and testing will automatically stop after running once on the respective datasets.
+After training is complete, the model can be validated with the validation set using `validate_dereverbic.py`. Once validation is finished, a `validation_rank.txt` file will be automatically placed in the checkpoint directory, recording the ranking of checkpoints based on their performance on the validation set. When running `test_dereverbic.py` for testing, the best checkpoint will be used automatically. Validation and testing will automatically stop after running once on the respective datasets.
 
-#### Other Models
+#### Model List
 
 Training and testing for other models are consistent with DeReverbIC. We have included all baseline models in this repository, including the RIR blind estimation approaches mentioned in the main text:
-- FiNS: `fins/`
-- BERP: `berp/`
-- CleanUNet: `cleanunet/dbe/`
-- CleanUNet w/ Two Stage: `cleanunet/two_stage/`
-- DeReverbIC w/o Two Stage: `dereverbic/tdunet_dbe/`
+- FiNS: `./src/exe/fins/`
+- BERP: `./src/exe/berp/`
+- CleanUNet: `./src/exe/cleanunet/dbe/`
+- CleanUNet w/ Two Stage: `./src/exe/cleanunet/two_stage/`
+- DeReverbIC w/o Two Stage: `./src/exe/dereverbic/tdunet_dbe/`
+- DeReverbIC: `./src/exe/dereverbic/dereverbic`
 
 As well as the de-reverberation approaches mentioned in the appendix:
-- CleanUNet: `cleanunet/cleanunet/`
-- TDUNET: `dereverbic/tdunet_dereverb/`
+- CleanUNet: `./src/exe/cleanunet/cleanunet/`
+- TDUNET: `./src/exe/dereverbic/tdunet_dereverb/`
 
 And the RIR inverse convolution approaches:
-- CleanUNet: `cleanunet/ric/`
-- TDUNET w/o $\mathcal{F}_\mathrm{ed}$: `dereverbic/tdunet_ric_without_energy_decay/`
-- TDUNET: `dereverbic/tdunet_ric/`
+- CleanUNet: `./src/exe/cleanunet/ric/`
+- TDUNET w/o $\mathcal{F}_\mathrm{ed}$: `./src/exe/dereverbic/tdunet_ric_without_energy_decay/`
+- TDUNET: `./src/exe/dereverbic/tdunet_ric/`
 
 ## Terms
 
