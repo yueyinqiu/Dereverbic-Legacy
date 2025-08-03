@@ -99,7 +99,3 @@ To simplify the code, some terms may differ from that in the paper or commonly u
 - `speech`: It only refers to anechoic speech.
 - `reverb`: It refers to reverberant speech.
 - `epoch`: Since the dataset is very large, each iteration randomly selects data rather than following a predetermined order. During training, the concepts of epoch, batch, and iteration are used interchangeably.
-
-## License
-
-This repository is open source under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). owever, some models, loss functions, and metrics refer to other projects. Please follow the corresponding licenses. For some that do not clearly state the license, please be sure to respect the rights of the original authors.
