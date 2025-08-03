@@ -69,8 +69,7 @@ def main():
     cpu: torch.device = torch.device("cpu")
     test(ValidationOrTestDataset(config.test_list, cpu).get_data_loader(32),
          {
-             "mrstft": MrstftLossMetric.for_rir(cpu),
-             "l1": L1LossMetric(cpu),
+             "mrstft": MrstftLossMetric.for_rir(cpu)
          },
          {
              "rt60": RirReverberationTimeMetrics(30, 16000, {

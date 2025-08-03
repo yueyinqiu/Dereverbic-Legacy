@@ -85,8 +85,7 @@ def main():
          CheckpointsDirectory(config.checkpoints_directory), 
          ValidationOrTestDataset(config.test_list, config.device).get_data_loader(32),
          {
-             "mrstft": MrstftLossMetric.for_rir(config.device),
-             "l1": L1LossMetric(config.device),
+             "mrstft": MrstftLossMetric.for_rir(config.device)
          },
          {
              "rt60": RirReverberationTimeMetrics(30, 16000, {
