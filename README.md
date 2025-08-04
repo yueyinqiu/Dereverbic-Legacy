@@ -89,6 +89,7 @@ As well as the de-reverberation approaches mentioned in the appendix:
 - TDUNET: `./src/exe/dereverbic/tdunet_dereverb/`
 
 And the RIR inverse convolution approaches:
+- Frequency-Domain Division: `./src/exe/frequency_domain_division/`
 - CleanUNet: `./src/exe/cleanunet/ric/`
 - TDUNET w/o $\mathcal{F}_\mathrm{ed}$: `./src/exe/dereverbic/tdunet_ric_without_energy_decay/`
 - TDUNET: `./src/exe/dereverbic/tdunet_ric/`
