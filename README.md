@@ -76,7 +76,7 @@ After training is complete, the model can be validated with the validation set u
 
 #### Model List
 
-Training and testing for other models are consistent with DeReverbIC. We have included all baseline models in this repository, including the RIR blind estimation approaches mentioned in the main paper:
+Training and testing for other models are consistent with DeReverbIC. We have included all baseline models in this repository, including the RIR blind estimation models mentioned in the paper:
 - FiNS: `./src/exe/fins/`
 - BERP: `./src/exe/berp/`
 - CleanUNet: `./src/exe/cleanunet/dbe/`
@@ -84,15 +84,21 @@ Training and testing for other models are consistent with DeReverbIC. We have in
 - DeReverbIC w/o Two Stage: `./src/exe/dereverbic/tdunet_dbe/`
 - DeReverbIC: `./src/exe/dereverbic/dereverbic`
 
-As well as the de-reverberation approaches mentioned in the appendix:
-- CleanUNet: `./src/exe/cleanunet/cleanunet/`
-- TDUNET: `./src/exe/dereverbic/tdunet_dereverb/`
-
-And the RIR inverse convolution approaches:
-- Frequency-Domain Division: `./src/exe/frequency_domain_division/`
-- CleanUNet: `./src/exe/cleanunet/ric/`
+And the RIR inverse convolution models:
 - TDUNET w/o $\mathcal{F}_\mathrm{ed}$: `./src/exe/dereverbic/tdunet_ric_without_energy_decay/`
 - TDUNET: `./src/exe/dereverbic/tdunet_ric/`
+
+#### Additional Experiments
+
+In addition to the experiments covered in the paper, some other models and experiments were also tested and performed.
+
+More approaches of RIR inverse convolution:
+- Frequency-Domain Division: `./src/exe/frequency_domain_division/`
+- CleanUNet: `./src/exe/cleanunet/ric/`
+
+Experiments of de-reverberation:
+- CleanUNet: `./src/exe/cleanunet/cleanunet/`
+- TDUNET: `./src/exe/dereverbic/tdunet_dereverb/`
 
 ## Terms
 
@@ -100,3 +106,7 @@ To simplify the code, some terms may differ from that in the paper or commonly u
 - `speech`: It only refers to anechoic speech.
 - `reverb`: It refers to reverberant speech.
 - `epoch`: Since the dataset is very large, each iteration randomly selects data rather than following a predetermined order. During training, the concepts of epoch, batch, and iteration are used interchangeably.
+
+---
+
+> Since the relevant paper has not yet been published, some content is not convenient to be made public, including the pre-trained models, open source license, results of the additional experiments, etc. We will promptly supplement the relevant information after the paper is accepted.
